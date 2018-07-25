@@ -20,6 +20,16 @@ Easy HTTP client library implemented using C++11 and Boost.Beast. Allows you to 
 
 Server and client examples -> `./examples`
 
+Run the I/O service on the requested number of threads
+
+```cpp
+
+    uint32_t pool_size = boost::thread::hardware_concurrency();
+    http::base::processor::get().start(pool_size == 0 ? 4 : pool_size << 1);
+    http::base::processor::get().wait();
+
+```
+
 ```cpp
 
     http::server my_http_server;
@@ -38,11 +48,35 @@ Server and client examples -> `./examples`
         session->do_read();
     });
 
-    // Run the I/O service on the requested number of threads
-    uint32_t pool_size = boost::thread::hardware_concurrency();
-    http::base::processor::get().start(pool_size == 0 ? 4 : pool_size << 1);
-    http::base::processor::get().wait();
-
 ```
 
 In browser : `localhost:80`
+
+```cpp
+
+    http::client my_http_client;
+
+    const auto & host = "www.google.com";
+    const auto & port = 80;
+
+    const auto & on_connect = [&host](auto & session){
+        http::base::out("Successful connected!");
+
+        // Create request and fill fields...
+        
+        // Send 
+        // session->do_write(boost::move(req));
+    };
+
+    // Handler on received object
+    const auto & on_receive = [](auto & res){
+        cout << *res << endl;
+        
+        // The answer is received, stop!
+        http::base::processor::get().stop();
+    };
+
+    // Connect to host:port
+    my_http_client.get(host, port, on_connect, on_receive);
+
+```
