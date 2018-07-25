@@ -62,7 +62,7 @@ public:
          f_();
     }
 
-    static inline auto make(const F& f) {
+    static inline auto make(const F& f) -> task_wrapped<F> {
         return task_wrapped<F>(f);
     }
 
@@ -102,7 +102,7 @@ public:
     }
 
     template <class Time>
-    static inline auto make(boost::asio::io_service& ios, const Time& duration_or_time, const F& f)
+    static inline auto make(boost::asio::io_service& ios, const Time& duration_or_time, const F& f) -> timer_task<F>
     {
         return timer_task<F>(ios, duration_or_time, f);
     }
