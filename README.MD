@@ -13,7 +13,7 @@ Easy HTTP client library implemented using C++11 and Boost.Beast. Allows you to 
 
 # DEPENDENCIES
 
-* Boost.Asio & Boost.Beast library
+* Boost.Regex, Boost.Asio & Boost.Beast library
 * C++ 14 compatible compilator (for generic lambda)
 
 # USAGE
@@ -44,3 +44,5 @@ Server and client examples -> `./examples`
     http::base::processor::get().wait();
 
 ```
+
+In browser : `localhost:80`
