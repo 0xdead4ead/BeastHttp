@@ -23,6 +23,7 @@
 #include <boost/asio/read.hpp>
 #include <boost/function.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/asio/signal_set.hpp>
 #include <map>
 #include <string>
 #include <iostream>
@@ -149,7 +150,7 @@ public:
 
     void shutdown() {
         socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-        socket_.close();
+        //socket_.close();
     }
 
     boost::asio::ip::tcp::socket & socket(){
@@ -175,9 +176,9 @@ class tcp_listener: public boost::enable_shared_from_this<tcp_listener> ,
 public:
 
     template <class F>
-    tcp_listener(boost::asio::io_service& io_service, const std::string & address, const std::string & port, F&& f)
+    tcp_listener(boost::asio::io_service& io_service, const std::string & address, const std::string & port, F&& callback)
         : acceptor_(io_service)
-        , f_(boost::forward<F>(f))
+        , f_callback_(boost::forward<F>(callback))
     {
         boost::asio::ip::tcp::resolver resolver(io_service);
         boost::asio::ip::tcp::resolver::query query(address, port);
@@ -213,13 +214,13 @@ private:
     {
         accept_start();
         if (!error)
-            f_(new_connection); // running task
+            f_callback_(new_connection); // running task
         else
             std::cerr << "http::base::tcp_listener::handle_accept " << error.message() << std::endl;
     }
 
     acceptor_type acceptor_;
-    boost::function< void(tcp_connection::ptr) > f_;
+    boost::function< void(tcp_connection::ptr) > f_callback_;
 
 }; // class tcp_listener
 
@@ -323,17 +324,53 @@ public:
         return boost::make_shared<tcp_connection>(*ios_, endpoint, boost::forward<F>(f));
     }
 
+    // This function is not threads safe!
+    // Must be called before all the `start()` calls
+    // Function can be called only once
+    template <class F>
+    void register_signals_handler(F&& f, const std::vector<int>& signals_to_wait)
+    {
+        // Making shure that this is the first call
+        assert(!signal_handlers_);
+
+        signal_handlers_ = boost::forward<F>(f);
+        std::for_each(
+            signals_to_wait.begin(),
+            signals_to_wait.end(),
+            boost::bind(
+                &boost::asio::signal_set::add, &signals_, _1
+            )
+        );
+
+        signals_.async_wait(boost::bind(
+            &processor::handle_signals, this, _1, _2
+        ));
+    }
+
 private:
 
     ios_ptr ios_;
     work_ptr   work_;
     boost::thread_group threads_pool_;
     listeners_type listeners_;
+    boost::asio::signal_set signals_;
+    boost::function<void(int)> signal_handlers_;
 
     processor()
         : ios_(boost::make_shared<boost::asio::io_service>())
-        , work_(boost::make_shared<boost::asio::io_service::work>(*ios_))
+        , work_(boost::make_shared<boost::asio::io_service::work>(*ios_)), signals_(*ios_)
     {}
+
+    void handle_signals(const boost::system::error_code& error,int signal_number)
+    {
+        if (error)
+            fail(error, "handle_signals");
+        else
+            signal_handlers_(signal_number);
+
+
+        signals_.async_wait(boost::bind(&processor::handle_signals, this, _1, _2));
+    }
 
 }; // class processor
 
