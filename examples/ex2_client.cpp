@@ -7,7 +7,7 @@ using namespace std;
 
 int main()
 {
-//g++ -c -std=gnu++14 -I.. -o ex2_client.o ./ex2_client.cpp
+//g++ -c -std=gnu++17 -I.. -o ex2_client.o ./ex2_client.cpp
 //g++ -o ex2_client ex2_client.o -lboost_system -lboost_thread -lpthread -lboost_regex -licui18n
     http::client my_http_client;
 
@@ -23,15 +23,16 @@ int main()
         req.target("/");
         req.set(boost::beast::http::field::host, host);
         req.set(boost::beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-        session->do_write(boost::move(req));
+        session.do_write(boost::move(req));
     };
 
-    const auto & on_receive = [](auto & res){
-        cout << *res << endl;
+    const auto & on_receive = [](auto & res, auto & session){
+        cout << res << endl;
+        session.do_close();
         http::base::processor::get().stop();
     };
 
-    my_http_client.get(host, port, on_connect, on_receive);
+    my_http_client.invoke(host, port, on_connect, on_receive);
 
 
     uint32_t pool_size = boost::thread::hardware_concurrency();
