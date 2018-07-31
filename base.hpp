@@ -56,14 +56,14 @@ private:
 public:
 
     explicit task_wrapped(const F& f)
-        : f_(f)
+        : f_{f}
     {}
 
     void operator()() const {
          f_();
     }
 
-    static inline auto make(const F& f) -> task_wrapped<F> {
+    static inline auto make(const F& f) {
         return task_wrapped<F>(f);
     }
 
@@ -86,9 +86,9 @@ public:
 
     template <class Time>
     explicit timer_task(boost::asio::io_service& ios, const Time& duration_or_time, const F& f)
-        : base_type(f),
-          timer_(boost::make_shared<boost::asio::deadline_timer>(
-                     boost::ref(ios), duration_or_time))
+        : base_type{f},
+          timer_{boost::make_shared<boost::asio::deadline_timer>(
+                     boost::ref(ios), duration_or_time)}
     {}
 
     void launch() const {
@@ -99,11 +99,11 @@ public:
         if (!error)
             base_type::operator()();
         else
-            fail(error, "http::base::timer_task");
+            fail(error, "timer_task");
     }
 
     template <class Time>
-    static inline auto make(boost::asio::io_service& ios, const Time& duration_or_time, const F& f) -> timer_task<F>
+    static inline auto make(boost::asio::io_service& ios, const Time& duration_or_time, const F& f)
     {
         return timer_task<F>(ios, duration_or_time, f);
     }
@@ -120,14 +120,14 @@ public:
     using ptr = boost::shared_ptr<tcp_connection>;
 
     explicit tcp_connection(boost::asio::io_service& ios)
-        : socket_(ios), strand_(socket_.get_executor())
+        : socket_{ios}, strand_{socket_.get_executor()}
     {}
 
     template<class F>
     explicit tcp_connection(
             boost::asio::io_service& ios,
             const boost::asio::ip::tcp::endpoint& endpoint, F&& f)
-        : socket_(ios), strand_(socket_.get_executor())
+        : socket_{ios}, strand_{socket_.get_executor()}
     {
         socket_.async_connect(endpoint, boost::forward<F>(f));
     }
@@ -153,7 +153,7 @@ public:
         //socket_.close();
     }
 
-    boost::asio::ip::tcp::socket & socket(){
+    auto & socket(){
         return socket_;
     }
 
@@ -177,16 +177,53 @@ public:
 
     template <class F>
     tcp_listener(boost::asio::io_service& io_service, const std::string & address, const std::string & port, F&& callback)
-        : acceptor_(io_service)
-        , f_callback_(boost::forward<F>(callback))
+        : acceptor_{io_service}
+        , f_callback_{boost::forward<F>(callback)}
     {
         boost::asio::ip::tcp::resolver resolver(io_service);
         boost::asio::ip::tcp::resolver::query query(address, port);
-        boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(query);
-        acceptor_.open(endpoint.protocol());
-        acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-        acceptor_.bind(endpoint);
-        acceptor_.listen();
+
+        boost::system::error_code ec;
+        boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(query, ec);
+
+        if(ec){
+            fail(ec, "resolve");
+            return;
+        }
+
+        // Open the acceptor
+        acceptor_.open(endpoint.protocol(), ec);
+        if(ec)
+        {
+            fail(ec, "open");
+            return;
+        }
+
+        // Allow address reuse
+        acceptor_.set_option(boost::asio::socket_base::reuse_address(true));
+        if(ec)
+        {
+            fail(ec, "set_option");
+            return;
+        }
+
+        // Bind to the server address
+        acceptor_.bind(endpoint, ec);
+        if(ec)
+        {
+            fail(ec, "bind");
+            return;
+        }
+
+        // Start listening for connections
+        acceptor_.listen(
+            boost::asio::socket_base::max_listen_connections, ec);
+        if(ec)
+        {
+            fail(ec, "listen");
+            return;
+        }
+
     }
 
     void stop() {
@@ -216,7 +253,7 @@ private:
         if (!error)
             f_callback_(new_connection); // running task
         else
-            std::cerr << "http::base::tcp_listener::handle_accept " << error.message() << std::endl;
+            fail(error, "accept");
     }
 
     acceptor_type acceptor_;
@@ -240,7 +277,7 @@ private:
 
 public:
 
-    static processor& get(){
+    static auto& get(){
         static processor base_proc;
         return base_proc;
     }
@@ -274,33 +311,24 @@ public:
     }
 
     template <class F>
-    const listener_ptr & add_listener(const std::string & address, uint32_t port, F&& f) {
+    const auto & add_listener(const std::string & address, uint32_t port, F&& f) {
         listeners_type::const_iterator it = listeners_.find(port);
         if (it != listeners_.end()) {
-            throw std::logic_error(
-                "Such listener for port '"
-                + boost::lexical_cast<std::string>(port)
-                + "' already created"
-            );
+            throw std::runtime_error("Port '"+ boost::lexical_cast<std::string>(port) + "' already created");
         }
 
-        listeners_.insert(std::make_pair(port,
-                                         boost::make_shared<tcp_listener>(*ios_,
-                                                                          address,
-                                                                          boost::lexical_cast<std::string>(port),
-                                                                          boost::forward<F>(f))));
+        listeners_.insert({
+                              port,
+                              boost::make_shared<tcp_listener>(*ios_,address, boost::lexical_cast<std::string>(port),boost::forward<F>(f))
+                          });
 
         return listeners_.at(port);
     }
 
-    listener_ptr remove_listener(uint32_t port) {
+    auto remove_listener(uint32_t port) {
         listeners_type::iterator it = listeners_.find(port);
         if (it == listeners_.end()) {
-            throw std::logic_error(
-                "No listener for port '"
-                + boost::lexical_cast<std::string>(port)
-                + "' created"
-            );
+            throw std::runtime_error("No listener for port '"+ boost::lexical_cast<std::string>(port) + "' created");
         }
 
         auto listener = it->second;
@@ -357,8 +385,8 @@ private:
     boost::function<void(int)> signal_handlers_;
 
     processor()
-        : ios_(boost::make_shared<boost::asio::io_service>())
-        , work_(boost::make_shared<boost::asio::io_service::work>(*ios_)), signals_(*ios_)
+        : ios_{boost::make_shared<boost::asio::io_service>()}
+        , work_{boost::make_shared<boost::asio::io_service::work>(*ios_)}, signals_{*ios_}
     {}
 
     void handle_signals(const boost::system::error_code& error,int signal_number)
