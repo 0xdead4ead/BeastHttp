@@ -8,9 +8,7 @@
 #include <base.hpp>
 #include <list_cb.hpp>
 #include <boost/unordered_map.hpp>
-#include <boost/function.hpp>
 #include <boost/regex.hpp>
-#include <list>
 
 namespace http {
 
