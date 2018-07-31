@@ -1,6 +1,12 @@
 # SYNOPSIS
 
-Easy HTTP client library implemented using C++11 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the [`Boost.Beast`](https://www.boost.org/doc/libs/1_67_0/libs/beast/doc/html/index.html) when constructing queries and answers.
+Easy HTTP client library implemented using C++17 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the [`Boost.Beast`](https://www.boost.org/doc/libs/1_67_0/libs/beast/doc/html/index.html) when constructing queries and answers.
+
+  **base.hpp: ** Add/remove listener, create connections, manage signals, io, ...
+  **session.hpp: ** Handles an HTTP server/client connection
+  **client.hpp: ** Class for communication with a remote host
+  **server.hpp: ** HTTP sercer class, registration of new routes
+  **list_cb.hpp: ** Container for storing callback functions
 
 # FEATURES
 
@@ -14,7 +20,7 @@ Easy HTTP client library implemented using C++11 and Boost.Beast. Allows you to 
 # DEPENDENCIES
 
 * Boost.Regex, Boost.Asio & Boost.Beast library
-* C++ 14 compatible compilator (for generic lambda)
+* Minimal C++ 14 compatible compilator (for generic lambda)
 
 # USAGE
 
@@ -30,27 +36,33 @@ Run the I/O service on the requested number of threads
 
 ```
 
+Add new route for GET request with "/" resource 
+
 ```cpp
 
     http::server my_http_server;
 
-    // Add handler on GET request with "/" resource
-    my_http_server.get("^/$", http::method_type::get, [](auto & req, auto & session){
+    my_http_server.route("^/$", http::method_type::get, [](auto & req, auto & session){
 
-        cout << *req << endl;
+        cout << req << endl;
 
-    });
-
-    // Start listening on localhost
-    my_http_server.listen("127.0.0.1", 80, [](auto & session){
-
-        http::base::out("New client!!!");
-        session->do_read();
     });
 
 ```
 
-In browser : `localhost:80`
+Start listening on localhost:80
+
+```cpp
+
+    my_http_server.listen("127.0.0.1", 80, [](auto & session){
+
+        http::base::out("New client!!!");
+        session.do_read();
+    });
+
+```
+
+Request content from the server
 
 ```cpp
 
@@ -65,18 +77,19 @@ In browser : `localhost:80`
         // Create request and fill fields...
         
         // Send 
-        // session->do_write(boost::move(req));
+        // session.do_write(boost::move(req));
     };
 
     // Handler on received object
-    const auto & on_receive = [](auto & res){
-        cout << *res << endl;
-        
+    const auto & on_receive = [](auto & res, auto & session){
+        cout << res << endl;
+
+        session.do_close();
         // The answer is received, stop!
         http::base::processor::get().stop();
     };
 
     // Connect to host:port
-    my_http_client.get(host, port, on_connect, on_receive);
+    my_http_client.invoke(host, port, on_connect, on_receive);
 
 ```
