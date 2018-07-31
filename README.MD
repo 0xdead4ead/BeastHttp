@@ -47,15 +47,14 @@ Add new route for GET request with "/" resource
     http::server my_http_server;
 
     my_http_server.route("^/$", http::method_type::get, [](auto & req, auto & session){
-
         cout << req << endl;
-
     });
 
     // and chain handling
 
     my_http_server.route("^/a/b$", http::method_type::get, [](auto & req, auto & session, auto & next){
         // process a
+        next();
     }, [](auto & req, auto & session){
         // process b
     });
