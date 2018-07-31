@@ -105,7 +105,7 @@ private:
     template <typename T, typename F1, typename F2, size_t Index = 0>
     void tuple_cb_for_each(const T& tpl, const F1& f1, const F2& f2) {
 
-        constexpr auto tuple_size = std::tuple_size_v<T>;
+        constexpr auto tuple_size = std::tuple_size<T>::value;
         BOOST_STATIC_ASSERT(tuple_size != 0);
 
         const auto& value = std::get<Index>(tpl);
