@@ -2,11 +2,11 @@
 
 Easy HTTP client library implemented using C++17 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the [`Boost.Beast`](https://www.boost.org/doc/libs/1_67_0/libs/beast/doc/html/index.html) when constructing queries and answers.
 
-> **base.hpp: ** Add/remove listener, create connections, manage signals, io, ...
-> **session.hpp: ** Handles an HTTP server/client connection
-> **client.hpp: ** Class for communication with a remote host
-> **server.hpp: ** HTTP sercer class, registration of new routes
-> **list_cb.hpp: ** Container for storing callback functions
+* **base.hpp: ** Add/remove listener, create connections, manage signals, io, ...
+* **session.hpp: ** Handles an HTTP server/client connection
+* **client.hpp: ** Class for communication with a remote host
+* **server.hpp: ** HTTP sercer class, registration of new routes
+* **list_cb.hpp: ** Container for storing callback functions
 
 # FEATURES
 
