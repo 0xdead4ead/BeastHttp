@@ -1,6 +1,6 @@
 # SYNOPSIS
 
-Easy HTTP client library implemented using C++17 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the [`Boost.Beast`](https://www.boost.org/doc/libs/1_67_0/libs/beast/doc/html/index.html) when constructing queries and answers.
+Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the [`Boost.Beast`](https://www.boost.org/doc/libs/1_67_0/libs/beast/doc/html/index.html) when constructing queries and answers.
 
 > **base.hpp:** Add/remove listener, create connections, manage signals, io, ...
 
@@ -8,7 +8,7 @@ Easy HTTP client library implemented using C++17 and Boost.Beast. Allows you to 
 
 > **client.hpp:** Class for communication with a remote host
 
-> **server.hpp:** HTTP sercer class, registration of new routes
+> **server.hpp:** HTTP server class, registration of new routes
 
 > **list_cb.hpp:** Container for storing callback functions
 
@@ -46,13 +46,13 @@ Add new route for GET request with "/" resource
 
     http::server my_http_server;
 
-    my_http_server.route("^/$", http::method_type::get, [](auto & req, auto & session){
+    my_http_server.route("^/$", http::method_t::get, [](auto & req, auto & session){
         cout << req << endl;
     });
 
     // and chain handling
 
-    my_http_server.route("^/a/b$", http::method_type::get, [](auto & req, auto & session, auto & next){
+    my_http_server.route("^/a/b$", http::method_t::get, [](auto & req, auto & session, auto & next){
         // process a
         next();
     }, [](auto & req, auto & session){
@@ -66,7 +66,6 @@ Start listening on localhost:80
 ```cpp
 
     my_http_server.listen("127.0.0.1", 80, [](auto & session){
-
         http::base::out("New client!!!");
         session.do_read();
     });
