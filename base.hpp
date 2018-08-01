@@ -21,28 +21,23 @@
 #include <boost/asio/placeholders.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/asio/read.hpp>
+#include <boost/asio/posix/stream_descriptor.hpp>
 #include <boost/function.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <map>
 #include <string>
-#include <iostream>
+#include <sstream>
 
 namespace http {
 
 namespace base {
 
-void out(const std::string & info){
-    std::cout << info << std::endl;
-}
+class processor;
 
-void fail(const std::string & info){
-    std::cerr << info << std::endl;
-}
-
-void fail(const boost::system::error_code & ec, const std::string & info){
-    std::cerr << info << " : " << ec.message() << std::endl;
-}
+void out(const std::string & info);
+void fail(const std::string & info);
+void fail(const boost::system::error_code & ec, const std::string & info);
 
 /// \brief class storing a task
 /// \tparam functor
@@ -375,6 +370,32 @@ public:
         ));
     }
 
+    using native_handle_type = boost::asio::posix::stream_descriptor::native_handle_type;
+
+    void assign_in_descriptor(const native_handle_type & descriptor){
+        in.assign(descriptor);
+    }
+
+    void assign_out_descriptor(const native_handle_type & descriptor){
+        out.assign(descriptor);
+    }
+
+    template<class F>
+    std::size_t read_from_stream(std::string & value, F && completion){
+        if(in.is_open())
+            return boost::asio::read(in, boost::asio::buffer(value), boost::forward<F>(completion));
+
+        return 0;
+    }
+
+    template<class F>
+    std::size_t write_to_stream(const std::string & value, F && completion){
+        if(out.is_open())
+            return boost::asio::write(out, boost::asio::buffer(value), boost::forward<F>(completion));
+
+        return 0;
+    }
+
 private:
 
     ios_ptr ios_;
@@ -382,11 +403,16 @@ private:
     boost::thread_group threads_pool_;
     listeners_type listeners_;
     boost::asio::signal_set signals_;
+    boost::asio::posix::stream_descriptor in;
+    boost::asio::posix::stream_descriptor out;
     boost::function<void(int)> signal_handlers_;
 
     processor()
         : ios_{boost::make_shared<boost::asio::io_service>()}
-        , work_{boost::make_shared<boost::asio::io_service::work>(*ios_)}, signals_{*ios_}
+        , work_{boost::make_shared<boost::asio::io_service::work>(*ios_)},
+          signals_{*ios_},
+          in{*ios_, ::dup(STDIN_FILENO)},
+          out{*ios_, ::dup(STDOUT_FILENO)}
     {}
 
     void handle_signals(const boost::system::error_code& error,int signal_number)
@@ -401,6 +427,27 @@ private:
     }
 
 }; // class processor
+
+void out(const std::string & info){
+    std::ostringstream os;
+    os << info << std::endl;
+    const std::string & info_ = os.str();
+    processor::get().write_to_stream(info_, boost::asio::transfer_exactly(info_.size()));
+}
+
+void fail(const std::string & info){
+    std::ostringstream os;
+    os << info << std::endl;
+    const std::string & info_ = os.str();
+    processor::get().write_to_stream(info_, boost::asio::transfer_exactly(info_.size()));
+}
+
+void fail(const boost::system::error_code & ec, const std::string & info){
+    std::ostringstream os;
+    os << info  << " : " << ec.message() << std::endl;
+    const std::string & info_ = os.str();
+    processor::get().write_to_stream(info_, boost::asio::transfer_exactly(info_.size()));
+}
 
 } // namespace base
 
