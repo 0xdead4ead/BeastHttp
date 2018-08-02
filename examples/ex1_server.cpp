@@ -35,35 +35,32 @@ int main()
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/ANY/REQUEST'
     http::server my_http_server;
 
-    my_http_server.route("^/1$", http::method_t::get, [](auto & req, auto & session){
-
+    my_http_server.get("/1", [](auto & req, auto & session){
        cout << req << endl;
-
        session.do_write(boost::move(make_response(req, "GET 1\n")));
-
     });
 
-    my_http_server.route("^/2$", http::method_t::get, [](auto & req, auto & session){
-
+    my_http_server.get("/2", [](auto & req, auto & session){
        cout << req << endl;
-
        session.do_write(boost::move(make_response(req, "GET 2\n")));
-
     });
 
-    my_http_server.all_route([](auto & req, auto & session){
-
+    my_http_server.all(".*", [](auto & req, auto & session){
         cout << req << endl;
 
-        session.do_write(boost::move(make_response(req, "GET any\n")));
+        session.do_write(boost::move(make_response(req, "any\n")));
 
     });
 
-    my_http_server.listen("127.0.0.1",80, [](auto & session){
+    const auto & address = "127.0.0.1";
+    auto port = 80;
 
+    my_http_server.listen(address, port, [](auto & session){
         http::base::out("New client!!!");
         session.do_read();
     });
+
+    cout << "Server starting on " << address << ':' << boost::lexical_cast<string>(port) << endl;
 
     uint32_t pool_size = boost::thread::hardware_concurrency();
     http::base::processor::get().start(pool_size == 0 ? 4 : pool_size << 1);
