@@ -34,8 +34,8 @@ Run the I/O service on the requested number of threads
 
 ```cpp
 
-    uint32_t pool_size = boost::thread::hardware_concurrency();
-    http::base::processor::get().start(pool_size == 0 ? 4 : pool_size << 1);
+    uint32_t pool_size = boost::thread::hardware_concurrency() * 2;
+    http::base::processor::get().start( pool_size > 0 ? pool_size :  4 );
     http::base::processor::get().wait();
 
 ```
@@ -46,13 +46,13 @@ Add new route for GET request with "/" resource
 
     http::server my_http_server;
 
-    my_http_server.route("^/$", http::method_t::get, [](auto & req, auto & session){
+    my_http_server.get("/", [](auto & req, auto & session){
         cout << req << endl;
     });
 
     // and chain handling
 
-    my_http_server.route("^/a/b$", http::method_t::get, [](auto & req, auto & session, auto & next){
+    my_http_server.get("/a/b", [](auto & req, auto & session, auto & next){
         // process a
         next();
     }, [](auto & req, auto & session){
@@ -78,8 +78,8 @@ Request content from the server
 
     http::client my_http_client;
 
-    const auto & host = "www.google.com";
-    const auto & port = 80;
+    const auto & host = "www.example.com";
+    auto port = 80;
 
     const auto & on_connect = [&host](auto & session){
         http::base::out("Successful connected!");
