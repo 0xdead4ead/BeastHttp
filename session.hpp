@@ -41,19 +41,20 @@ class session  : private cb_invoker, private boost::noncopyable,
 
 public:
 
-    using list_cb_t = list_cb<boost::beast::http::request<Body>, session<true, Body> >;
-    using method_map_t = std::map<method_t, boost::unordered_map<resource_regex_t,typename list_cb_t::ptr> >;
+    using list_cb_t = list_cb<boost::beast::http::request<Body>, session<true, Body>>;
+    using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
+    using method_map_t = std::map<method_t, resource_map_t>;
     using ptr = boost::shared_ptr< session<true, Body>>;
 
     template<class Callback>
     static void on_accept(const base::tcp_connection::ptr& connection_p,
-                          const typename list_cb_t::ptr & def_all_cb_p,
+                          const boost::shared_ptr<resource_map_t> & resource_map_cb_p,
                           const boost::shared_ptr<method_map_t> & method_map_cb_p,
                           const Callback & handler)
     {
         //auto new_session_p = boost::make_shared<session<true, Body> >(connection_p, def_all_cb_p, method_map_cb_p);
         // session constructor declared private here...
-        auto new_session_p = ptr(new session<true, Body>(connection_p, def_all_cb_p, method_map_cb_p));
+        auto new_session_p = ptr(new session<true, Body>(connection_p, resource_map_cb_p, method_map_cb_p));
         handler(*new_session_p);
     }
 
@@ -92,10 +93,10 @@ private:
     explicit session(){}
 
     explicit session(const base::tcp_connection::ptr & connection_p,
-                     const typename list_cb_t::ptr & def_all_cb_p,
+                     const boost::shared_ptr<resource_map_t> & resource_map_cb_p,
                      const boost::shared_ptr<method_map_t> & method_map_cb_p)
         : connection_p_{connection_p},
-          def_all_cb_p_{def_all_cb_p},
+          resource_map_cb_p_{resource_map_cb_p},
           method_map_cb_p_{method_map_cb_p},
           req_p_{boost::make_shared<boost::beast::http::request<Body> >()}
     {}
@@ -159,8 +160,17 @@ private:
             }
         }
 
-        if(def_all_cb_p_)
-            return invoke_cb(boost::cref(*req_p_), boost::ref(*this), *def_all_cb_p_);
+        if(resource_map_cb_p_)
+            for(const auto & value : *resource_map_cb_p_){
+                const boost::regex e(value.first, boost::regex::perl | boost::regex::no_except);
+                if(boost::regex_match(std::string(target.data(), target.size()), e)){
+                    auto const & cb_p = value.second;
+
+                    if(cb_p)
+                        return invoke_cb(boost::cref(*req_p_), boost::ref(*this), *cb_p);
+
+                }
+            }
 
         return do_read();
 
@@ -169,7 +179,7 @@ private:
 
 
     base::tcp_connection::ptr  connection_p_;
-    typename list_cb_t::ptr  def_all_cb_p_;
+    boost::shared_ptr<resource_map_t> resource_map_cb_p_;
     boost::shared_ptr<method_map_t> method_map_cb_p_;
     boost::shared_ptr<boost::beast::http::request<Body> > req_p_;
     boost::shared_ptr<void> msg_p_;
