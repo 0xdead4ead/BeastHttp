@@ -12,7 +12,7 @@ int main()
     http::client my_http_client;
 
     const auto & host = "www.google.com";
-    const auto & port = 80;
+    auto port = 80;
 
     const auto & on_connect = [&host](auto & session){
         http::base::out("Successful connected!");
@@ -23,7 +23,7 @@ int main()
         req.target("/");
         req.set(boost::beast::http::field::host, host);
         req.set(boost::beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-        session.do_write(boost::move(req));
+        session.do_write(std::move(req));
     };
 
     const auto & on_receive = [](auto & res, auto & session){
