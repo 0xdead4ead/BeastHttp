@@ -25,11 +25,11 @@ public:
 
     explicit list_cb(){}
 
-    list_cb(const L & l) :
+    explicit list_cb(const L & l) :
         invoke_l_(l), c_iter_{invoke_l_.cbegin()}, message_cp{nullptr}, session_p{nullptr}
     {}
 
-    list_cb(L && l) :
+    explicit list_cb(L && l) noexcept :
         invoke_l_(std::move(l)), c_iter_{invoke_l_.cbegin()}, message_cp{nullptr}, session_p{nullptr}
     {}
 
@@ -40,8 +40,8 @@ public:
 private:
 
     void exec(const Message & message, Session & session) {
-        message_cp = boost::addressof(message);
-        session_p = boost::addressof(session);
+        message_cp = std::addressof(message);
+        session_p = std::addressof(session);
         return exec_fwd();
     }
 
