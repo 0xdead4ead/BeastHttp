@@ -13,7 +13,7 @@ auto make_response(const Request & req, const string & user_body){
 
     boost::beast::http::response<boost::beast::http::string_body> res{
          std::piecewise_construct,
-         std::make_tuple(boost::move(body)),
+         std::make_tuple(std::move(body)),
          std::make_tuple(boost::beast::http::status::ok, req.version())};
 
     res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -37,18 +37,18 @@ int main()
 
     my_http_server.get("/1", [](auto & req, auto & session){
        cout << req << endl;
-       session.do_write(boost::move(make_response(req, "GET 1\n")));
+       session.do_write(std::move(make_response(req, "GET 1\n")));
     });
 
     my_http_server.get("/2", [](auto & req, auto & session){
        cout << req << endl;
-       session.do_write(boost::move(make_response(req, "GET 2\n")));
+       session.do_write(std::move(make_response(req, "GET 2\n")));
     });
 
     my_http_server.all(".*", [](auto & req, auto & session){
         cout << req << endl;
 
-        session.do_write(boost::move(make_response(req, "any\n")));
+        session.do_write(std::move(make_response(req, "any\n")));
 
     });
 
