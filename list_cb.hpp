@@ -1,10 +1,8 @@
 #ifndef LIST_CB_HPP
 #define LIST_CB_HPP
 
-//#include <boost/shared_ptr.hpp>
 #include <memory>
 #include <functional>
-//#include <boost/function.hpp>
 #include <list>
 
 namespace http {
