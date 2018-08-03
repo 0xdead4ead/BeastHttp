@@ -1,6 +1,6 @@
 # SYNOPSIS
 
-Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the [`Boost.Beast`](https://www.boost.org/doc/libs/1_67_0/libs/beast/doc/html/index.html) when constructing queries and answers.
+Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the Boost.Beast when constructing queries and answers.
 
 > **base.hpp:** Add/remove listener, create connections, manage signals, io, ...
 
@@ -23,22 +23,12 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 
 # DEPENDENCIES
 
-* Boost.Regex, Boost.Asio & Boost.Beast library
+* [`Boost.Regex`](https://github.com/boostorg/regex), [`Boost.Asio`](https://github.com/boostorg/asio) & [`Boost.Beast`](https://github.com/boostorg/beast/tree/develop) library
 * Minimal C++ 14 compatible compilator (for generic lambda)
 
 # USAGE
 
 Server and client examples -> `./examples`
-
-Run the I/O service on the requested number of threads
-
-```cpp
-
-    uint32_t pool_size = boost::thread::hardware_concurrency() * 2;
-    http::base::processor::get().start( pool_size > 0 ? pool_size :  4 );
-    http::base::processor::get().wait();
-
-```
 
 Add new route for GET request with "/" resource 
 
@@ -69,6 +59,16 @@ Start listening on localhost:80
         http::base::out("New client!!!");
         session.do_read();
     });
+
+```
+
+Run the I/O service on the requested number of threads
+
+```cpp
+
+    uint32_t pool_size = boost::thread::hardware_concurrency() * 2;
+    http::base::processor::get().start( pool_size > 0 ? pool_size :  4 );
+    http::base::processor::get().wait();
 
 ```
 
