@@ -36,7 +36,7 @@ public:
 /// \tparam Type of body message
 template<bool isServer ,class Body>
 class session  : private cb_invoker, private boost::noncopyable,
-        public boost::enable_shared_from_this<session<true, Body> >
+        public std::enable_shared_from_this<session<true, Body> >
 {
 
 public:
@@ -44,15 +44,15 @@ public:
     using list_cb_t = list_cb<boost::beast::http::request<Body>, session<true, Body>>;
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;
-    using ptr = boost::shared_ptr< session<true, Body>>;
+    using ptr = std::shared_ptr< session<true, Body>>;
 
     template<class Callback>
     static void on_accept(const base::tcp_connection::ptr& connection_p,
-                          const boost::shared_ptr<resource_map_t> & resource_map_cb_p,
-                          const boost::shared_ptr<method_map_t> & method_map_cb_p,
+                          const std::shared_ptr<resource_map_t> & resource_map_cb_p,
+                          const std::shared_ptr<method_map_t> & method_map_cb_p,
                           const Callback & handler)
     {
-        //auto new_session_p = boost::make_shared<session<true, Body> >(connection_p, def_all_cb_p, method_map_cb_p);
+        //auto new_session_p = std::make_shared<session<true, Body> >(connection_p, def_all_cb_p, method_map_cb_p);
         // session constructor declared private here...
         auto new_session_p = ptr(new session<true, Body>(connection_p, resource_map_cb_p, method_map_cb_p));
         handler(*new_session_p);
@@ -73,7 +73,7 @@ public:
     template<class Body2>
     void do_write(boost::beast::http::response<Body2> && msg){
 
-        auto sp = boost::make_shared<boost::beast::http::response<Body2> >(boost::move(msg));
+        auto sp = std::make_shared<boost::beast::http::response<Body2> >(std::move(msg));
         msg_p_ = sp;
 
         connection_p_->async_write(*sp,
@@ -93,12 +93,12 @@ private:
     explicit session(){}
 
     explicit session(const base::tcp_connection::ptr & connection_p,
-                     const boost::shared_ptr<resource_map_t> & resource_map_cb_p,
-                     const boost::shared_ptr<method_map_t> & method_map_cb_p)
+                     const std::shared_ptr<resource_map_t> & resource_map_cb_p,
+                     const std::shared_ptr<method_map_t> & method_map_cb_p)
         : connection_p_{connection_p},
           resource_map_cb_p_{resource_map_cb_p},
           method_map_cb_p_{method_map_cb_p},
-          req_p_{boost::make_shared<boost::beast::http::request<Body> >()}
+          req_p_{std::make_shared<boost::beast::http::request<Body> >()}
     {}
 
     void on_read(const boost::system::error_code & ec, std::size_t bytes_transferred){
@@ -179,10 +179,10 @@ private:
 
 
     base::tcp_connection::ptr  connection_p_;
-    boost::shared_ptr<resource_map_t> resource_map_cb_p_;
-    boost::shared_ptr<method_map_t> method_map_cb_p_;
-    boost::shared_ptr<boost::beast::http::request<Body> > req_p_;
-    boost::shared_ptr<void> msg_p_;
+    std::shared_ptr<resource_map_t> resource_map_cb_p_;
+    std::shared_ptr<method_map_t> method_map_cb_p_;
+    std::shared_ptr<boost::beast::http::request<Body> > req_p_;
+    std::shared_ptr<void> msg_p_;
     boost::beast::flat_buffer buffer_;
 
 }; // class session
@@ -192,12 +192,12 @@ private:
 /// \tparam Type of body message
 template<class Body>
 class session<false, Body>  : private cb_invoker, private boost::noncopyable,
-        public boost::enable_shared_from_this<session<false, Body> >{
+        public std::enable_shared_from_this<session<false, Body> >{
 
 public:
 
     using list_cb_t = list_cb<boost::beast::http::response<Body>, session<false, Body> >;
-    using ptr = boost::shared_ptr< session<false, Body>>;
+    using ptr = std::shared_ptr< session<false, Body>>;
 
     template<class Callback>
     static void on_connect(const base::tcp_connection::ptr& connection_p,
@@ -220,7 +220,7 @@ public:
 
     template<class Body2>
     void do_write(boost::beast::http::request<Body2> && msg){
-        auto sp = boost::make_shared<boost::beast::http::request<Body2> >(boost::move(msg));
+        auto sp = std::make_shared<boost::beast::http::request<Body2> >(std::move(msg));
         msg_p_ = sp;
 
         connection_p_->async_write(*sp,
@@ -248,7 +248,7 @@ private:
                      const typename list_cb_t::ptr & response_cb_p)
         : connection_p_{connection_p},
           response_cb_p_{response_cb_p},
-          res_p_{boost::make_shared<boost::beast::http::response<Body> >()}
+          res_p_{std::make_shared<boost::beast::http::response<Body> >()}
     {}
 
 
@@ -277,8 +277,8 @@ private:
 
     base::tcp_connection::ptr connection_p_;
     typename list_cb_t::ptr response_cb_p_;
-    boost::shared_ptr<boost::beast::http::response<Body> > res_p_;
-    boost::shared_ptr<void> msg_p_;
+    std::shared_ptr<boost::beast::http::response<Body> > res_p_;
+    std::shared_ptr<void> msg_p_;
     boost::beast::flat_buffer buffer_;
 
 }; // class session

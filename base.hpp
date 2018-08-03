@@ -28,6 +28,9 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <functional>
+#include <memory>
+
 
 namespace http {
 
@@ -74,7 +77,7 @@ struct timer_task: public task_wrapped<F> {
 private:
 
     using base_type = task_wrapped<F>;
-    using timer_ptr = boost::shared_ptr<boost::asio::deadline_timer>;
+    using timer_ptr = std::shared_ptr<boost::asio::deadline_timer>;
     timer_ptr timer_;
 
 public:
@@ -82,7 +85,7 @@ public:
     template <class Time>
     explicit timer_task(boost::asio::io_service& ios, const Time& duration_or_time, const F& f)
         : base_type{f},
-          timer_{boost::make_shared<boost::asio::deadline_timer>(
+          timer_{std::make_shared<boost::asio::deadline_timer>(
                      boost::ref(ios), duration_or_time)}
     {}
 
@@ -112,7 +115,7 @@ class tcp_connection : private boost::noncopyable {
 
 public:
 
-    using ptr = boost::shared_ptr<tcp_connection>;
+    using ptr = std::shared_ptr<tcp_connection>;
 
     explicit tcp_connection(boost::asio::io_service& ios)
         : socket_{ios}, strand_{socket_.get_executor()}
@@ -124,7 +127,7 @@ public:
             const boost::asio::ip::tcp::endpoint& endpoint, F&& f)
         : socket_{ios}, strand_{socket_.get_executor()}
     {
-        socket_.async_connect(endpoint, boost::forward<F>(f));
+        socket_.async_connect(endpoint, std::forward<F>(f));
     }
 
     template <class F, class R>
@@ -132,7 +135,7 @@ public:
     {
         boost::beast::http::async_write(socket_, msg,
             boost::asio::bind_executor(
-                strand_, boost::forward<F>(f)));
+                strand_, std::forward<F>(f)));
     }
 
     template <class F, class B, class R>
@@ -140,12 +143,11 @@ public:
     {
         boost::beast::http::async_read(socket_, buf, msg,
             boost::asio::bind_executor(
-                strand_, boost::forward<F>(f)));
+                strand_, std::forward<F>(f)));
     }
 
     void shutdown() {
         socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-        //socket_.close();
     }
 
     auto & socket(){
@@ -162,7 +164,7 @@ private:
 //###########################################################################
 
 /// \brief The tcp_listener class
-class tcp_listener: public boost::enable_shared_from_this<tcp_listener> ,
+class tcp_listener: public std::enable_shared_from_this<tcp_listener> ,
         private boost::noncopyable
 {
 
@@ -173,7 +175,7 @@ public:
     template <class F>
     tcp_listener(boost::asio::io_service& io_service, const std::string & address, const std::string & port, F&& callback)
         : acceptor_{io_service}
-        , f_callback_{boost::forward<F>(callback)}
+        , f_callback_{std::forward<F>(callback)}
     {
         boost::asio::ip::tcp::resolver resolver(io_service);
         boost::asio::ip::tcp::resolver::query query(address, port);
@@ -230,7 +232,7 @@ public:
             return;
         }
 
-        auto new_connection = boost::make_shared<tcp_connection>(acceptor_.get_io_service());
+        auto new_connection = std::make_shared<tcp_connection>(acceptor_.get_io_service());
         acceptor_.async_accept(new_connection->socket(),
                                boost::bind(
                                    &tcp_listener::handle_accept,
@@ -252,7 +254,7 @@ private:
     }
 
     acceptor_type acceptor_;
-    boost::function< void(tcp_connection::ptr) > f_callback_;
+    std::function< void(tcp_connection::ptr) > f_callback_;
 
 }; // class tcp_listener
 
@@ -263,9 +265,9 @@ class processor : private boost::noncopyable {
 
 private:
 
-    using ios_ptr = boost::shared_ptr<boost::asio::io_service>;
-    using work_ptr = boost::shared_ptr<boost::asio::io_service::work>;
-    using listener_ptr = boost::shared_ptr<tcp_listener>;
+    using ios_ptr = std::shared_ptr<boost::asio::io_service>;
+    using work_ptr = std::shared_ptr<boost::asio::io_service::work>;
+    using listener_ptr = std::shared_ptr<tcp_listener>;
     using duration_type = boost::asio::deadline_timer::duration_type;
     using time_type = boost::asio::deadline_timer::time_type;
     using listeners_type = std::map<uint32_t, listener_ptr>;
@@ -279,7 +281,7 @@ public:
 
     template <class F>
     inline void push_task(F&& f) {
-        ios_->post(task_wrapped<F>::make(boost::forward<F>(f)));
+        ios_->post(task_wrapped<F>::make(std::forward<F>(f)));
     }
 
     void start(std::size_t threads_count) {
@@ -297,12 +299,12 @@ public:
 
     template <class F>
     void run_after(duration_type duration, F&& f) {
-        timer_task<F>::make(*ios_, duration, boost::forward<F>(f)).launch();
+        timer_task<F>::make(*ios_, duration, std::forward<F>(f)).launch();
     }
 
     template <class F>
     void run_at(time_type time, F&& f) {
-        timer_task<F>::make(*ios_, time, boost::forward<F>(f)).launch();
+        timer_task<F>::make(*ios_, time, std::forward<F>(f)).launch();
     }
 
     template <class F>
@@ -314,7 +316,7 @@ public:
 
         listeners_.insert({
                               port,
-                              boost::make_shared<tcp_listener>(*ios_,address, boost::lexical_cast<std::string>(port),boost::forward<F>(f))
+                              std::make_shared<tcp_listener>(*ios_,address, boost::lexical_cast<std::string>(port),std::forward<F>(f))
                           });
 
         return listeners_.at(port);
@@ -344,7 +346,7 @@ public:
             return {};
         }
 
-        return boost::make_shared<tcp_connection>(*ios_, endpoint, boost::forward<F>(f));
+        return std::make_shared<tcp_connection>(*ios_, endpoint, std::forward<F>(f));
     }
 
     // This function is not threads safe!
@@ -356,7 +358,7 @@ public:
         // Making shure that this is the first call
         assert(!signal_handlers_);
 
-        signal_handlers_ = boost::forward<F>(f);
+        signal_handlers_ = std::forward<F>(f);
         std::for_each(
             signals_to_wait.begin(),
             signals_to_wait.end(),
@@ -383,7 +385,7 @@ public:
     template<class F>
     std::size_t read_from_stream(std::string & value, F && completion){
         if(in.is_open())
-            return boost::asio::read(in, boost::asio::buffer(value), boost::forward<F>(completion));
+            return boost::asio::read(in, boost::asio::buffer(value), std::forward<F>(completion));
 
         return 0;
     }
@@ -391,7 +393,7 @@ public:
     template<class F>
     std::size_t write_to_stream(const std::string & value, F && completion){
         if(out.is_open())
-            return boost::asio::write(out, boost::asio::buffer(value), boost::forward<F>(completion));
+            return boost::asio::write(out, boost::asio::buffer(value), std::forward<F>(completion));
 
         return 0;
     }
@@ -405,11 +407,11 @@ private:
     boost::asio::signal_set signals_;
     boost::asio::posix::stream_descriptor in;
     boost::asio::posix::stream_descriptor out;
-    boost::function<void(int)> signal_handlers_;
+    std::function<void(int)> signal_handlers_;
 
     processor()
-        : ios_{boost::make_shared<boost::asio::io_service>()}
-        , work_{boost::make_shared<boost::asio::io_service::work>(*ios_)},
+        : ios_{std::make_shared<boost::asio::io_service>()}
+        , work_{std::make_shared<boost::asio::io_service::work>(*ios_)},
           signals_{*ios_},
           in{*ios_, ::dup(STDIN_FILENO)},
           out{*ios_, ::dup(STDOUT_FILENO)}

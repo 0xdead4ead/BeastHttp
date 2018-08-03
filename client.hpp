@@ -37,7 +37,7 @@ public:
     void invoke(std::string const & host, uint32_t port, Callback1 && on_connect_handler, Callback2 && on_receive_handler){
         connection_p_ = base::processor::get().create_connection(host,
                                                                  port,
-                                                                 [this, handler_ = boost::forward<Callback1>(on_connect_handler)](const boost::system::error_code & ec){
+                                                                 [this, handler_ = std::forward<Callback1>(on_connect_handler)](const boost::system::error_code & ec){
             if(ec)
                 return base::fail(ec, "connect");
 
@@ -46,14 +46,14 @@ public:
 
         typename list_cb_t::L cb{
             boost::bind<void>(
-                        boost::forward<Callback2>(on_receive_handler),
+                        std::forward<Callback2>(on_receive_handler),
                         boost::placeholders::_1,
                         boost::placeholders::_2
                         )
         };
 
         if(connection_p_)
-            response_cb_p_ = boost::make_shared<list_cb_t>(cb);
+            response_cb_p_ = std::make_shared<list_cb_t>(cb);
         else
             response_cb_p_ = {};
     }

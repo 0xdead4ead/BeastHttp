@@ -139,7 +139,7 @@ protected:
             return base::fail("Adding a handler is not available when the server is running");
 
         if(!method_map_cb_p_)
-            method_map_cb_p_ = boost::make_shared<method_map_t>();
+            method_map_cb_p_ = std::make_shared<method_map_t>();
 
         method_map_cb_p_->insert({
                                      method,
@@ -155,7 +155,7 @@ protected:
 
         auto & list_cb_p = resource_map_cb.at(path_to_resource);
         if(!list_cb_p)
-            list_cb_p = boost::make_shared<list_cb_t>();
+            list_cb_p = std::make_shared<list_cb_t>();
 
         *list_cb_p = std::move(l);
     }
@@ -165,7 +165,7 @@ protected:
             return base::fail("Adding a handler is not available when the server is running");
 
         if(!resource_map_cb_p_)
-            resource_map_cb_p_ = boost::make_shared<resource_map_t>();
+            resource_map_cb_p_ = std::make_shared<resource_map_t>();
 
         resource_map_cb_p_->insert({
                                        path_to_resource,
@@ -174,7 +174,7 @@ protected:
 
         auto & list_cb_p = resource_map_cb_p_->at(path_to_resource);
         if(!list_cb_p)
-            list_cb_p = boost::make_shared<list_cb_t>();
+            list_cb_p = std::make_shared<list_cb_t>();
 
         *list_cb_p = std::move(l);
     }
@@ -201,8 +201,8 @@ protected:
     }
 
     bool status_;
-    boost::shared_ptr<resource_map_t> resource_map_cb_p_;
-    boost::shared_ptr<method_map_t> method_map_cb_p_;
+    std::shared_ptr<resource_map_t> resource_map_cb_p_;
+    std::shared_ptr<method_map_t> method_map_cb_p_;
 
 }; // router class
 
@@ -235,7 +235,7 @@ public:
                                                         boost::placeholders::_1,
                                                         this->resource_map_cb_p_,
                                                         this->method_map_cb_p_,
-                                                        boost::forward<Callback>(on_accept_handler)
+                                                        std::forward<Callback>(on_accept_handler)
                                                         )
                                             )->accept_start();
         this->status_ = true;

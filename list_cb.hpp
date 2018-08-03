@@ -1,8 +1,10 @@
 #ifndef LIST_CB_HPP
 #define LIST_CB_HPP
 
-#include <boost/shared_ptr.hpp>
-#include <boost/function.hpp>
+//#include <boost/shared_ptr.hpp>
+#include <memory>
+#include <functional>
+//#include <boost/function.hpp>
 #include <list>
 
 namespace http {
@@ -12,8 +14,8 @@ class list_cb{
 
 public:
 
-    using ptr = boost::shared_ptr<list_cb<Message, Session> >;
-    using F = boost::function<void (const Message &, Session &, list_cb &)>;
+    using ptr = std::shared_ptr<list_cb<Message, Session> >;
+    using F = std::function<void (const Message &, Session &, list_cb &)>;
     using L = std::list<F>;
 
 //    template<class... Callback>
