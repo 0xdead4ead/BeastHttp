@@ -38,11 +38,11 @@ int main()
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/animals/cat'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/animals/dog'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/animals/mouse'
-//    root@x0x0:~# curl localhost --request 'GET' --request-target '/animals/ANY'
-//    root@x0x0:~# curl localhost --request 'GET' --request-target '/alphabet/A'
-//    root@x0x0:~# curl localhost --request 'GET' --request-target '/alphabet/B'
-//    root@x0x0:~# curl localhost --request 'GET' --request-target '/alphabet/C'
-//    root@x0x0:~# curl localhost --request 'GET' --request-target '/alphabet/ANY'
+//    root@x0x0:~# curl localhost --request 'GET' --request-target '/animals/any'
+//    root@x0x0:~# curl localhost --request 'GET' --request-target '/cars/audi'
+//    root@x0x0:~# curl localhost --request 'GET' --request-target '/cars/bmw'
+//    root@x0x0:~# curl localhost --request 'GET' --request-target '/cars/toyota'
+//    root@x0x0:~# curl localhost --request 'GET' --request-target '/alphabet/any'
 // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
     http::server my_http_server;
@@ -50,51 +50,51 @@ int main()
     auto animals_router = my_http_server.Router();
     auto alphabet_router = my_http_server.Router();
 
-    animals_router.get("/cat", [](auto & req, auto & session){
-        cout << req << endl; // /animals/cat
-        session.do_write(boost::move(make_response(req, "Me-ow\n")));
+    animals_router.get("/cat[/]??", [](auto & req, auto & session){
+        cout << req << endl; // '/animals/cat' or '/animals/cat/'
+        session.do_write(boost::move(make_response(req, "me-ow\n")));
     });
 
-    animals_router.get("/dog", [](auto & req, auto & session){
-        cout << req << endl; // /animals/dog
-        session.do_write(boost::move(make_response(req, "Aw! Aw! Rrrrr\n")));
+    animals_router.get("/dog[/]??", [](auto & req, auto & session){
+        cout << req << endl; // '/animals/dog' or '/animals/dog/'
+        session.do_write(boost::move(make_response(req, "aw! aw! Rrrrr\n")));
     });
 
-    animals_router.get("/mouse", [](auto & req, auto & session){
-        cout << req << endl; // /animals/mouse
+    animals_router.get("/mouse[/]??", [](auto & req, auto & session){
+        cout << req << endl; // '/animals/mouse' or '/animals/mouse/'
         session.do_write(boost::move(make_response(req, "...\n")));
     });
 
-    animals_router.all("/.*", [](auto & req, auto & session){
-        cout << req << endl; // /animals/ANY
-        session.do_write(boost::move(make_response(req, "???\n")));
+    animals_router.get("[/]??", [](auto & req, auto & session){
+        cout << req << endl; // '/animals' or '/animals/'
+        session.do_write(boost::move(make_response(req, "animals\n")));
     });
 
     my_http_server.use("/animals", animals_router);
 
-    alphabet_router.get("/A", [](auto & req, auto & session){
-        cout << req << endl; // /alphabet/A
-        session.do_write(boost::move(make_response(req, "is A\n")));
+    cars_router.get("/audi[/]??", [](auto & req, auto & session){
+        cout << req << endl; // '/cars/audi' or '/cars/audi/'
+        session.do_write(boost::move(make_response(req, "audi\n")));
     });
 
-    alphabet_router.get("/B", [](auto & req, auto & session){
-        cout << req << endl; // /alphabet/B
-        session.do_write(boost::move(make_response(req, "is B\n")));
+    cars_router.get("/bmw[/]??", [](auto & req, auto & session){
+        cout << req << endl; // '/cars/bmw' or '/cars/bmw/'
+        session.do_write(boost::move(make_response(req, "bmw\n")));
     });
 
-    alphabet_router.get("/C", [](auto & req, auto & session){
-        cout << req << endl; // /alphabet/C
-        session.do_write(boost::move(make_response(req, "is C\n")));
+    cars_router.get("/toyota[/]??", [](auto & req, auto & session){
+        cout << req << endl; // '/cars/toyota' or '/cars/toyota/'
+        session.do_write(boost::move(make_response(req, "toyota\n")));
     });
 
-    alphabet_router.get("/.*", [](auto & req, auto & session){
-        cout << req << endl; // /alphabet/ANY
-        session.do_write(boost::move(make_response(req, "???\n")));
+    cars_router.get("[/]??", [](auto & req, auto & session){
+        cout << req << endl; // '/cars' or '/cars/'
+        session.do_write(boost::move(make_response(req, "cars\n")));
     });
 
-    my_http_server.use("/alphabet", alphabet_router);
+    my_http_server.use("/cars[/]??", cars_router);
 
-    my_http_server.get("/about", [](auto & req, auto & session){
+    my_http_server.get("/about[/]??", [](auto & req, auto & session){
         cout << req << endl; // /about
         session.do_write(boost::move(make_response(req, "About\n")));
     });
@@ -102,6 +102,11 @@ int main()
     my_http_server.get("/", [](auto & req, auto & session){
         cout << req << endl; // /
         session.do_write(boost::move(make_response(req, "Main\n")));
+    });
+
+    my_http_server.all("/.*", [](auto & req, auto & session){
+        cout << req << endl; // /any
+        session.do_write(boost::move(make_response(req, "Error\n")));
     });
 
     const auto & address = "127.0.0.1";
