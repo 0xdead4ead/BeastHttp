@@ -74,6 +74,76 @@ public:
     void options(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
         return add_resource_cb(path_to_resource, method_t::options, list_cb_t{prepare_list_cb(on_resource_handlers...)});
     }
+    /// \brief Adds a handler for CONNECT method
+    template<class... Callback>
+    void connect(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+        return add_resource_cb(path_to_resource, method_t::connect, list_cb_t{prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for TRACE method
+    template<class... Callback>
+    void trace(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+        return add_resource_cb(path_to_resource, method_t::trace, list_cb_t{prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for COPY method
+    template<class... Callback>
+    void copy(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+        return add_resource_cb(path_to_resource, method_t::copy, list_cb_t{prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for LOCK method
+    template<class... Callback>
+    void lock(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+        return add_resource_cb(path_to_resource, method_t::lock, list_cb_t{prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for MKCOL method
+    template<class... Callback>
+    void mkcol(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+        return add_resource_cb(path_to_resource, method_t::mkcol, list_cb_t{prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for MOVE method
+    template<class... Callback>
+    void move(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+        return add_resource_cb(path_to_resource, method_t::move, list_cb_t{prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for PROPFIND method
+    template<class... Callback>
+    void propfind(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+        return add_resource_cb(path_to_resource, method_t::propfind, list_cb_t{prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for PROPPATCH method
+    template<class... Callback>
+    void proppatch(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+        return add_resource_cb(path_to_resource, method_t::proppatch, list_cb_t{prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for SEARCH method
+    template<class... Callback>
+    void search(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+        return add_resource_cb(path_to_resource, method_t::search, list_cb_t{prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for UNLOCK method
+    template<class... Callback>
+    void unlock(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+        return add_resource_cb(path_to_resource, method_t::unlock, list_cb_t{prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for BIND method
+    template<class... Callback>
+    void bind(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+        return add_resource_cb(path_to_resource, method_t::bind, list_cb_t{prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for REBIND method
+    template<class... Callback>
+    void rebind(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+        return add_resource_cb(path_to_resource, method_t::rebind, list_cb_t{prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for UNBIND method
+    template<class... Callback>
+    void unbind(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+        return add_resource_cb(path_to_resource, method_t::unbind, list_cb_t{prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for ACL method
+    template<class... Callback>
+    void acl(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+        return add_resource_cb(path_to_resource, method_t::acl, list_cb_t{prepare_list_cb(on_resource_handlers...)});
+    }
     /// \brief Adds a handler for the requested resource by default
     /// \note If the handler for the requested resource with method is not found, this on is called
     template<class... Callback>
