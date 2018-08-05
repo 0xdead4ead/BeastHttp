@@ -12,7 +12,7 @@ int main()
     http::client my_http_client;
 
     const auto & host = "www.google.com";
-    auto port = 80;
+    uint32_t port = 80;
 
     const auto & on_connect = [&host](auto & session){
         http::base::out("Successful connected!");
