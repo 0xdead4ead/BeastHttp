@@ -230,11 +230,13 @@ public:
     }
 
     void use(const resource_regex_t & path_to_resource, typename basic_r::cref other){
-        get_basic_router()->use(path_to_resource, other);
+        if(!check_status())
+            get_basic_router()->use(path_to_resource, other);
     }
 
     void use(const resource_regex_t & path_to_resource, typename chain_r::cref other){
-        get_chain_router()->use(path_to_resource, other);
+        if(!check_status())
+            get_chain_router()->use(path_to_resource, other);
     }
 
 }; // server_impl class
