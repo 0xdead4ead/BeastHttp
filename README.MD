@@ -10,6 +10,8 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 
 > **server.hpp:** HTTP server class, registration of new routes
 
+> **router.hpp:** Container for storing routes
+
 > **list_cb.hpp:** Container for storing callback functions
 
 # FEATURES
@@ -40,7 +42,7 @@ Add new route for GET request with "/" resource
         cout << req << endl;
     });
 
-    // and chain handling
+    // or
 
     my_http_server.get("/a/b", [](auto & req, auto & session, auto & next){
         // process a
