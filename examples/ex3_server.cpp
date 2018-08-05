@@ -38,17 +38,17 @@ int main()
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/animals/cat'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/animals/dog'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/animals/mouse'
-//    root@x0x0:~# curl localhost --request 'GET' --request-target '/animals/any'
+//    root@x0x0:~# curl localhost --request 'GET' --request-target '/animals'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/cars/audi'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/cars/bmw'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/cars/toyota'
-//    root@x0x0:~# curl localhost --request 'GET' --request-target '/cars/any'
+//    root@x0x0:~# curl localhost --request 'GET' --request-target '/cars'
 // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
     http::server my_http_server;
 
-    auto animals_router = my_http_server.Router();
-    auto alphabet_router = my_http_server.Router();
+    auto animals_router = my_http_server.BasicRouter();
+    auto cars_router = my_http_server.BasicRouter();
 
     animals_router.get("/cat[/]??", [](auto & req, auto & session){
         cout << req << endl; // '/animals/cat' or '/animals/cat/'
@@ -67,10 +67,8 @@ int main()
 
     animals_router.get("[/]??", [](auto & req, auto & session){
         cout << req << endl; // '/animals' or '/animals/'
-        session.do_write(std::move(make_response(req, "animals\n")));
+        session.do_write(std::move(make_response(req, "animals home page\n")));
     });
-
-    my_http_server.use("/animals", animals_router);
 
     cars_router.get("/audi[/]??", [](auto & req, auto & session){
         cout << req << endl; // '/cars/audi' or '/cars/audi/'
@@ -89,31 +87,31 @@ int main()
 
     cars_router.get("[/]??", [](auto & req, auto & session){
         cout << req << endl; // '/cars' or '/cars/'
-        session.do_write(std::move(make_response(req, "cars\n")));
+        session.do_write(std::move(make_response(req, "cars home page\n")));
     });
 
-    my_http_server.use("/cars[/]??", cars_router);
+    my_http_server.use("/animals", animals_router);
+    my_http_server.use("/cars", cars_router);
 
     my_http_server.get("/about[/]??", [](auto & req, auto & session){
         cout << req << endl; // /about
-        session.do_write(std::move(make_response(req, "About\n")));
+        session.do_write(std::move(make_response(req, "about\n")));
     });
 
     my_http_server.get("/", [](auto & req, auto & session){
         cout << req << endl; // /
-        session.do_write(std::move(make_response(req, "Main\n")));
+        session.do_write(std::move(make_response(req, "main home page\n")));
     });
 
     my_http_server.all("/.*", [](auto & req, auto & session){
         cout << req << endl; // /any
-        session.do_write(std::move(make_response(req, "Error\n")));
+        session.do_write(std::move(make_response(req, "error\n")));
     });
 
     const auto & address = "127.0.0.1";
-    auto port = 80;
+    uint32_t port = 80;
 
     my_http_server.listen(address, port, [](auto & session){
-
         http::base::out("New client!!!");
         session.do_read();
     });
