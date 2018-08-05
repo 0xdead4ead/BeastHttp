@@ -52,7 +52,7 @@ public:
                           const std::shared_ptr<method_map_t> & method_map_cb_p,
                           const Callback & handler)
     {
-        //auto new_session_p = std::make_shared<session<true, Body> >(connection_p, def_all_cb_p, method_map_cb_p);
+        //auto new_session_p = std::make_shared<session<true, Body> >(connection_p, resource_map_cb_p, method_map_cb_p);
         // session constructor declared private here...
         auto new_session_p = ptr(new session<true, Body>(connection_p, resource_map_cb_p, method_map_cb_p));
         handler(*new_session_p);
@@ -70,10 +70,10 @@ public:
                                 boost::asio::placeholders::bytes_transferred));
     }
 
-    template<class Body2>
-    void do_write(boost::beast::http::response<Body2> && msg){
+    template<class Responce>
+    void do_write(Responce && msg){
 
-        auto sp = std::make_shared<boost::beast::http::response<Body2> >(std::move(msg));
+        auto sp = std::make_shared<std::decay_t<Responce>>(std::forward<Responce>(msg));
         msg_p_ = sp;
 
         connection_p_->async_write(*sp,
