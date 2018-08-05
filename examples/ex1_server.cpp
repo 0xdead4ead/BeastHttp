@@ -32,7 +32,6 @@ int main()
 
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/1'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/2'
-//    root@x0x0:~# curl localhost --request 'GET' --request-target '/ANY/REQUEST'
     http::server my_http_server;
 
     my_http_server.get("/1", [](auto & req, auto & session){
@@ -47,13 +46,11 @@ int main()
 
     my_http_server.all(".*", [](auto & req, auto & session){
         cout << req << endl;
-
-        session.do_write(std::move(make_response(req, "any\n")));
-
+        session.do_write(std::move(make_response(req, "error\n")));
     });
 
     const auto & address = "127.0.0.1";
-    auto port = 80;
+    uint32_t port = 80;
 
     my_http_server.listen(address, port, [](auto & session){
         http::base::out("New client!!!");
