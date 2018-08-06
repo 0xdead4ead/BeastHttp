@@ -36,17 +36,17 @@ int main()
 
     my_http_server.get("/1", [](auto & req, auto & session){
        cout << req << endl;
-       session.do_write(std::move(make_response(req, "GET 1\n")));
+       session.do_write(make_response(req, "GET 1\n"));
     });
 
     my_http_server.get("/2", [](auto & req, auto & session){
        cout << req << endl;
-       session.do_write(std::move(make_response(req, "GET 2\n")));
+       session.do_write(make_response(req, "GET 2\n"));
     });
 
     my_http_server.all(".*", [](auto & req, auto & session){
         cout << req << endl;
-        session.do_write(std::move(make_response(req, "error\n")));
+        session.do_write(make_response(req, "error\n"));
     });
 
     const auto & address = "127.0.0.1";
