@@ -17,13 +17,15 @@ using resource_t = boost::beast::string_view;
 using method_t = boost::beast::http::verb;
 using s_method_t = boost::beast::string_view;
 
+//template<class T>
+//class deb;
 
 class cb_invoker{
 
 public:
 
     template<class Message, class Session, class List_cb>
-    void invoke_cb(const Message & message, Session & session, List_cb & l_cb){
+    void invoke_cb(Message & message, Session & session, List_cb & l_cb){
         l_cb.reset();
         l_cb.exec(message, session);
     }
@@ -153,7 +155,7 @@ private:
                         auto const & cb_p = value.second;
 
                         if(cb_p)
-                            return invoke_cb(boost::cref(*req_p_), boost::ref(*this), *cb_p);
+                            return invoke_cb(boost::ref(*req_p_), boost::ref(*this), *cb_p);
 
                     }
                 }
@@ -167,7 +169,7 @@ private:
                     auto const & cb_p = value.second;
 
                     if(cb_p)
-                        return invoke_cb(boost::cref(*req_p_), boost::ref(*this), *cb_p);
+                        return invoke_cb(boost::ref(*req_p_), boost::ref(*this), *cb_p);
 
                 }
             }
