@@ -35,18 +35,41 @@ int main()
     http::server my_http_server;
 
     my_http_server.get("/1", [](auto & req, auto & session){
-       cout << req << endl;
+       cout << req << endl; // '/1'
        session.do_write(make_response(req, "GET 1\n"));
     });
 
     my_http_server.get("/2", [](auto & req, auto & session){
-       cout << req << endl;
+       cout << req << endl; // '/2'
        session.do_write(make_response(req, "GET 2\n"));
     });
 
     my_http_server.all(".*", [](auto & req, auto & session){
-        cout << req << endl;
+        cout << req << endl; // any
         session.do_write(make_response(req, "error\n"));
+    });
+
+    my_http_server.get("/a/b/c/d",
+       [](auto & req, auto & session, auto & next){
+
+        cout << req << endl; // '/a/b/c/d'
+
+        (void)session; next();
+    }, [](auto & req, auto & session, auto & next){
+
+        cout << req << endl; // '/b/c/d'
+
+        (void)session; next();
+    }, [](auto & req, auto & session, auto & next){
+
+        cout << req << endl; // '/c/d'
+
+        (void)session; next();
+    }, [](auto & req, auto & session){
+
+        cout << req << endl; // '/d'
+
+        session.do_write(make_response(req, "ABCD\n"));
     });
 
     const auto & address = "127.0.0.1";
@@ -58,6 +81,11 @@ int main()
     });
 
     cout << "Server starting on " << address << ':' << boost::lexical_cast<string>(port) << endl;
+
+    http::base::processor::get().register_signals_handler([](int){
+        std::cout << "\nPlease wait!"  << std::endl;
+        http::base::processor::get().stop();
+    }, std::vector<int>{SIGINT,SIGTERM, SIGQUIT});
 
     uint32_t pool_size = boost::thread::hardware_concurrency();
     http::base::processor::get().start(pool_size == 0 ? 4 : pool_size << 1);
