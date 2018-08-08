@@ -49,12 +49,13 @@ private:
     }
 
     void exec_fwd(bool _first = true){
-        if(c_iter_ == invoke_l_.cend())
-            c_iter_--;
+        if constexpr (Message::header_type::is_request::value){
+            if(c_iter_ == invoke_l_.cend())
+                c_iter_--;
 
-        if(!_first)
-            skip_target();
-
+            if(!_first)
+                skip_target();
+        }
         return (*c_iter_++) (*message_p, *session_p, *this);
     }
 
