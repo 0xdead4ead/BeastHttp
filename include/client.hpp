@@ -29,10 +29,10 @@ public:
     /// \param Session port (80, 8080)
     /// \param handler informing you of a successful connection
     /// Callback1 signature : template<class Session>
-    ///                      void (const Session & session)
+    ///                      void (Session & session)
     /// \param handler on the received message
     /// Callback2 signature : template<class Message>
-    ///                      void (const Message & message, Session & session)
+    ///                      void (Message & message, Session & session)
     template<class Callback1, class Callback2>
     void invoke(std::string const & host, uint32_t port, Callback1 && on_connect_handler, Callback2 && on_receive_handler){
         connection_p_ = base::processor::get().create_connection(host,

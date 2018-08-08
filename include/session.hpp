@@ -262,7 +262,7 @@ private:
             return base::fail(ec, "read");
 
         if(response_cb_p_)
-            invoke_cb(boost::cref(*res_p_), boost::ref(*this), *response_cb_p_);
+            invoke_cb(boost::ref(*res_p_), boost::ref(*this), *response_cb_p_);
 
         // If we get here then the connection is closed gracefully
     }

@@ -69,7 +69,7 @@ public:
         return get_chain_router().operator *();
     }
     /// Callback signature : template<class Message, class Session /*, class Next (optional)*/>
-    ///                     void (const Message & message, Session & session /*, Next & next (optional)*/)
+    ///                     void (Message & message, Session & session /*, Next & next (optional)*/)
     /// \brief Adds a handler for GET method
     template<class... Callback>
     void get(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
@@ -203,7 +203,7 @@ public:
     /// \param port
     /// \param Handler on new incoming connection
     /// Callback signature : template<class Session>
-    ///                     void (const Session & session)
+    ///                     void (Session & session)
     template<class Callback>
     void listen(const std::string & address, uint32_t port, Callback && on_accept_handler){
         if(status_)
