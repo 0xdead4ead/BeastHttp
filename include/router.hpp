@@ -3,6 +3,7 @@
 
 #include <session.hpp>
 #include <list_cb.hpp>
+#include <boost/config.hpp>
 
 namespace http {
 
@@ -24,12 +25,36 @@ public:
 
 protected:
 
+#ifndef __cpp_if_constexpr
+    template<size_t v>
+    struct size_type {
+        static constexpr size_t value = v;
+    };
+
+    template <typename T, typename F1, typename F2, typename S = size_type<0> >
+    struct tuple_cb_for_each
+    {
+        void operator()(const T& tpl, const F1& f1, const F2& f2){
+            const auto& value = std::get<S::value>(tpl);
+            f2(value);
+            tuple_cb_for_each<T, F1, F2, size_type<S::value + 1> >{}(tpl, f1, f2);
+        }
+    };
+
+    template <typename T, typename F1, typename F2>
+    struct tuple_cb_for_each<T,F1,F2, size_type<std::tuple_size<T>::value - 1> >
+    {
+        void operator()(const T& tpl, const F1& f1, const F2& f2){
+            const auto& value = std::get<size_type<std::tuple_size<T>::value - 1>::value>(tpl);
+            f1(value);
+            (void)f2;
+        }
+    };
+#else
+
     template <typename T, typename F1, typename F2, size_t Index = 0>
     void tuple_cb_for_each(const T& tpl, const F1& f1, const F2& f2) {
-
-        constexpr auto tuple_size = std::tuple_size<T>::value;
-        BOOST_STATIC_ASSERT(tuple_size != 0);
-
+        constexpr auto tuple_size = std::tuple_size_v<T>;
         const auto& value = std::get<Index>(tpl);
         if constexpr(Index + 1 == tuple_size){
             f1(value);
@@ -38,6 +63,7 @@ protected:
             tuple_cb_for_each<T, F1, F2, Index + 1>(tpl, f1, f2);
         }
     }
+#endif
 
     template<class... Callback>
     auto prepare_list_cb(const Callback & ... handlers){
@@ -46,7 +72,10 @@ protected:
 
         auto tuple_cb = std::tie(handlers...);
 
-        tuple_cb_for_each(tuple_cb, [&cb_l](const auto& value){
+        constexpr auto tuple_size = std::tuple_size<decltype (tuple_cb) >::value;
+        BOOST_STATIC_ASSERT(tuple_size != 0);
+
+        const auto & f1 = [&cb_l](const auto& value){
             cb_l.push_back(
                         typename list_cb_t::F(
                             boost::bind<void>(
@@ -56,7 +85,9 @@ protected:
                                 )
                             )
                         );
-        }, [&cb_l](const auto& value){
+        };
+
+        const auto & f2 = [&cb_l](const auto& value){
             cb_l.push_back(
                         typename list_cb_t::F(
                             boost::bind<void>(
@@ -67,8 +98,14 @@ protected:
                                 )
                             )
                         );
-        });
+        };
 
+#ifndef __cpp_if_constexpr
+        tuple_cb_for_each<decltype (tuple_cb), decltype (f1), decltype (f2)>{}
+                (tuple_cb, f1, f2);
+#else
+        tuple_cb_for_each(tuple_cb, f1, f2);
+#endif
         return cb_l;
 
     }

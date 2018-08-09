@@ -12,11 +12,13 @@ class list_cb{
 
 public:
 
+    using self_type = list_cb<Message,Session>;
     using ptr = std::shared_ptr<list_cb<Message, Session> >;
     using F = std::function<void (Message &, Session &, list_cb &)>;
     using L = std::list<F>;
 
     friend class cb_invoker;
+    friend class exec_base;
 
     explicit list_cb(){}
 
@@ -37,7 +39,11 @@ public:
             skip_target();
         }
 
+#ifndef __cpp_if_constexpr
+        return exec_fwd<self_type,Message::header_type::is_request::value>{}(*this, false);
+#else
         return exec_fwd(false);
+#endif
     }
 
 private:
@@ -45,9 +51,35 @@ private:
     void exec(Message & message, Session & session) {
         message_p = std::addressof(message);
         session_p = std::addressof(session);
+#ifndef __cpp_if_constexpr
+        return exec_fwd<self_type,Message::header_type::is_request::value>{}(*this);
+#else
         return exec_fwd();
+#endif
     }
 
+#ifndef __cpp_if_constexpr
+    struct exec_base{};
+
+    template<typename T, bool IsRequest = true>
+    struct exec_fwd : exec_base{
+        void operator()(T & t, bool _first = true){
+            if(t.c_iter_ == t.invoke_l_.cend())
+                t.c_iter_--;
+
+            if(!_first)
+                t.skip_target();
+            return (*t.c_iter_++) (*t.message_p, *t.session_p, t);
+        }
+    };
+
+    template<typename T>
+    struct exec_fwd<T,false> : exec_base{
+        void operator()(T & t){
+            return (*t.c_iter_++) (*t.message_p, *t.session_p, t);
+        }
+    };
+#else
     void exec_fwd(bool _first = true){
         if constexpr (Message::header_type::is_request::value){
             if(c_iter_ == invoke_l_.cend())
@@ -58,7 +90,7 @@ private:
         }
         return (*c_iter_++) (*message_p, *session_p, *this);
     }
-
+#endif
     void reset(){
         c_iter_ = invoke_l_.cbegin();
     }
@@ -67,7 +99,7 @@ private:
         auto current_target = message_p->target();
         std::size_t pos = current_target.find('/', 1);
 
-        if(pos != -1){
+        if(pos != std::size_t(-1)){
             auto next_target = current_target.substr(pos);
             std::string next_t{next_target.begin(), next_target.end()};
             message_p->target(next_t);
@@ -81,6 +113,6 @@ private:
 
 }; // list_cb class
 
-} // namespace
+} // namespace http
 
 #endif // LIST_CB_HPP
