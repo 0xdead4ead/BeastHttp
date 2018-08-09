@@ -182,6 +182,7 @@ public:
 
         if(ec){
             fail(ec, "resolve");
+            acceptor_.get_io_service().stop();
             return;
         }
 
@@ -190,14 +191,16 @@ public:
         if(ec)
         {
             fail(ec, "open");
+            acceptor_.get_io_service().stop();
             return;
         }
 
         // Allow address reuse
-        acceptor_.set_option(boost::asio::socket_base::reuse_address(true));
+        acceptor_.set_option(boost::asio::socket_base::reuse_address(false));
         if(ec)
         {
             fail(ec, "set_option");
+            acceptor_.get_io_service().stop();
             return;
         }
 
@@ -206,6 +209,7 @@ public:
         if(ec)
         {
             fail(ec, "bind");
+            acceptor_.get_io_service().stop();
             return;
         }
 
@@ -215,6 +219,7 @@ public:
         if(ec)
         {
             fail(ec, "listen");
+            acceptor_.get_io_service().stop();
             return;
         }
 
@@ -243,11 +248,13 @@ private:
 
     void handle_accept(const tcp_connection::ptr & new_connection, const boost::system::error_code& error)
     {
-        accept_start();
-        if (!error)
+        if (!error){
+            accept_start();
             f_callback_(new_connection); // running task
-        else
+        }else{
             fail(error, "accept");
+            acceptor_.get_io_service().stop();
+        }
     }
 
     acceptor_type acceptor_;

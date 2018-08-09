@@ -17,9 +17,6 @@ using resource_t = boost::beast::string_view;
 using method_t = boost::beast::http::verb;
 using s_method_t = boost::beast::string_view;
 
-//template<class T>
-//class deb;
-
 class cb_invoker{
 
 public:
