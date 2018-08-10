@@ -32,7 +32,7 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 
 Server and client examples -> `./examples`
 
-Add new route for GET request with "/" resource 
+Add new route for GET request with "/" resource: 
 
 ```cpp
 
@@ -45,11 +45,56 @@ Add new route for GET request with "/" resource
     // or
 
     my_http_server.get("/a/b", [](auto & req, auto & session, auto & next){
-        // process a
+        // process '/a'
         next();
     }, [](auto & req, auto & session){
-        // process b
+        // process '/b'
     });
+
+```
+
+Create modular, mounted route handlers:
+
+```cpp
+
+    auto animals_router = my_http_server.BasicRouter();
+
+    animals_router.get("/cat", [](auto & req, auto & session){ // '/animals/cat'
+        session.do_write(make_response(req, "me-ow\n"));
+    });
+
+    animals_router.get("/dog", [](auto & req, auto & session){ // '/animals/dog'
+        session.do_write(make_response(req, "aw! aw! Rrrrr\n"));
+    });
+
+    animals_router.get("/mouse", [](auto & req, auto & session){ // '/animals/mouse'
+        session.do_write(make_response(req, "...\n"));
+    });
+
+    animals_router.get("[/]??", [](auto & req, auto & session){ // '/animals' or '/animals/'
+        session.do_write(make_response(req, "animals home page\n"));
+    });
+
+    my_http_server.use("/animals", animals_router);
+
+```
+
+Create handlers routes, forming a chain, for the route path:
+
+```cpp
+
+    auto books_router = my_http_server.ChainRouter();
+
+    books_router.route("/book") // 'books/book'
+      .get([](auto & req, auto & session){
+        session.do_write(make_response(req, "get a random book\n"));
+    }).post([](auto & req, auto & session){
+        session.do_write(make_response(req, "add a book\n"));
+    }).put([](auto & req, auto & session){
+        session.do_write(make_response(req, "update the book\n"));
+    });
+
+    my_http_server.use("/books", books_router);
 
 ```
 
@@ -64,7 +109,7 @@ Start listening on localhost:80
 
 ```
 
-Run the I/O service on the requested number of threads
+Run the I/O service on the requested number of threads:
 
 ```cpp
 
@@ -74,7 +119,7 @@ Run the I/O service on the requested number of threads
 
 ```
 
-Request content from the server
+Request content from the server:
 
 ```cpp
 
