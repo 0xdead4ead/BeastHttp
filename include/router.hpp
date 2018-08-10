@@ -314,6 +314,10 @@ public:
         base_t::use(path_to_resource, other);
     }
 
+    void use(cref other){
+        base_t::use("", other);
+    }
+
 private:
 
     std::shared_ptr<resource_map_t> resource_map_cb_p_;
@@ -484,6 +488,10 @@ public:
 
     void use(const resource_regex_t & path_to_resource, cref other){
         base_t::use(path_to_resource, other);
+    }
+
+    void use(cref other){
+        base_t::use("", other);
     }
 
 private:

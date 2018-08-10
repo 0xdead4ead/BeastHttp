@@ -239,6 +239,16 @@ public:
             get_chain_router()->use(path_to_resource, other);
     }
 
+    void use(typename basic_r::cref other){
+        if(!check_status())
+            get_basic_router()->use("", other);
+    }
+
+    void use(typename chain_r::cref other){
+        if(!check_status())
+            get_chain_router()->use("", other);
+    }
+
 }; // server_impl class
 
 using server = server_impl<boost::beast::http::string_body>;
