@@ -4,6 +4,7 @@
 #include <memory>
 #include <functional>
 #include <list>
+#include <string>
 
 namespace http {
 
@@ -64,11 +65,13 @@ private:
     template<typename T, bool IsRequest = true>
     struct exec_fwd : exec_base{
         void operator()(T & t, bool _first = true){
+            if(_first)
+                t.current_target = t.message_p->target().to_string();
+
             if(t.c_iter_ == t.invoke_l_.cend())
                 t.c_iter_--;
 
-            if(!_first)
-                t.skip_target();
+            t.skip_target();
             return (*t.c_iter_++) (*t.message_p, *t.session_p, t);
         }
     };
@@ -82,11 +85,13 @@ private:
 #else
     void exec_fwd(bool _first = true){
         if constexpr (Message::header_type::is_request::value){
+            if(_first)
+                current_target = message_p->target().to_string();
+
             if(c_iter_ == invoke_l_.cend())
                 c_iter_--;
 
-            if(!_first)
-                skip_target();
+            skip_target();
         }
         return (*c_iter_++) (*message_p, *session_p, *this);
     }
@@ -96,20 +101,23 @@ private:
     }
 
     void skip_target(){
-        auto current_target = message_p->target();
         std::size_t pos = current_target.find('/', 1);
 
         if(pos != std::size_t(-1)){
-            auto next_target = current_target.substr(pos);
-            std::string next_t{next_target.begin(), next_target.end()};
-            message_p->target(next_t);
-        }
+            auto next_target = current_target.substr(0, pos);
+            current_target = current_target.substr(pos);
+
+            message_p->target(next_target);
+        }else
+            message_p->target(current_target);
+
     }
 
     L invoke_l_;
     typename L::const_iterator c_iter_;
     Message * message_p;
     Session * session_p;
+    std::string current_target;
 
 }; // list_cb class
 
