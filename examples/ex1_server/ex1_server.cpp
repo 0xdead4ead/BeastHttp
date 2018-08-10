@@ -27,11 +27,12 @@ auto make_response(const Request & req, const string & user_body){
 
 int main()
 {
-//g++ -c -std=gnu++17 -I.. -o ex1_server.o ./ex1_server.cpp
+//g++ -c -std=gnu++14 -I.. -o ex1_server.o ./ex1_server.cpp
 //g++ -o ex1_server ex1_server.o -lboost_system -lboost_thread -lpthread -lboost_regex -licui18n
 
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/1'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/2'
+//    root@x0x0:~# curl localhost --request 'GET' --request-target '/a/b/c/d'
     http::server my_http_server;
 
     my_http_server.get("/1", [](auto & req, auto & session){
@@ -52,17 +53,17 @@ int main()
     my_http_server.get("/a/b/c/d",
        [](auto & req, auto & session, auto & next){
 
-        cout << req << endl; // '/a/b/c/d'
+        cout << req << endl; // '/a'
 
         (void)session; next();
     }, [](auto & req, auto & session, auto & next){
 
-        cout << req << endl; // '/b/c/d'
+        cout << req << endl; // '/b'
 
         (void)session; next();
     }, [](auto & req, auto & session, auto & next){
 
-        cout << req << endl; // '/c/d'
+        cout << req << endl; // '/c'
 
         (void)session; next();
     }, [](auto & req, auto & session){
