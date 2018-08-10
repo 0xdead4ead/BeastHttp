@@ -43,12 +43,16 @@ int main()
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/cars/bmw'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/cars/toyota'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/cars'
+//    root@x0x0:~# curl localhost --request 'GET' --request-target '/books/book'
+//    root@x0x0:~# curl localhost --request 'POST' --request-target '/books/book'
+//    root@x0x0:~# curl localhost --request 'PUT' --request-target '/books/book'
 // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
     http::server my_http_server;
 
     auto animals_router = my_http_server.BasicRouter();
     auto cars_router = my_http_server.BasicRouter();
+    auto books_router = my_http_server.ChainRouter();
 
     animals_router.get("/cat[/]??", [](auto & req, auto & session){
         cout << req << endl; // '/animals/cat' or '/animals/cat/'
@@ -92,6 +96,26 @@ int main()
 
     my_http_server.use("/animals", animals_router);
     my_http_server.use("/cars", cars_router);
+
+    books_router.route("/book[/]??")
+      .get([](auto & req, auto & session){
+
+        cout << req << endl;
+        session.do_write(make_response(req, "get a random book\n"));
+
+    }).post([](auto & req, auto & session){
+
+        cout << req << endl;
+        session.do_write(make_response(req, "add a book\n"));
+
+    }).put([](auto & req, auto & session){
+
+        cout << req << endl;
+        session.do_write(make_response(req, "update the book\n"));
+
+    });
+
+    my_http_server.use("/books", books_router);
 
     my_http_server.get("/about[/]??", [](auto & req, auto & session){
         cout << req << endl; // /about
