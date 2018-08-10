@@ -71,7 +71,9 @@ private:
             if(t.c_iter_ == t.invoke_l_.cend())
                 t.c_iter_--;
 
-            t.skip_target();
+            if(t.invoke_l_.size() > 1)
+                t.skip_target();
+
             return (*t.c_iter_++) (*t.message_p, *t.session_p, t);
         }
     };
@@ -91,7 +93,8 @@ private:
             if(c_iter_ == invoke_l_.cend())
                 c_iter_--;
 
-            skip_target();
+            if(t.invoke_l_.size() > 1)
+                skip_target();
         }
         return (*c_iter_++) (*message_p, *session_p, *this);
     }
