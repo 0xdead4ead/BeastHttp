@@ -150,3 +150,5 @@ Request content from the server:
     my_http_client.invoke(host, port, on_connect, on_receive);
 
 ```
+
+Copyright (c) 2018 0xdead4ead
