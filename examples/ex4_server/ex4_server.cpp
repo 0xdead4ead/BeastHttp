@@ -10,7 +10,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 
+using string_view = boost::beast::string_view;
+
 using namespace boost::filesystem;
+
 
 // Return base root path
 path & get_doc_root_path(){
@@ -20,8 +23,8 @@ path & get_doc_root_path(){
 
 // Append an HTTP rel-path to a local filesystem path.
 path path_concat(
-        const boost::beast::string_view & target,
-        const boost::beast::string_view & resource
+        const string_view & target,
+        const string_view & resource
         ){
 
     path result = get_doc_root_path();
@@ -33,10 +36,10 @@ path path_concat(
 }
 
 // Return a reasonable mime type based on the extension of a file.
-boost::beast::string_view mime_type(const path & extension)
+string_view mime_type(const path & extension)
 {
     using boost::beast::iequals;
-    boost::beast::string_view ext
+    string_view ext
     {
         extension.string().data(),
                 extension.string().size()};
@@ -136,7 +139,7 @@ boost::beast::http::file_body::value_type process_resource(
 
 int main(int argc, char* argv[])
 {
-//g++ -c -std=gnu++17 -I.. -o ex4_server.o ./ex4_server.cpp
+//g++ -c -std=gnu++14 -I.. -o ex4_server.o ./ex4_server.cpp
 //g++ -o ex4_server ex4_server.o -lboost_system -lboost_thread -lpthread -lboost_regex -licui18n -lboost_filesystem
 
     //##################################################################
@@ -151,10 +154,10 @@ int main(int argc, char* argv[])
 
 
     //##################################################################
-    const std::string_view address{argv[1]};
-    const std::string_view port{argv[2]};
-    const std::string_view threads{argv[3]};
-    const std::string_view doc_root_arg{argv[4]};
+    const string_view address{argv[1]};
+    const string_view port{argv[2]};
+    const string_view threads{argv[3]};
+    const string_view doc_root_arg{argv[4]};
     //##################################################################
 
     if(doc_root_arg.back() == '/')
@@ -166,8 +169,8 @@ int main(int argc, char* argv[])
     http::server my_http_server;
 
     //##################################################################
-    // Respond to HEAD request ('/' => '/index.html')
-    my_http_server.head("/|/index.html", [](auto & req, auto & session){
+    // Respond to HEAD request ('/' => 'index.html')
+    my_http_server.head("/", [](auto & req, auto & session){
         // make final path to resource
         path path_to_target;
         if(req.target().back() == '/')
@@ -195,8 +198,8 @@ int main(int argc, char* argv[])
     });
 
     //##################################################################
-    // Respond to GET request ('/' => '/index.html')
-    my_http_server.get("/|/index.html", [](auto & req, auto & session){
+    // Respond to GET request ('/' => 'index.html')
+    my_http_server.get("/", [](auto & req, auto & session){
         // make final path to resource
         path path_to_target;
         if(req.target().back() == '/')
