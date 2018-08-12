@@ -1,10 +1,6 @@
 #ifndef SESSION_HPP
 #define SESSION_HPP
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1200)
-# pragma once
-#endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
-
 #include <base.hpp>
 #include <list_cb.hpp>
 #include <boost/unordered_map.hpp>
