@@ -7,6 +7,8 @@
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/strand.hpp>
+#include <boost/asio/posix/stream_descriptor.hpp>
+#include <boost/asio/windows/stream_handle.hpp>
 #include <boost/config.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/asio/io_service.hpp>
@@ -372,7 +374,13 @@ public:
         ));
     }
 
+#if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
     using native_handle_type = boost::asio::posix::stream_descriptor::native_handle_type;
+#elif defined(BOOST_ASIO_HAS_WINDOWS_STREAM_HANDLE)
+    using native_handle_type = boost::asio::windows::stream_handle::native_handle_type;
+#else
+#error "Neither BOOST_ASIO_HAS_LOCAL_SOCKETS nor BOOST_ASIO_HAS_WINDOWS_STREAM_HANDLE is defined"
+#endif
 
     void assign_in_descriptor(const native_handle_type & descriptor){
         in.assign(descriptor);
@@ -405,16 +413,26 @@ private:
     boost::thread_group threads_pool_;
     listeners_type listeners_;
     boost::asio::signal_set signals_;
+#if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
     boost::asio::posix::stream_descriptor in;
     boost::asio::posix::stream_descriptor out;
+#elif defined(BOOST_ASIO_HAS_WINDOWS_STREAM_HANDLE)
+    boost::asio::windows::stream_handle in;
+    boost::asio::windows::stream_handle out;
+#endif
     std::function<void(int)> signal_handlers_;
 
     processor()
         : ios_{std::make_shared<boost::asio::io_service>()}
         , work_{std::make_shared<boost::asio::io_service::work>(*ios_)},
           signals_{*ios_},
+#if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
           in{*ios_, ::dup(STDIN_FILENO)},
           out{*ios_, ::dup(STDOUT_FILENO)}
+#elif defined(BOOST_ASIO_HAS_WINDOWS_STREAM_HANDLE)
+          in{ *ios_ },
+          out{ *ios_ }
+#endif
     {}
 
     void handle_signals(const boost::system::error_code& error,int signal_number)
