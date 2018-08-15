@@ -93,7 +93,7 @@ private:
             if(c_iter_ == invoke_l_.cend())
                 c_iter_--;
 
-            if(t.invoke_l_.size() > 1)
+            if(invoke_l_.size() > 1)
                 skip_target();
         }
         return (*c_iter_++) (*message_p, *session_p, *this);
