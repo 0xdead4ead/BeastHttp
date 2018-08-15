@@ -28,7 +28,7 @@ auto make_response(const Request & req, const string & user_body){
 
 int main()
 {
-//g++ -c -std=gnu++14 -I.. -o ex1_server.o ./ex1_server.cpp
+//g++ -c -std=gnu++14 -I../../include -o ex1_server.o ./ex1_server.cpp
 //g++ -o ex1_server ex1_server.o -lboost_system -lboost_thread -lpthread -lboost_regex -licui18n
 
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/1'
