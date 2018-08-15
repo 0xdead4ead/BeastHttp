@@ -7,7 +7,7 @@ using namespace std;
 
 int main()
 {
-//g++ -c -std=gnu++17 -I.. -o ex2_client.o ./ex2_client.cpp
+//g++ -c -std=gnu++14 -I../../include -o ex2_client.o ./ex2_client.cpp
 //g++ -o ex2_client ex2_client.o -lboost_system -lboost_thread -lpthread -lboost_regex -licui18n
     http::client my_http_client;
 
