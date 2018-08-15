@@ -228,17 +228,17 @@ struct calc{
 };
 
 // one request
-std::string json_rpc_process(const json & j_rpc_req){
+json json_rpc_process(const json & j_rpc_req){
     try {
         // check must jsonrpc = '2.0'
         if(j_rpc_req.at("jsonrpc") != "2.0"){
-            return json_rpc_32603().dump();
+            return json_rpc_32603();
         }
 
     } catch (json::type_error &) {
-        return json_rpc_32600().dump();
+        return json_rpc_32600();
     } catch (json::out_of_range &) {
-        return json_rpc_32600().dump();
+        return json_rpc_32600();
     }
 
     // id
@@ -248,7 +248,7 @@ std::string json_rpc_process(const json & j_rpc_req){
     try {
         id = j_rpc_req.at("id");
     } catch (json::type_error &) {
-        return json_rpc_32600().dump();
+        return json_rpc_32600();
     } catch (json::out_of_range &) {
         //This is a Notification request
         //The response to the client will not be sent.
@@ -268,12 +268,12 @@ std::string json_rpc_process(const json & j_rpc_req){
         else if(j_rpc_req.at("method") == "div")
             calc_f = &calc::div;
         else{
-            return json_rpc_32601(id).dump();
+            return json_rpc_32601(id);
         }
     } catch (json::type_error &) {
-        return json_rpc_32600().dump();
+        return json_rpc_32600();
     } catch (json::out_of_range &){
-        return json_rpc_32600().dump();
+        return json_rpc_32600();
     }
 
     int result;
@@ -283,44 +283,44 @@ std::string json_rpc_process(const json & j_rpc_req){
     try {
         params = j_rpc_req.at("params");
     } catch (json::type_error &) {
-        return json_rpc_32600().dump();
+        return json_rpc_32600();
     } catch (json::out_of_range &) {
-        return json_rpc_32600().dump();
+        return json_rpc_32600();
     }
 
     try {
         result = calc_f(params.at(0), params.at(1)); // call a method
     } catch (json::type_error &) {
-        return json_rpc_32602(id).dump();
+        return json_rpc_32602(id);
     } catch (json::out_of_range &) {
-        return json_rpc_32602(id).dump();
+        return json_rpc_32602(id);
     } catch (std::runtime_error &) {
-        return json_rpc_32000(id).dump();
+        return json_rpc_32000(id);
     }
 
     if(!has_notify)
-        return json_rpc(result, id).dump();
+        return json_rpc(result, id);
 
     return {};
 }
 
 // many requests
-std::string json_rpc_batch_process(const json & j_rpc_req){
-    std::string result_batch{};
+json json_rpc_batch_process(const json & j_rpc_req){
+    json result_batch{};
     for (auto it = j_rpc_req.begin(); it != j_rpc_req.end(); ++it) {
 
         try {
             // check must jsonrpc = '2.0'
             if((*it).at("jsonrpc") != "2.0"){
-                result_batch += json_rpc_32603().dump();
+                result_batch.push_back(json_rpc_32603());
                 continue;
             }
 
         } catch (json::type_error &) {
-            result_batch += json_rpc_32600().dump();
+            result_batch.push_back(json_rpc_32600());
             continue;
         } catch (json::out_of_range &) {
-            result_batch += json_rpc_32600().dump();
+            result_batch.push_back(json_rpc_32600());
             continue;
         }
 
@@ -331,7 +331,7 @@ std::string json_rpc_batch_process(const json & j_rpc_req){
         try {
             id = (*it).at("id");
         } catch (json::type_error &) {
-            result_batch += json_rpc_32600().dump();
+            result_batch.push_back(json_rpc_32600());
             continue;
         } catch (json::out_of_range &) {
             //This is a Notification request
@@ -352,14 +352,14 @@ std::string json_rpc_batch_process(const json & j_rpc_req){
             else if((*it).at("method") == "div")
                 calc_f = &calc::div;
             else{
-                result_batch += json_rpc_32601(id).dump();
+                result_batch.push_back(json_rpc_32601(id));
                 continue;
             }
         } catch (json::type_error &) {
-            result_batch += json_rpc_32600().dump();
+            result_batch.push_back(json_rpc_32600());
             continue;
         } catch (json::out_of_range &){
-            result_batch += json_rpc_32600().dump();
+            result_batch.push_back(json_rpc_32600());
             continue;
         }
 
@@ -370,28 +370,28 @@ std::string json_rpc_batch_process(const json & j_rpc_req){
         try {
             params = (*it).at("params");
         } catch (json::type_error &) {
-            result_batch += json_rpc_32600().dump();
+            result_batch.push_back(json_rpc_32600());
             continue;
         } catch (json::out_of_range &) {
-            result_batch += json_rpc_32600().dump();
+            result_batch.push_back(json_rpc_32600());
             continue;
         }
 
         try {
             result = calc_f(params.at(0), params.at(1)); // call a method
         } catch (json::type_error &) {
-            result_batch += json_rpc_32602(id).dump();
+            result_batch.push_back(json_rpc_32602(id));
             continue;
         } catch (json::out_of_range &) {
-            result_batch += json_rpc_32602(id).dump();
+            result_batch.push_back(json_rpc_32602(id));
             continue;
         } catch (std::runtime_error &) {
-            result_batch += json_rpc_32000(id).dump();
+            result_batch.push_back(json_rpc_32000(id));
             continue;
         }
 
         if(!has_notify)
-            result_batch += json_rpc(result, id).dump();
+            result_batch.push_back(json_rpc(result, id));
 
     }
 
@@ -476,7 +476,7 @@ int main()
             auto result_batch = json_rpc_batch_process(j_rpc_req);
 
             if(result_batch.size() != 0)
-                return session.do_write(make_200(req, result_batch));
+                return session.do_write(make_200(req, result_batch.dump()));
             return session.do_write(make_204(req));
         }
 
@@ -484,7 +484,7 @@ int main()
         auto result = json_rpc_process(j_rpc_req);
 
         if(result.size() != 0)
-            return session.do_write(make_200(req, result));
+            return session.do_write(make_200(req, result.dump()));
         return session.do_write(make_204(req));
     });
 
