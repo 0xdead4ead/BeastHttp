@@ -30,7 +30,7 @@ auto make_response(const Request & req, const string & user_body){
 
 int main()
 {
-//g++ -c -std=gnu++17 -I.. -o ex3_server.o ./ex3_server.cpp
+//g++ -c -std=gnu++14 -I../../include -o ex3_server.o ./ex3_server.cpp
 //g++ -o ex3_server ex3_server.o -lboost_system -lboost_thread -lpthread -lboost_regex -licui18n
 
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/'
