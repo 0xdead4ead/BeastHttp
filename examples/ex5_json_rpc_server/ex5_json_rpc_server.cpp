@@ -400,7 +400,7 @@ json json_rpc_batch_process(const json & j_rpc_req){
 
 int main()
 {
-//g++ -c -std=gnu++14 -I.. -o ex5_json_rpc_server.o ./ex5_json_rpc_server.cpp
+//g++ -c -std=gnu++14 -I../../include -I. -o ex5_json_rpc_server.o ./ex5_json_rpc_server.cpp
 //g++ -o ex5_json_rpc_server ex5_json_rpc_server.o -lboost_system -lboost_thread -lpthread -lboost_regex -licui18n
 
     /*
