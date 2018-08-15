@@ -448,6 +448,20 @@ private:
 
 }; // class processor
 
+
+void read_up_to_enter(std::string & value){
+    http::base::processor::get()
+            .read_from_stream(value, boost::bind<size_t>([](auto & value, auto & err) -> size_t{
+        if ( err)
+            return 0;
+
+        if(std::find(value.cbegin(), value.cend(), '\n') != value.cend())
+            return 0;
+
+        return 1;
+    }, boost::ref(value), _1));
+}
+
 void out(const std::string & info){
     std::ostringstream os;
     os << info << std::endl;
