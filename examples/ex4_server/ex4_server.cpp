@@ -139,7 +139,7 @@ boost::beast::http::file_body::value_type process_resource(
 
 int main(int argc, char* argv[])
 {
-//g++ -c -std=gnu++14 -I.. -o ex4_server.o ./ex4_server.cpp
+//g++ -c -std=gnu++14 -I../../include -o ex4_server.o ./ex4_server.cpp
 //g++ -o ex4_server ex4_server.o -lboost_system -lboost_thread -lpthread -lboost_regex -licui18n -lboost_filesystem
 
     //##################################################################
