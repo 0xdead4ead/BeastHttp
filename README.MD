@@ -53,6 +53,23 @@ Add new route for GET request with "/" resource:
 
 ```
 
+Getting a parameter from a URI `/user/1992` using [`Boost.LexicalCast`](https://github.com/boostorg/lexical_cast) :
+
+```cpp
+
+    my_http_server.get("/user/\\d+",
+       [](auto & req, auto & session, auto & next){
+        // process '/user'
+        next();
+    }, [](auto & req, auto & session){
+        // process /id
+        auto target = req.target();
+        const auto user_id = boost::lexical_cast<int>(target.data() + 1); // user_id = 1992
+        session.do_write(make_response(req, std::to_string(user_id)));
+    });
+
+```
+
 Create modular, mounted route handlers:
 
 ```cpp
