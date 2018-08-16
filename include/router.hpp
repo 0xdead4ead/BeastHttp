@@ -243,6 +243,7 @@ public:
     void trace(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
         base_t::add_resource_cb(path_to_resource, method_t::trace, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
     }
+    // Webdav
     /// \brief Adds a handler for COPY method
     template<class... Callback>
     void copy(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
@@ -302,6 +303,31 @@ public:
     template<class... Callback>
     void acl(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
         base_t::add_resource_cb(path_to_resource, method_t::acl, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+    }
+    // subversion
+    /// \brief Adds a handler for REPORT method
+    template<class... Callback>
+    void report(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(path_to_resource, method_t::report, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+        return *this;
+    }
+    /// \brief Adds a handler for MKACTIVITY method
+    template<class... Callback>
+    void mkactivity(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(path_to_resource, method_t::mkactivity, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+        return *this;
+    }
+    /// \brief Adds a handler for CHECKOUT method
+    template<class... Callback>
+    void checkout(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(path_to_resource, method_t::checkout, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+        return *this;
+    }
+    /// \brief Adds a handler for MERGE method
+    template<class... Callback>
+    void merge(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(path_to_resource, method_t::merge, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+        return *this;
     }
     /// \brief Adds a handler for the requested resource by default
     /// \note If the handler for the requested resource with method is not found, this on is called
@@ -402,7 +428,7 @@ public:
         base_t::add_resource_cb(tmp_res_regex_, method_t::trace, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
         return *this;
     }
-
+    //Webdav
     template<class... Callback>
     ref copy(Callback && ... on_resource_handlers) & {
         base_t::add_resource_cb(tmp_res_regex_, method_t::copy, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
@@ -472,6 +498,30 @@ public:
     template<class... Callback>
     ref acl(Callback && ... on_resource_handlers) & {
         base_t::add_resource_cb(tmp_res_regex_, method_t::acl, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+        return *this;
+    }
+    // subversion
+    template<class... Callback>
+    ref report(Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(tmp_res_regex_, method_t::report, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+        return *this;
+    }
+
+    template<class... Callback>
+    ref mkactivity(Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(tmp_res_regex_, method_t::mkactivity, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+        return *this;
+    }
+
+    template<class... Callback>
+    ref checkout(Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(tmp_res_regex_, method_t::checkout, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+        return *this;
+    }
+
+    template<class... Callback>
+    ref merge(Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(tmp_res_regex_, method_t::merge, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
         return *this;
     }
 
