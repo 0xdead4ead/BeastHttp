@@ -309,25 +309,42 @@ public:
     template<class... Callback>
     void report(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         base_t::add_resource_cb(path_to_resource, method_t::report, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
     }
     /// \brief Adds a handler for MKACTIVITY method
     template<class... Callback>
     void mkactivity(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         base_t::add_resource_cb(path_to_resource, method_t::mkactivity, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
     }
     /// \brief Adds a handler for CHECKOUT method
     template<class... Callback>
     void checkout(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         base_t::add_resource_cb(path_to_resource, method_t::checkout, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
     }
     /// \brief Adds a handler for MERGE method
     template<class... Callback>
     void merge(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         base_t::add_resource_cb(path_to_resource, method_t::merge, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
+    }
+    // upnp
+    /// \brief Adds a handler for MSEARCH method
+    template<class... Callback>
+    void msearch(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(path_to_resource, method_t::msearch, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for NOTIFY method
+    template<class... Callback>
+    void notify(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(path_to_resource, method_t::notify, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for SUBSCRIBE method
+    template<class... Callback>
+    void subscribe(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(path_to_resource, method_t::subscribe, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for UNSUBSCRIBE method
+    template<class... Callback>
+    void unsubscribe(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(path_to_resource, method_t::unsubscribe, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
     }
     /// \brief Adds a handler for the requested resource by default
     /// \note If the handler for the requested resource with method is not found, this on is called
@@ -522,6 +539,30 @@ public:
     template<class... Callback>
     ref merge(Callback && ... on_resource_handlers) & {
         base_t::add_resource_cb(tmp_res_regex_, method_t::merge, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+        return *this;
+    }
+    // upnp
+    template<class... Callback>
+    ref msearch(Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(tmp_res_regex_, method_t::msearch, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+        return *this;
+    }
+
+    template<class... Callback>
+    ref notify(Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(tmp_res_regex_, method_t::notify, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+        return *this;
+    }
+
+    template<class... Callback>
+    ref subscribe(Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(tmp_res_regex_, method_t::subscribe, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+        return *this;
+    }
+
+    template<class... Callback>
+    ref unsubscribe(Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(tmp_res_regex_, method_t::unsubscribe, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
         return *this;
     }
 
