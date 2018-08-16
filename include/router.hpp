@@ -346,6 +346,17 @@ public:
     void unsubscribe(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         base_t::add_resource_cb(path_to_resource, method_t::unsubscribe, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
     }
+    // RFC-5789
+    /// \brief Adds a handler for PATCH method
+    template<class... Callback>
+    void patch(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(path_to_resource, method_t::patch, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+    }
+    /// \brief Adds a handler for PURGE method
+    template<class... Callback>
+    void purge(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(path_to_resource, method_t::purge, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+    }
     /// \brief Adds a handler for the requested resource by default
     /// \note If the handler for the requested resource with method is not found, this on is called
     template<class... Callback>
@@ -563,6 +574,18 @@ public:
     template<class... Callback>
     ref unsubscribe(Callback && ... on_resource_handlers) & {
         base_t::add_resource_cb(tmp_res_regex_, method_t::unsubscribe, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+        return *this;
+    }
+    // RFC-5789
+    template<class... Callback>
+    ref patch(Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(tmp_res_regex_, method_t::patch, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
+        return *this;
+    }
+
+    template<class... Callback>
+    ref purge(Callback && ... on_resource_handlers) & {
+        base_t::add_resource_cb(tmp_res_regex_, method_t::purge, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
         return *this;
     }
 
