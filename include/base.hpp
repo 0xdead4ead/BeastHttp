@@ -37,6 +37,8 @@ void out(const std::string & info);
 void fail(const std::string & info);
 void fail(const boost::system::error_code & ec, const std::string & info);
 
+namespace detail{
+
 /// \brief class storing a task
 /// \tparam functor
 template <class F>
@@ -103,6 +105,8 @@ public:
 
 }; // class timer_task
 
+}
+
 //###########################################################################
 
 /// \brief The tcp_connection class
@@ -142,7 +146,12 @@ public:
     }
 
     void shutdown() {
-        socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+        boost::system::error_code ec;
+        socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+
+        if(ec)
+            fail(ec, "shutdown");
+
     }
 
     auto & socket(){
@@ -283,7 +292,7 @@ public:
 
     template <class F>
     inline void push_task(F&& f) {
-        ios_->post(task_wrapped<F>::make(std::forward<F>(f)));
+        ios_->post(detail::task_wrapped<F>::make(std::forward<F>(f)));
     }
 
     void start(std::size_t threads_count) {
@@ -301,12 +310,12 @@ public:
 
     template <class F>
     void run_after(duration_type duration, F&& f) {
-        timer_task<F>::make(*ios_, duration, std::forward<F>(f)).launch();
+        detail::timer_task<F>::make(*ios_, duration, std::forward<F>(f)).launch();
     }
 
     template <class F>
     void run_at(time_type time, F&& f) {
-        timer_task<F>::make(*ios_, time, std::forward<F>(f)).launch();
+        detail::timer_task<F>::make(*ios_, time, std::forward<F>(f)).launch();
     }
 
     template <class F>
