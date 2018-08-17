@@ -186,6 +186,89 @@ public:
         if(!check_status())
             get_basic_router()->acl(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
+    // subversion
+    /// \brief Adds a handler for REPORT method
+    template<class... Callback>
+    void report(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        if(!check_status())
+            get_basic_router()->report(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
+    }
+    /// \brief Adds a handler for MKACTIVITY method
+    template<class... Callback>
+    void mkactivity(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        if(!check_status())
+            get_basic_router()->mkactivity(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
+    }
+    /// \brief Adds a handler for CHECKOUT method
+    template<class... Callback>
+    void checkout(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        if(!check_status())
+            get_basic_router()->checkout(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
+    }
+    /// \brief Adds a handler for MERGE method
+    template<class... Callback>
+    void merge(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        if(!check_status())
+            get_basic_router()->merge(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
+    }
+    // upnp
+    /// \brief Adds a handler for MSEARCH method
+    template<class... Callback>
+    void msearch(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        if(!check_status())
+            get_basic_router()->msearch(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
+    }
+    /// \brief Adds a handler for NOTIFY method
+    template<class... Callback>
+    void notify(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        if(!check_status())
+            get_basic_router()->notify(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
+    }
+    /// \brief Adds a handler for SUBSCRIBE method
+    template<class... Callback>
+    void subscribe(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        if(!check_status())
+            get_basic_router()->subscribe(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
+    }
+    /// \brief Adds a handler for UNSUBSCRIBE method
+    template<class... Callback>
+    void unsubscribe(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        if(!check_status())
+            get_basic_router()->unsubscribe(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
+    }
+    // RFC-5789
+    /// \brief Adds a handler for PATCH method
+    template<class... Callback>
+    void patch(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        if(!check_status())
+            get_basic_router()->patch(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
+    }
+    /// \brief Adds a handler for PURGE method
+    template<class... Callback>
+    void purge(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        if(!check_status())
+            get_basic_router()->purge(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
+    }
+    // CalDAV
+    /// \brief Adds a handler for MKCALENDAR method
+    template<class... Callback>
+    void mkcalendar(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        if(!check_status())
+            get_basic_router()->mkcalendar(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
+    }
+    // RFC-2068, section 19.6.1.2
+    /// \brief Adds a handler for LINK method
+    template<class... Callback>
+    void link(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        if(!check_status())
+            get_basic_router()->link(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
+    }
+    /// \brief Adds a handler for UNLINK method
+    template<class... Callback>
+    void unlink(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
+        if(!check_status())
+            get_basic_router()->unlink(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
+    }
     /// \brief Adds a handler for the requested resource by default
     /// \note If the handler for the requested resource with method is not found, this on is called
     template<class... Callback>
