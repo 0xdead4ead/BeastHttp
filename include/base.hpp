@@ -54,7 +54,7 @@ public:
         : f_{f}
     {}
 
-    void operator()() const {
+    void operator()() {
          f_();
     }
 
@@ -90,7 +90,7 @@ public:
         timer_->async_wait(*this);
     }
 
-    void operator()(const boost::system::error_code& error) const {
+    void operator()(const boost::system::error_code& error) {
         if (!error)
             base_type::operator()();
         else
@@ -105,7 +105,7 @@ public:
 
 }; // class timer_task
 
-}
+} // detail namespace
 
 //###########################################################################
 
