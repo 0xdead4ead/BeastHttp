@@ -17,10 +17,10 @@ class cb_invoker{
 
 public:
 
-    template<class Message, class Session, class List_cb>
-    void invoke_cb(Message & message, Session & session, List_cb & l_cb){
-        l_cb.reset();
-        l_cb.exec(message, session);
+    template<class Message, class Session, class Arguments, class List_cb>
+    void invoke_cb(Message & message, Session & session, Arguments& arguments, List_cb & l_cb) {
+      l_cb.reset();
+      l_cb.exec(message, session, arguments);
     }
 
 };
@@ -36,7 +36,7 @@ class session  : private cb_invoker, private boost::noncopyable,
 
 public:
 
-    using list_cb_t = list_cb<boost::beast::http::request<Body>, session<true, Body>>;
+    using list_cb_t = list_cb<boost::beast::http::request<Body>, session<true, Body>, std::vector<std::string>>;
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;
     using ptr = std::shared_ptr< session<true, Body>>;
@@ -135,6 +135,7 @@ private:
 
         resource_t target = req_p_->target();
         method_t method = req_p_->method();
+        std::string resourceTarget(target.data(), target.size());
 
         if(method_map_cb_p_){
             auto method_pos = method_map_cb_p_->find(method);
@@ -144,11 +145,16 @@ private:
 
                 for(const auto & value : resource_map){
                     const boost::regex e(value.first, boost::regex::perl | boost::regex::no_except);
-                    if(boost::regex_match(std::string(target.data(), target.size()), e)){
+                    boost::smatch results;
+                    if(boost::regex_match(resourceTarget, results, e)){
+
+                        std::vector<std::string> arguments;
+                        arguments.assign(results.begin() + 1, results.end());
+
                         auto const & cb_p = value.second;
 
                         if(cb_p)
-                            return invoke_cb(boost::ref(*req_p_), boost::ref(*this), *cb_p);
+                            return invoke_cb(boost::ref(*req_p_), boost::ref(*this), arguments, *cb_p);
 
                     }
                 }
@@ -158,11 +164,14 @@ private:
         if(resource_map_cb_p_)
             for(const auto & value : *resource_map_cb_p_){
                 const boost::regex e(value.first, boost::regex::perl | boost::regex::no_except);
-                if(boost::regex_match(std::string(target.data(), target.size()), e)){
+                boost::smatch results;
+                if (boost::regex_match(resourceTarget, results, e)) {
                     auto const & cb_p = value.second;
+                    std::vector<std::string> arguments;
+                    arguments.assign(results.begin() + 1, results.end());
 
                     if(cb_p)
-                        return invoke_cb(boost::ref(*req_p_), boost::ref(*this), *cb_p);
+                        return invoke_cb(boost::ref(*req_p_), boost::ref(*this), arguments, *cb_p);
 
                 }
             }
@@ -191,7 +200,7 @@ class session<false, Body>  : private cb_invoker, private boost::noncopyable,
 
 public:
 
-    using list_cb_t = list_cb<boost::beast::http::response<Body>, session<false, Body> >;
+    using list_cb_t = list_cb<boost::beast::http::response<Body>, session<false, Body>, std::vector<std::string> >;
     using ptr = std::shared_ptr< session<false, Body>>;
 
     template<class Callback>
