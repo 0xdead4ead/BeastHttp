@@ -40,6 +40,13 @@ public:
             session<false, ResBody>::on_connect(connection_p_, response_cb_p_, handler_);
         });
 
+        if(!connection_p_){
+            response_cb_p_ = {};
+            base::processor::get().stop();
+
+            return;
+        }
+
         typename list_cb_t::L cb{
             boost::bind<void>(
                         std::forward<Callback2>(on_receive_handler),
@@ -48,10 +55,7 @@ public:
                         )
         };
 
-        if(connection_p_)
-            response_cb_p_ = std::make_shared<list_cb_t>(cb);
-        else
-            response_cb_p_ = {};
+        response_cb_p_ = std::make_shared<list_cb_t>(cb);
     }
 
 private:
