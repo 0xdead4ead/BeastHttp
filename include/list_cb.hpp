@@ -8,14 +8,14 @@
 
 namespace http {
 
-template<class Message, class Session>
+template<class Message, class Session, class Arguments>
 class list_cb{
 
 public:
 
-    using self_type = list_cb<Message,Session>;
-    using ptr = std::shared_ptr<list_cb<Message, Session> >;
-    using F = std::function<void (Message &, Session &, list_cb &)>;
+    using self_type = list_cb<Message,Session,Arguments>;
+    using ptr = std::shared_ptr<self_type>;
+    using F = std::function<void (Message &, Session &, Arguments &, list_cb &)>;
     using L = std::list<F>;
 
     friend class cb_invoker;
@@ -49,9 +49,10 @@ public:
 
 private:
 
-    void exec(Message & message, Session & session) {
+    void exec(Message & message, Session & session, Arguments& arguments) {
         message_p = std::addressof(message);
         session_p = std::addressof(session);
+        arguments_p = std::addressof(arguments);
 #ifndef __cpp_if_constexpr
         return exec_fwd<self_type,Message::header_type::is_request::value>{}(*this);
 #else
@@ -74,14 +75,14 @@ private:
             if(t.invoke_l_.size() > 1)
                 t.skip_target();
 
-            return (*t.c_iter_++) (*t.message_p, *t.session_p, t);
+            return (*t.c_iter_++) (*t.message_p, *t.session_p, *t.arguments_p, t);
         }
     };
 
     template<typename T>
     struct exec_fwd<T,false> : exec_base{
         void operator()(T & t){
-            return (*t.c_iter_++) (*t.message_p, *t.session_p, t);
+            return (*t.c_iter_++) (*t.message_p, *t.session_p, *t.arguments_p, t);
         }
     };
 #else
@@ -96,7 +97,7 @@ private:
             if(invoke_l_.size() > 1)
                 skip_target();
         }
-        return (*c_iter_++) (*message_p, *session_p, *this);
+        return (*c_iter_++) (*message_p, *session_p, *t.arguments_p, *this);
     }
 #endif
     void reset(){
@@ -120,6 +121,7 @@ private:
     typename L::const_iterator c_iter_;
     Message * message_p;
     Session * session_p;
+    Arguments * arguments_p;
     std::string current_target;
 
 }; // list_cb class

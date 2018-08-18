@@ -12,7 +12,7 @@ template<class ReqBody>
 class router{
 
     using self = router<ReqBody>;
-    using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session<true, ReqBody>>;
+    using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session<true, ReqBody>, std::vector<std::string>>;
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;
 
@@ -81,8 +81,9 @@ protected:
                             boost::bind<void>(
                                 value,
                                 boost::placeholders::_1,
-                                boost::placeholders::_2
-                                )
+                                boost::placeholders::_2,
+                                boost::placeholders::_3
+                              )
                             )
                         );
         };
@@ -185,7 +186,7 @@ class basic_router : public router<ReqBody>{
 
     using base_t = router<ReqBody>;
     using self = basic_router<ReqBody>;
-    using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session<true, ReqBody>>;
+    using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session<true, ReqBody>, std::vector<std::string>>;
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;
 
@@ -404,7 +405,7 @@ class chain_router : public router<ReqBody>{
 
     using base_t = router<ReqBody>;
     using self = chain_router<ReqBody>;
-    using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session<true, ReqBody>>;
+    using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session<true, ReqBody>, std::vector<std::string>>;
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;
 
