@@ -34,11 +34,20 @@ public:
         connection_p_ = base::processor::get().create_connection(host,
                                                                  port,
                                                                  [this, handler_ = std::forward<Callback1>(on_connect_handler)](const boost::system::error_code & ec){
-            if(ec)
+            if(ec){
+                connection_p_->socket().get_executor().context().stop();
                 return base::fail(ec, "connect");
+            }
 
             session<false, ResBody>::on_connect(connection_p_, response_cb_p_, handler_);
         });
+
+        if(!connection_p_){
+            response_cb_p_ = {};
+            base::processor::get().stop();
+
+            return;
+        }
 
         typename list_cb_t::L cb{
             boost::bind<void>(
@@ -48,10 +57,7 @@ public:
                         )
         };
 
-        if(connection_p_)
-            response_cb_p_ = std::make_shared<list_cb_t>(cb);
-        else
-            response_cb_p_ = {};
+        response_cb_p_ = std::make_shared<list_cb_t>(cb);
     }
 
 private:

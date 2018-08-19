@@ -350,13 +350,14 @@ public:
         boost::asio::ip::tcp::resolver::query query(address, boost::lexical_cast<std::string>(port));
 
         boost::system::error_code ec;
-        boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(query, ec);
 
+        auto resolved = resolver.resolve(query, ec);
         if(ec){
             fail(ec, "resolve");
             return {};
         }
 
+        boost::asio::ip::tcp::endpoint endpoint = *resolved;
         return std::make_shared<tcp_connection>(*ios_, endpoint, std::forward<F>(f));
     }
 
