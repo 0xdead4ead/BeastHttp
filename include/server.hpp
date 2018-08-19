@@ -68,121 +68,121 @@ public:
     ///                     void (Message & message, Session & session /*, Next & next (optional)*/)
     /// \brief Adds a handler for GET method
     template<class... Callback>
-    void get(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void get(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->get(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for POST method
     template<class... Callback>
-    void post(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void post(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->post(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for PUT method
     template<class... Callback>
-    void put(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void put(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->put(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for HEAD method
     template<class... Callback>
-    void head(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void head(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->head(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for DELETE method
     template<class... Callback>
-    void delete_(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void delete_(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->delete_(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for OPTIONS method
     template<class... Callback>
-    void options(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void options(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->options(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for CONNECT method
     template<class... Callback>
-    void connect(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void connect(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->connect(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for TRACE method
     template<class... Callback>
-    void trace(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void trace(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->trace(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for COPY method
     template<class... Callback>
-    void copy(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void copy(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->copy(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for LOCK method
     template<class... Callback>
-    void lock(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void lock(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->lock(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for MKCOL method
     template<class... Callback>
-    void mkcol(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void mkcol(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->mkcol(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for MOVE method
     template<class... Callback>
-    void move(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void move(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->move(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for PROPFIND method
     template<class... Callback>
-    void propfind(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void propfind(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->propfind(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for PROPPATCH method
     template<class... Callback>
-    void proppatch(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void proppatch(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->proppatch(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for SEARCH method
     template<class... Callback>
-    void search(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void search(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->search(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for UNLOCK method
     template<class... Callback>
-    void unlock(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void unlock(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->unlock(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for BIND method
     template<class... Callback>
-    void bind(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void bind(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->bind(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for REBIND method
     template<class... Callback>
-    void rebind(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void rebind(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->rebind(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for UNBIND method
     template<class... Callback>
-    void unbind(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void unbind(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->unbind(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
     /// \brief Adds a handler for ACL method
     template<class... Callback>
-    void acl(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void acl(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->acl(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
@@ -272,7 +272,7 @@ public:
     /// \brief Adds a handler for the requested resource by default
     /// \note If the handler for the requested resource with method is not found, this on is called
     template<class... Callback>
-    void all(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers){
+    void all(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
         if(!check_status())
             get_basic_router()->all(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
