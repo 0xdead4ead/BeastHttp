@@ -127,7 +127,7 @@ int main()
         session.do_write(make_response(req, "main home page\n"));
     });
 
-    my_http_server.all("/.*", [](auto & req, auto & session){
+    my_http_server.all(".*", [](auto & req, auto & session){
         cout << req << endl; // /any
         session.do_write(make_response(req, "error\n"));
     });
