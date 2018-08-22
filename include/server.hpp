@@ -277,6 +277,14 @@ public:
             get_basic_router()->all(path_to_resource, std::forward<Callback>(on_resource_handlers)...);
     }
 
+    template<class... Types>
+    auto param(){
+        if(check_status())
+            throw std::runtime_error("The param method is not available in current time");
+
+        return get_basic_router()->template param<Types...>();
+    }
+
     /// \brief Start accepting incoming connections
     /// \param Listening interface
     /// \param port

@@ -3,7 +3,7 @@
 
 #include <session.hpp>
 #include <list_cb.hpp>
-#include <boost/config.hpp>
+#include <param.hpp>
 
 namespace http {
 
@@ -112,6 +112,8 @@ protected:
 
     void add_resource_cb(const resource_regex_t & path_to_resource, const method_t & method, list_cb_t && l){
 
+        if(path_to_resource.empty()) // can not place callback with empty regex
+            return;
 
         if(!method_map_cb_p_)
             method_map_cb_p_ = std::make_shared<method_map_t>();
@@ -137,6 +139,9 @@ protected:
     }
 
     void add_resource_cb_without_method(const resource_regex_t & path_to_resource, list_cb_t && l){
+
+        if(path_to_resource.empty()) // can not place callback with empty regex
+            return;
 
         if(!resource_map_cb_p_)
             resource_map_cb_p_ = std::make_shared<resource_map_t>();
@@ -184,15 +189,15 @@ template<class ReqBody>
 class basic_router : public router<ReqBody>{
 
     using base_t = router<ReqBody>;
-    using self = basic_router<ReqBody>;
+    using self_t = basic_router<ReqBody>;
     using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session<true, ReqBody>>;
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;
 
 public:
 
-    using ref = std::add_lvalue_reference_t<self>;
-    using cref = std::add_lvalue_reference_t<std::add_const_t<self>>;
+    using ref = std::add_lvalue_reference_t<self_t>;
+    using cref = std::add_lvalue_reference_t<std::add_const_t<self_t>>;
 
     basic_router()
         : base_t{resource_map_cb_p_, method_map_cb_p_}
@@ -381,12 +386,17 @@ public:
         base_t::add_resource_cb_without_method(path_to_resource, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
     }
 
-    void use(const resource_regex_t & path_to_resource, cref other){
+    void use(const resource_regex_t & path_to_resource, const base_t & other){
         base_t::use(path_to_resource, other);
     }
 
-    void use(cref other){
+    void use(const base_t & other){
         base_t::use("", other);
+    }
+
+    template<class... Types>
+    auto param(){
+        return param_impl<ReqBody, self_t, Types...>{*this};
     }
 
 private:
@@ -402,16 +412,236 @@ private:
 template<class ReqBody>
 class chain_router : public router<ReqBody>{
 
+    friend class chain_node;
+
     using base_t = router<ReqBody>;
-    using self = chain_router<ReqBody>;
+    using self_t = chain_router<ReqBody>;
     using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session<true, ReqBody>>;
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;
 
 public:
 
-    using ref = std::add_lvalue_reference_t<self>;
-    using cref = std::add_lvalue_reference_t<std::add_const_t<self>>;
+    using ref = std::add_lvalue_reference_t<self_t>;
+    using cref = std::add_lvalue_reference_t<std::add_const_t<self_t>>;
+
+    struct chain_node{
+
+        using node_ref = std::add_lvalue_reference_t<chain_node>;
+
+        chain_node(ref router)
+            : router_{router}
+        {}
+
+        template<class... Callback>
+        node_ref get(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::get, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref post(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::post, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref put(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::put, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref head(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::head, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref delete_(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::delete_, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref options(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::options, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref connect(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::connect, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref trace(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::trace, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+        //Webdav
+        template<class... Callback>
+        node_ref copy(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::copy, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref lock(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::lock, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref mkcol(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::mkcol, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref move(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::move, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref propfind(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::propfind, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref proppatch(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::proppatch, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref search(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::search, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref unlock(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::unlock, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref bind(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::bind, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref rebind(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::rebind, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref unbind(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::unbind, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref acl(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::acl, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+        // subversion
+        template<class... Callback>
+        node_ref report(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::report, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref mkactivity(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::mkactivity, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref checkout(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::checkout, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref merge(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::merge, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+        // upnp
+        template<class... Callback>
+        node_ref msearch(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::msearch, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref notify(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::notify, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref subscribe(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::subscribe, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref unsubscribe(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::unsubscribe, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+        // RFC-5789
+        template<class... Callback>
+        node_ref patch(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::patch, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref purge(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::purge, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+        // CalDAV
+        template<class... Callback>
+        node_ref mkcalendar(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::mkcalendar, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+        // RFC-2068, section 19.6.1.2
+        template<class... Callback>
+        node_ref link(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::link, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+        template<class... Callback>
+        node_ref unlink(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb(router_.tmp_res_regex_, method_t::unlink, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+        // Ignored methods
+        template<class... Callback>
+        node_ref all(Callback && ... on_resource_handlers) {
+            router_.add_resource_cb_without_method(router_.tmp_res_regex_, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
+            return *this;
+        }
+
+    private:
+
+        ref router_;
+
+    };
 
     chain_router()
         : base_t{resource_map_cb_p_, method_map_cb_p_}
@@ -421,213 +651,22 @@ public:
         : base_t{resource_map_cb_p, method_map_cb_p}
     {}
 
-    ref route(const resource_regex_t & path_to_resource){
+    auto route(const resource_regex_t & path_to_resource) & {
         save_to_res_regex(path_to_resource);
-        return *this;
+        return chain_node{*this};
     }
 
-    template<class... Callback>
-    ref get(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::get, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
+    void use(const resource_regex_t & path_to_resource, const base_t & other){
+        base_t::use(path_to_resource, other);
     }
 
-    template<class... Callback>
-    ref post(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::post, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
+    void use(const base_t & other){
+        base_t::use("", other);
     }
 
-    template<class... Callback>
-    ref put(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::put, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref head(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::head, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref delete_(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::delete_, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref options(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::options, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref connect(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::connect, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref trace(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::trace, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-    //Webdav
-    template<class... Callback>
-    ref copy(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::copy, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref lock(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::lock, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref mkcol(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::mkcol, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref move(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::move, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref propfind(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::propfind, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref proppatch(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::proppatch, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref search(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::search, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref unlock(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::unlock, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref bind(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::bind, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref rebind(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::rebind, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref unbind(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::unbind, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref acl(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::acl, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-    // subversion
-    template<class... Callback>
-    ref report(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::report, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref mkactivity(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::mkactivity, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref checkout(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::checkout, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref merge(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::merge, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-    // upnp
-    template<class... Callback>
-    ref msearch(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::msearch, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref notify(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::notify, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref subscribe(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::subscribe, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref unsubscribe(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::unsubscribe, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-    // RFC-5789
-    template<class... Callback>
-    ref patch(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::patch, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref purge(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::purge, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-    // CalDAV
-    template<class... Callback>
-    ref mkcalendar(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::mkcalendar, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-    // RFC-2068, section 19.6.1.2
-    template<class... Callback>
-    ref link(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::link, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-
-    template<class... Callback>
-    ref unlink(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb(tmp_res_regex_, method_t::unlink, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
-    }
-    // Ignored methods
-    template<class... Callback>
-    ref all(Callback && ... on_resource_handlers) & {
-        base_t::add_resource_cb_without_method(tmp_res_regex_, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
-        return *this;
+    template<class... Types>
+    auto param(){
+        return param_impl<ReqBody, self_t, Types...>{*this};
     }
 
     /// \brief Save to to temporary regex resource
@@ -635,18 +674,11 @@ public:
         tmp_res_regex_ = path_to_resource;
     }
 
-    void use(const resource_regex_t & path_to_resource, cref other){
-        base_t::use(path_to_resource, other);
-    }
-
-    void use(cref other){
-        base_t::use("", other);
-    }
-
 private:
 
     // Temporary variable for storing a regular expression for implementing a chain task of routes
     resource_regex_t tmp_res_regex_;
+
     std::shared_ptr<resource_map_t> resource_map_cb_p_;
     std::shared_ptr<method_map_t> method_map_cb_p_;
 

@@ -36,7 +36,7 @@ public:
             if(c_iter_ == invoke_l_.cend())
                 break;
 
-            c_iter_++;
+            c_iter_++; cb_pos++;
             skip_target();
         }
 
@@ -45,6 +45,15 @@ public:
 #else
         return exec_fwd(false);
 #endif
+    }
+
+    /// \brief Return actual position cb in list
+    auto pos(){
+        return cb_pos - 1;
+    }
+
+    const std::string & current_target(){
+        return current_target_;
     }
 
 private:
@@ -66,14 +75,16 @@ private:
     struct exec_fwd : exec_base{
         void operator()(T & t, bool _first = true){
             if(_first)
-                t.current_target = t.message_p->target().to_string();
+                t.current_target_ = t.message_p->target().to_string();
 
-            if(t.c_iter_ == t.invoke_l_.cend())
-                t.c_iter_--;
+            if(t.c_iter_ == t.invoke_l_.cend()){
+                t.c_iter_--; t.cb_pos--;
+            }
 
             if(t.invoke_l_.size() > 1)
                 t.skip_target();
 
+            t.cb_pos++;
             return (*t.c_iter_++) (*t.message_p, *t.session_p, t);
         }
     };
@@ -81,6 +92,7 @@ private:
     template<typename T>
     struct exec_fwd<T,false> : exec_base{
         void operator()(T & t){
+            t.cb_pos++;
             return (*t.c_iter_++) (*t.message_p, *t.session_p, t);
         }
     };
@@ -88,31 +100,34 @@ private:
     void exec_fwd(bool _first = true){
         if constexpr (Message::header_type::is_request::value){
             if(_first)
-                current_target = message_p->target().to_string();
+                current_target_ = message_p->target().to_string();
 
-            if(c_iter_ == invoke_l_.cend())
-                c_iter_--;
+            if(c_iter_ == invoke_l_.cend()){
+                c_iter_--; cb_pos--;
+            }
 
             if(invoke_l_.size() > 1)
                 skip_target();
         }
+        cb_pos++;
         return (*c_iter_++) (*message_p, *session_p, *this);
     }
 #endif
     void reset(){
         c_iter_ = invoke_l_.cbegin();
+        cb_pos = 0;
     }
 
     void skip_target(){
-        std::size_t pos = current_target.find('/', 1);
+        std::size_t pos = current_target_.find('/', 1);
 
-        if(pos != std::size_t(-1)){
-            auto next_target = current_target.substr(0, pos);
-            current_target = current_target.substr(pos);
+        if(pos != std::string::npos){
+            auto next_target = current_target_.substr(0, pos);
+            current_target_ = current_target_.substr(pos);
 
             message_p->target(next_target);
         }else
-            message_p->target(current_target);
+            message_p->target(current_target_);
 
     }
 
@@ -120,7 +135,8 @@ private:
     typename L::const_iterator c_iter_;
     Message * message_p;
     Session * session_p;
-    std::string current_target;
+    std::string current_target_;
+    std::size_t cb_pos = 0;
 
 }; // list_cb class
 
