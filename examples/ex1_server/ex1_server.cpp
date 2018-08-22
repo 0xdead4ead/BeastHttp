@@ -34,19 +34,51 @@ int main()
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/1'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/2'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/a/b/c/d'
-//    root@x0x0:~# curl localhost --request 'GET' --request-target '/user/1992'
+//    root@x0x0:~# curl localhost --request 'GET' --request-target '/user/date?y=1992&d=26&m=07'
+//    root@x0x0:~# curl localhost --request 'GET' --request-target '/book/42'
+//    root@x0x0:~# curl localhost --request 'POST' --request-target '/book/24'
+//    root@x0x0:~# curl localhost --request 'PUT' --request-target '/book/12'
+
     http::server my_http_server;
 
-    my_http_server.get("/user/\\d+",
-       [](auto & req, auto & session, auto & next){
+    my_http_server.param<int, int, int>()
+            .get("/user/date[?]y=(\\d+)&d=(\\d+)&m=(\\d+)",
+       [](auto &, auto &, auto & next, auto &){
         // process '/user'
-        (void)req; (void)session; next();
-    }, [](auto & req, auto & session){
-        // process /id
-        auto target = req.target();
-        const auto user_id = boost::lexical_cast<int>(target.data() + 1);
-        session.do_write(make_response(req, std::to_string(user_id)));
+        next();
+    }, [](auto & req, auto & session, auto & args){
+        // process '/date'
+        assert(args._1 == 1992);
+        assert(args._2 == 26);
+        assert(args._3 == 7);
+
+        std::ostringstream os;
+        os << "y = " << args._1 << " d = " << args._2 << " m = " << args._3 << std::endl;
+        session.do_write(make_response(req, os.str()));
     });
+
+    auto books_router = my_http_server.ChainRouter();
+
+    books_router.param<int>().route("/book/(\\d+)")
+      .get([](auto & req, auto & session, auto & args){
+
+        cout << req << endl;
+        session.do_write(make_response(req, std::to_string(args._1) + " get"));
+
+    }).post([](auto & req, auto & session, auto & args){
+
+        cout << req << endl;
+        session.do_write(make_response(req, std::to_string(args._1) + " post"));
+
+    }).put([](auto & req, auto & session, auto & args){
+
+        cout << req << endl;
+        session.do_write(make_response(req, std::to_string(args._1) + " put"));
+
+    });
+
+    my_http_server.use(books_router);
+
 
     my_http_server.get("/1", [](auto & req, auto & session){
        cout << req << endl; // '/1'
