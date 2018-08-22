@@ -14,6 +14,8 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 
 > **list_cb.hpp:** Container for storing callback functions
 
+> **param.hpp:** The wrapper class above the user's callbacks for finding parametric arguments
+
 # FEATURES
 
 * Header-only
@@ -25,7 +27,7 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 
 # DEPENDENCIES
 
-* [`Boost.Regex`](https://github.com/boostorg/regex), [`Boost.Asio`](https://github.com/boostorg/asio) & [`Boost.Beast`](https://github.com/boostorg/beast/tree/develop) library
+* [`Boost.Regex`](https://github.com/boostorg/regex), [`Boost.Asio`](https://github.com/boostorg/asio), [`Boost.Beast`](https://github.com/boostorg/beast/tree/develop) & [`Boost.LexicalCast`](https://github.com/boostorg/lexical_cast) library
 * Minimal C++ 14 compatible compilator (for generic lambda)
 
 # USAGE
@@ -53,19 +55,26 @@ Add new route for GET request with "/" resource:
 
 ```
 
-Getting a parameter from a URI `/user/1992` using [`Boost.LexicalCast`](https://github.com/boostorg/lexical_cast) :
+Getting a parameter from a URI `/user/1992` :
 
 ```cpp
 
-    my_http_server.get("/user/\\d+",
-       [](auto & req, auto & session, auto & next){
+    my_http_server.param<int>()
+            .get("/user/(\\d+)",
+       [](auto & req, auto & session, auto & args){
+        assert(args._1 == 1992);
+    });
+
+    // or
+
+    my_http_server.param<int>()
+            .get("/user/(\\d+)",
+       [](auto & req, auto & session, auto & next, auto & args){
         // process '/user'
         next();
-    }, [](auto & req, auto & session){
-        // process /id
-        auto target = req.target();
-        const auto user_id = boost::lexical_cast<int>(target.data() + 1); // user_id = 1992
-        session.do_write(make_response(req, std::to_string(user_id)));
+    }, [](auto & req, auto & session, auto & args){
+        // process '/id'
+        assert(args._1 == 1992);
     });
 
 ```
