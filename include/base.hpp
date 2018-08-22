@@ -416,6 +416,11 @@ public:
         return 0;
     }
 
+    ios_ptr io_service()
+    {
+        return ios_;
+    }
+
 private:
 
     ios_ptr ios_;
