@@ -207,7 +207,7 @@ public:
         : base_t(resource_map_cb_p, method_map_cb_p){}
 
     /// Callback signature : template<class Message, class Session /*, class Next (optional)*/>
-    ///                     void (const Message & message, Session & session /*, Next & next (optional)*/)
+    ///                     void (Message & message, Session & session /*, Next & next (optional)*/)
     /// \brief Adds a handler for GET method
     template<class... Callback>
     void get(const resource_regex_t & path_to_resource, Callback && ... on_resource_handlers) & {
@@ -386,14 +386,18 @@ public:
         base_t::add_resource_cb_without_method(path_to_resource, list_cb_t{base_t::prepare_list_cb(on_resource_handlers...)});
     }
 
+    /// \brief Add external source of routes
     void use(const resource_regex_t & path_to_resource, const base_t & other){
         base_t::use(path_to_resource, other);
     }
 
+    /// \brief Add external source of routes
     void use(const base_t & other){
         base_t::use("", other);
     }
 
+    /// \brief Add a parametric process of route
+    /// \tparam List of types output data
     template<class... Types>
     auto param(){
         return param_impl<ReqBody, self_t, Types...>{*this};
@@ -433,204 +437,238 @@ public:
             : router_{router}
         {}
 
+        /// \brief Adds a handler for GET method
         template<class... Callback>
         node_ref get(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::get, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for POST method
         template<class... Callback>
         node_ref post(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::post, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for PUT method
         template<class... Callback>
         node_ref put(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::put, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for HEAD method
         template<class... Callback>
         node_ref head(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::head, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for DELETE method
         template<class... Callback>
         node_ref delete_(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::delete_, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for OPTIONS method
         template<class... Callback>
         node_ref options(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::options, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for CONNECT method
         template<class... Callback>
         node_ref connect(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::connect, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for TRACE method
         template<class... Callback>
         node_ref trace(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::trace, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
         //Webdav
+        /// \brief Adds a handler for COPY method
         template<class... Callback>
         node_ref copy(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::copy, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for LOCK method
         template<class... Callback>
         node_ref lock(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::lock, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for MKCOL method
         template<class... Callback>
         node_ref mkcol(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::mkcol, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for MOVE method
         template<class... Callback>
         node_ref move(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::move, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for PROPFIND method
         template<class... Callback>
         node_ref propfind(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::propfind, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for PROPPATCH method
         template<class... Callback>
         node_ref proppatch(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::proppatch, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for SEARCH method
         template<class... Callback>
         node_ref search(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::search, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for UNLOCK method
         template<class... Callback>
         node_ref unlock(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::unlock, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for BIND method
         template<class... Callback>
         node_ref bind(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::bind, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for REBIND method
         template<class... Callback>
         node_ref rebind(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::rebind, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for UNBIND method
         template<class... Callback>
         node_ref unbind(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::unbind, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for ACL method
         template<class... Callback>
         node_ref acl(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::acl, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
         // subversion
+        /// \brief Adds a handler for REPORT method
         template<class... Callback>
         node_ref report(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::report, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for MKACTIVITY method
         template<class... Callback>
         node_ref mkactivity(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::mkactivity, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for CHECKOUT method
         template<class... Callback>
         node_ref checkout(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::checkout, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for MERGE method
         template<class... Callback>
         node_ref merge(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::merge, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
         // upnp
+        /// \brief Adds a handler for MSEARCH method
         template<class... Callback>
         node_ref msearch(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::msearch, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for NOTIFY method
         template<class... Callback>
         node_ref notify(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::notify, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for SUBSCRIBE method
         template<class... Callback>
         node_ref subscribe(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::subscribe, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for UNSUBSCRIBE method
         template<class... Callback>
         node_ref unsubscribe(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::unsubscribe, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
         // RFC-5789
+        /// \brief Adds a handler for PATCH method
         template<class... Callback>
         node_ref patch(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::patch, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for PURGE method
         template<class... Callback>
         node_ref purge(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::purge, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
         // CalDAV
+        /// \brief Adds a handler for MKCALENDAR method
         template<class... Callback>
         node_ref mkcalendar(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::mkcalendar, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
         // RFC-2068, section 19.6.1.2
+        /// \brief Adds a handler for LINK method
         template<class... Callback>
         node_ref link(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::link, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
 
+        /// \brief Adds a handler for UNLINK method
         template<class... Callback>
         node_ref unlink(Callback && ... on_resource_handlers) {
             router_.add_resource_cb(router_.tmp_res_regex_, method_t::unlink, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
             return *this;
         }
         // Ignored methods
+        /// \brief Adds a handler for the requested resource by default
         template<class... Callback>
         node_ref all(Callback && ... on_resource_handlers) {
             router_.add_resource_cb_without_method(router_.tmp_res_regex_, list_cb_t{router_.prepare_list_cb(on_resource_handlers...)});
@@ -651,19 +689,24 @@ public:
         : base_t{resource_map_cb_p, method_map_cb_p}
     {}
 
+    /// \brief Returns an instance of a single route
     auto route(const resource_regex_t & path_to_resource) & {
         save_to_res_regex(path_to_resource);
         return chain_node{*this};
     }
 
+    /// \brief Add external source of routes
     void use(const resource_regex_t & path_to_resource, const base_t & other){
         base_t::use(path_to_resource, other);
     }
 
+    /// \brief Add external source of routes
     void use(const base_t & other){
         base_t::use("", other);
     }
 
+    /// \brief Add a parametric process of route
+    /// \tparam List of types output data
     template<class... Types>
     auto param(){
         return param_impl<ReqBody, self_t, Types...>{*this};
