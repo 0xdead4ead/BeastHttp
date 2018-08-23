@@ -48,10 +48,6 @@ int main()
         next();
     }, [](auto & req, auto & session, auto & args){
         // process '/date'
-        assert(args._1 == 1992);
-        assert(args._2 == 26);
-        assert(args._3 == 7);
-
         std::ostringstream os;
         os << "y = " << args._1 << " d = " << args._2 << " m = " << args._3 << std::endl;
         session.do_write(make_response(req, os.str()));
