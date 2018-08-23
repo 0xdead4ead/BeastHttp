@@ -14,7 +14,7 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 
 > **list_cb.hpp:** Container for storing callback functions
 
-> **param.hpp:** The wrapper class above the user's callbacks for finding parametric arguments
+> **param.hpp:** Wrapper class above the user's callbacks for finding parametric arguments
 
 # FEATURES
 
@@ -59,16 +59,14 @@ Getting a parameter from a URI `/user/1992` :
 
 ```cpp
 
-    my_http_server.param<int>()
-            .get("/user/(\\d+)",
+    my_http_server.param<int>().get("/user/(\\d+)",
        [](auto & req, auto & session, auto & args){
         assert(args._1 == 1992);
     });
 
     // or
 
-    my_http_server.param<int>()
-            .get("/user/(\\d+)",
+    my_http_server.param<int>().get("/user/(\\d+)",
        [](auto & req, auto & session, auto & next, auto & args){
         // process '/user'
         next();
