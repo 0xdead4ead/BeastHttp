@@ -213,9 +213,9 @@ public:
                                 boost::asio::placeholders::bytes_transferred));
     }
 
-    template<class Body2>
-    void do_write(boost::beast::http::request<Body2> && msg){
-        auto sp = std::make_shared<boost::beast::http::request<Body2> >(std::move(msg));
+    template<class Request>
+    void do_write(Request && msg){
+        auto sp = std::make_shared<std::decay_t<Request>>(std::forward<Request>(msg));
         msg_p_ = sp;
 
         connection_p_->async_write(*sp,
