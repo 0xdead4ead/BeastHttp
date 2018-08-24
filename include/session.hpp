@@ -83,6 +83,11 @@ public:
         connection_p_->shutdown();
     }
 
+    base::tcp_connection::ptr getConnection()
+    {
+      return connection_p_;
+    }
+
 private:
 
     explicit session(){}
