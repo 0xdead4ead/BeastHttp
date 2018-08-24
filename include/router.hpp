@@ -4,12 +4,13 @@
 #include <session.hpp>
 #include <list_cb.hpp>
 #include <param.hpp>
-
+#include <iostream>
 namespace http {
 
 /// \brief Routing module class
 template<class ReqBody>
-class router{
+class router
+{
 
     using self = router<ReqBody>;
     using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session<true, ReqBody>>;
@@ -18,10 +19,13 @@ class router{
 
 public:
 
-    explicit router(std::shared_ptr<resource_map_t> & resource_map_cb_p, std::shared_ptr<method_map_t> & method_map_cb_p) :
+    router(std::shared_ptr<resource_map_t> & resource_map_cb_p, std::shared_ptr<method_map_t> & method_map_cb_p) noexcept :
         resource_map_cb_p_{resource_map_cb_p},
         method_map_cb_p_{method_map_cb_p}
     {}
+
+    router(router&&) noexcept = default;
+    auto operator=(router&&) noexcept -> router& = default;
 
 protected:
 
@@ -199,12 +203,13 @@ public:
     using ref = std::add_lvalue_reference_t<self_t>;
     using cref = std::add_lvalue_reference_t<std::add_const_t<self_t>>;
 
-    basic_router()
+    basic_router() noexcept
         : base_t{resource_map_cb_p_, method_map_cb_p_}
     {}
 
-    explicit basic_router(std::shared_ptr<resource_map_t> & resource_map_cb_p, std::shared_ptr<method_map_t> & method_map_cb_p)
-        : base_t(resource_map_cb_p, method_map_cb_p){}
+    basic_router(std::shared_ptr<resource_map_t> & resource_map_cb_p, std::shared_ptr<method_map_t> & method_map_cb_p) noexcept
+        : base_t(resource_map_cb_p, method_map_cb_p)
+    {}
 
     /// Callback signature : template<class Message, class Session /*, class Next (optional)*/>
     ///                     void (Message & message, Session & session /*, Next & next (optional)*/)
@@ -433,7 +438,7 @@ public:
 
         using node_ref = std::add_lvalue_reference_t<chain_node>;
 
-        chain_node(ref router)
+        explicit chain_node(ref router) noexcept
             : router_{router}
         {}
 
@@ -681,11 +686,11 @@ public:
 
     };
 
-    chain_router()
+    chain_router() noexcept
         : base_t{resource_map_cb_p_, method_map_cb_p_}
     {}
 
-    explicit chain_router(std::shared_ptr<resource_map_t> & resource_map_cb_p, std::shared_ptr<method_map_t> & method_map_cb_p)
+    explicit chain_router(std::shared_ptr<resource_map_t> & resource_map_cb_p, std::shared_ptr<method_map_t> & method_map_cb_p) noexcept
         : base_t{resource_map_cb_p, method_map_cb_p}
     {}
 
