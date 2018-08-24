@@ -32,7 +32,7 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 
 # USAGE
 
-Server and client examples -> `./examples`
+More examples, an also JSON-RPC 2.0 server is [`here...`](https://github.com/0xdead4ead/beast_http_server/tree/dev/examples)
 
 Add new route for GET request with "/" resource: 
 
@@ -158,7 +158,7 @@ Request content from the server:
         // Create request and fill fields...
         
         // Send 
-        // session.do_write(boost::move(req));
+        // session.do_write(req);
     };
 
     // Handler on received object
