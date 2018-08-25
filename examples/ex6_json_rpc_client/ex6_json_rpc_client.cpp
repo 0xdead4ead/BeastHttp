@@ -14,8 +14,8 @@
 
 // This is an example uses 'JSON for Modern C++'
 // Github Repository: https://github.com/nlohmann/json
-#include <nlohmann/json.hpp>
-#include <nlohmann/fifo_map.hpp>
+#include <nlohmann/json/single_include/nlohmann/json.hpp>
+#include <nlohmann/fifo_map/src/fifo_map.hpp>
 
 // https://github.com/nlohmann/json/issues/485#issuecomment-333652309
 // A workaround to give to use fifo_map as map, we are just ignoring the 'less' compare

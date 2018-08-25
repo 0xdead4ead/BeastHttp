@@ -4,8 +4,8 @@ find_package(Boost 1.66 COMPONENTS system thread regex filesystem)
 
 set(OUTPUT_NAME ex5_json_rpc_server)
 
+include_directories("${PROJECT_SOURCE_DIR}/extern")
 include_directories("${PROJECT_SOURCE_DIR}/include")
-include_directories("${PROJECT_SOURCE_DIR}/examples/${OUTPUT_NAME}")
 include_directories(${Boost_INCLUDE_DIRS})
 set(SOURCES
     ex5_json_rpc_server.cpp)
