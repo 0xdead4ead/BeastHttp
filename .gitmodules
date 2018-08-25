@@ -1,0 +1,6 @@
+[submodule "extern/nlohmann/json"]
+	path = extern/nlohmann/json
+	url = git://github.com/nlohmann/json
+[submodule "extern/nlohmann/fifo_map"]
+	path = extern/nlohmann/fifo_map
+	url = git://github.com/nlohmann/fifo_map
