@@ -26,7 +26,7 @@ using json = nlohmann::basic_json<workaround_fifo_map>;
 
 int main()
 {
-//g++ -c -std=gnu++14 -I../../include -I. -o ex6_json_rpc_client.o ./ex6_json_rpc_client.cpp
+//g++ -c -std=gnu++14 -I../../include -I../../extern -o ex6_json_rpc_client.o ./ex6_json_rpc_client.cpp
 //g++ -o ex6_json_rpc_client ex6_json_rpc_client.o -lboost_system -lboost_thread -lpthread -lboost_regex -licui18n
 
     //##################################################################
