@@ -509,7 +509,7 @@ protected:
     using router_ref = std::add_lvalue_reference_t<Router>;
     using regex_pack_t = std::list<resource_regex_t>;
 
-    struct shared_block : private std::enable_shared_from_this<shared_block>{
+    struct shared_block : public std::enable_shared_from_this<shared_block>{
         router_ref router_;
         size_t cur_pos_cb_ = 0;
         regex_pack_t regex_pack;
