@@ -20,6 +20,8 @@
 #include <boost/asio/posix/stream_descriptor.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/asio/signal_set.hpp>
+#include <fstream>
+#include <streambuf>
 #include <map>
 #include <string>
 #include <sstream>
@@ -276,12 +278,12 @@ class processor : private boost::noncopyable {
 
 private:
 
-    using ios_ptr = std::shared_ptr<boost::asio::io_service>;
-    using work_ptr = std::shared_ptr<boost::asio::io_service::work>;
+    //using ios_ptr = std::shared_ptr<boost::asio::io_service>;
+    //using work_ptr = std::shared_ptr<boost::asio::io_service::work>;
     using listener_ptr = std::shared_ptr<tcp_listener>;
     using duration_type = boost::asio::deadline_timer::duration_type;
     using time_type = boost::asio::deadline_timer::time_type;
-    using listeners_type = std::map<uint32_t, listener_ptr>;
+    using listeners_ptr_map = std::map<uint32_t, listener_ptr>;
 
 public:
 
@@ -292,7 +294,7 @@ public:
 
     template <class F>
     inline void push_task(F&& f) {
-        ios_->post(detail::task_wrapped<F>::make(std::forward<F>(f)));
+        ios_.post(detail::task_wrapped<F>::make(std::forward<F>(f)));
     }
 
     void start(std::size_t threads_count) {
@@ -301,7 +303,7 @@ public:
     }
 
     void stop() {
-        ios_->stop();
+        ios_.stop();
     }
 
     void wait(){
@@ -310,31 +312,31 @@ public:
 
     template <class F>
     void run_after(duration_type duration, F&& f) {
-        detail::timer_task<F>::make(*ios_, duration, std::forward<F>(f)).launch();
+        detail::timer_task<F>::make(ios_, duration, std::forward<F>(f)).launch();
     }
 
     template <class F>
     void run_at(time_type time, F&& f) {
-        detail::timer_task<F>::make(*ios_, time, std::forward<F>(f)).launch();
+        detail::timer_task<F>::make(ios_, time, std::forward<F>(f)).launch();
     }
 
     template <class F>
     const auto & add_listener(const std::string & address, uint32_t port, F&& f) {
-        listeners_type::const_iterator it = listeners_.find(port);
+        listeners_ptr_map::const_iterator it = listeners_.find(port);
         if (it != listeners_.end()) {
             throw std::runtime_error("Port '"+ boost::lexical_cast<std::string>(port) + "' already created");
         }
 
         listeners_.insert({
                               port,
-                              std::make_shared<tcp_listener>(*ios_,address, boost::lexical_cast<std::string>(port),std::forward<F>(f))
+                              std::make_shared<tcp_listener>(ios_,address, boost::lexical_cast<std::string>(port),std::forward<F>(f))
                           });
 
         return listeners_.at(port);
     }
 
     auto remove_listener(uint32_t port) {
-        listeners_type::iterator it = listeners_.find(port);
+        listeners_ptr_map::iterator it = listeners_.find(port);
         if (it == listeners_.end()) {
             throw std::runtime_error("No listener for port '"+ boost::lexical_cast<std::string>(port) + "' created");
         }
@@ -346,7 +348,7 @@ public:
 
     template<class F>
     tcp_connection::ptr create_connection(const std::string & address, uint32_t port, F&& f) {
-        boost::asio::ip::tcp::resolver resolver(*ios_);
+        boost::asio::ip::tcp::resolver resolver(ios_);
         boost::asio::ip::tcp::resolver::query query(address, boost::lexical_cast<std::string>(port));
 
         boost::system::error_code ec;
@@ -358,7 +360,7 @@ public:
         }
 
         boost::asio::ip::tcp::endpoint endpoint = *resolved;
-        return std::make_shared<tcp_connection>(*ios_, endpoint, std::forward<F>(f));
+        return std::make_shared<tcp_connection>(ios_, endpoint, std::forward<F>(f));
     }
 
     // This function is not threads safe!
@@ -384,66 +386,81 @@ public:
         ));
     }
 
-#if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
+#if defined(BOOST_ASIO_HAS_POSIX_STREAM_DESCRIPTOR)
     using native_handle_type = boost::asio::posix::stream_descriptor::native_handle_type;
 #elif defined(BOOST_ASIO_HAS_WINDOWS_STREAM_HANDLE)
     using native_handle_type = boost::asio::windows::stream_handle::native_handle_type;
 #else
-#error "Neither BOOST_ASIO_HAS_LOCAL_SOCKETS nor BOOST_ASIO_HAS_WINDOWS_STREAM_HANDLE is defined"
+#error "Neither BOOST_ASIO_HAS_POSIX_STREAM_DESCRIPTOR nor BOOST_ASIO_HAS_WINDOWS_STREAM_HANDLE is defined"
 #endif
 
-    void assign_in_descriptor(const native_handle_type & descriptor){
-        in.assign(descriptor);
+    void assign_in(const native_handle_type & handle){
+        in.assign(handle);
     }
 
-    void assign_out_descriptor(const native_handle_type & descriptor){
-        out.assign(descriptor);
+    void assign_out(const native_handle_type & handle){
+        out.assign(handle);
     }
 
-    template<class F>
-    std::size_t read_from_stream(std::string & value, F && completion){
+    template<class Completion>
+    std::size_t read_from_stream(std::string & value, Completion && completion){
         if(in.is_open())
-            return boost::asio::read(in, boost::asio::buffer(value), std::forward<F>(completion));
+            return boost::asio::read(in, boost::asio::buffer(value), std::forward<Completion>(completion));
 
         return 0;
     }
 
-    template<class F>
-    std::size_t write_to_stream(const std::string & value, F && completion){
+    template<class Completion, class Callback>
+    void async_read_from_stream(std::string & value, Completion && completion, Callback && callback){
+        if(in.is_open())
+            boost::asio::async_read(in, boost::asio::buffer(value),
+                                    std::forward<Completion>(completion), std::forward<Callback>(callback));
+    }
+
+    template<class Completion>
+    std::size_t write_to_stream(const std::string & value, Completion && completion){
         if(out.is_open())
-            return boost::asio::write(out, boost::asio::buffer(value), std::forward<F>(completion));
+            return boost::asio::write(out, boost::asio::buffer(value), std::forward<Completion>(completion));
 
         return 0;
     }
 
-    ios_ptr io_service()
+    template<class Completion, class Callback>
+    void async_write_to_stream(const std::string & value, Completion && completion, Callback && callback){
+        if(out.is_open())
+            boost::asio::async_write(out, boost::asio::buffer(value),
+                                     std::forward<Completion>(completion), std::forward<Callback>(callback));
+    }
+
+    boost::asio::io_service & io_service()
     {
         return ios_;
     }
 
 private:
 
-    ios_ptr ios_;
-    work_ptr   work_;
+    boost::asio::io_service ios_;
+    boost::asio::io_service::work   work_;
     boost::thread_group threads_pool_;
-    listeners_type listeners_;
+    listeners_ptr_map listeners_;
     boost::asio::signal_set signals_;
-#if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
+#if defined(BOOST_ASIO_HAS_POSIX_STREAM_DESCRIPTOR)
     boost::asio::posix::stream_descriptor in;
     boost::asio::posix::stream_descriptor out;
 #elif defined(BOOST_ASIO_HAS_WINDOWS_STREAM_HANDLE)
     boost::asio::windows::stream_handle in;
     boost::asio::windows::stream_handle out;
 #endif
+
     std::function<void(int)> signal_handlers_;
 
     processor()
-        : ios_{std::make_shared<boost::asio::io_service>()}
-        , work_{std::make_shared<boost::asio::io_service::work>(*ios_)},
-          signals_{*ios_},
-#if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
-          in{*ios_, ::dup(STDIN_FILENO)},
-          out{*ios_, ::dup(STDOUT_FILENO)}
+        : ios_{}
+        , work_{ios_},
+          signals_{ios_},
+#if defined(BOOST_ASIO_HAS_POSIX_STREAM_DESCRIPTOR)
+          in{ios_, ::dup(STDIN_FILENO)},
+          out{ios_, ::dup(STDOUT_FILENO)}
 #elif defined(BOOST_ASIO_HAS_WINDOWS_STREAM_HANDLE)
           in{ *ios_ },
           out{ *ios_ }
@@ -463,6 +480,9 @@ private:
 
 }; // class processor
 
+void read_all(std::string & value){
+    http::base::processor::get().read_from_stream(value, boost::asio::transfer_all());
+}
 
 void read_up_to_enter(std::string & value){
     http::base::processor::get()
