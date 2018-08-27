@@ -278,8 +278,6 @@ class processor : private boost::noncopyable {
 
 private:
 
-    //using ios_ptr = std::shared_ptr<boost::asio::io_service>;
-    //using work_ptr = std::shared_ptr<boost::asio::io_service::work>;
     using listener_ptr = std::shared_ptr<tcp_listener>;
     using duration_type = boost::asio::deadline_timer::duration_type;
     using time_type = boost::asio::deadline_timer::time_type;
