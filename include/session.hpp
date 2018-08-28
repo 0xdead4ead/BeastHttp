@@ -41,15 +41,25 @@ public:
     using method_map_t = std::map<method_t, resource_map_t>;
     using ptr = std::shared_ptr< session<true, Body>>;
 
+    explicit session(boost::asio::ip::tcp::socket&& socket,
+                     boost::beast::flat_buffer&& buffer,
+                     const std::shared_ptr<resource_map_t> & resource_map_cb_p,
+                     const std::shared_ptr<method_map_t> & method_map_cb_p)
+        : connection_p_{std::make_shared<base::tcp_connection>(std::move(socket))},
+          resource_map_cb_p_{resource_map_cb_p},
+          method_map_cb_p_{method_map_cb_p},
+          req_p_{std::make_shared<boost::beast::http::request<Body> >()},
+          buffer_{std::move(buffer)}
+    {}
+
     template<class Callback>
-    static void on_accept(const base::tcp_connection::ptr& connection_p,
+    static void on_accept(boost::asio::ip::tcp::socket&& socket,
+                          boost::beast::flat_buffer&& buffer,
                           const std::shared_ptr<resource_map_t> & resource_map_cb_p,
                           const std::shared_ptr<method_map_t> & method_map_cb_p,
                           const Callback & handler)
     {
-        //auto new_session_p = std::make_shared<session<true, Body> >(connection_p, resource_map_cb_p, method_map_cb_p);
-        // session constructor declared private here...
-        auto new_session_p = ptr(new session<true, Body>(connection_p, resource_map_cb_p, method_map_cb_p));
+        auto new_session_p = std::make_shared<session<true, Body> >(std::move(socket), std::move(buffer), resource_map_cb_p, method_map_cb_p);
         handler(*new_session_p);
     }
 
@@ -89,17 +99,6 @@ public:
     }
 
 private:
-
-    explicit session(){}
-
-    explicit session(const base::tcp_connection::ptr & connection_p,
-                     const std::shared_ptr<resource_map_t> & resource_map_cb_p,
-                     const std::shared_ptr<method_map_t> & method_map_cb_p)
-        : connection_p_{connection_p},
-          resource_map_cb_p_{resource_map_cb_p},
-          method_map_cb_p_{method_map_cb_p},
-          req_p_{std::make_shared<boost::beast::http::request<Body> >()}
-    {}
 
     void on_read(const boost::system::error_code & ec, std::size_t bytes_transferred){
 

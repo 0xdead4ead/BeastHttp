@@ -20,7 +20,6 @@ class server_impl{
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;
 
-    bool status_;
     std::shared_ptr<basic_r> basic_router_;
     std::shared_ptr<chain_r> chain_router_;
     std::shared_ptr<resource_map_t> resource_map_cb_p_;
@@ -47,6 +46,10 @@ class server_impl{
 
         return chain_router_;
     }
+
+protected:
+
+    bool status_;
 
 public:
 
@@ -297,13 +300,14 @@ public:
             return base::fail("server is already running");
 
         base::processor::get().add_listener(address, port,
-                                            boost::bind(&session<true, ReqBody>::template on_accept<Callback>,
-                                                        boost::placeholders::_1,
+                                            std::bind(&session<true, ReqBody>::template on_accept<Callback>,
+                                                        std::placeholders::_1,
+                                                        std::placeholders::_2,
                                                         resource_map_cb_p_,
                                                         method_map_cb_p_,
                                                         std::forward<Callback>(on_accept_handler)
                                                         )
-                                            )->accept_start();
+                                            )->run();
         status_ = true;
     }
 

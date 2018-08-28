@@ -118,10 +118,12 @@ public:
 
     using ptr = std::shared_ptr<tcp_connection>;
 
-    explicit tcp_connection(boost::asio::io_service& ios)
-        : socket_{ios}, strand_{socket_.get_executor()}
+    // Constructor for server to client connection
+    explicit tcp_connection(boost::asio::ip::tcp::socket&& socket)
+        : socket_{std::move(socket)}, strand_{socket_.get_executor()}
     {}
 
+    // Constructor for client to server connection
     template<class F>
     explicit tcp_connection(
             boost::asio::io_service& ios,
@@ -180,8 +182,9 @@ public:
 
     template <class F>
     tcp_listener(boost::asio::io_service& io_service, const std::string & address, const std::string & port, F&& callback)
-        : acceptor_{io_service}
-        , f_callback_{std::forward<F>(callback)}
+        : acceptor_{io_service},
+          socket_{io_service},
+          on_accept_cb_{std::forward<F>(callback)}
     {
         boost::asio::ip::tcp::resolver resolver(io_service);
         boost::asio::ip::tcp::resolver::query query(address, port);
@@ -238,36 +241,47 @@ public:
         acceptor_.close();
     }
 
-    void accept_start() {
-        if (!acceptor_.is_open()) {
+    // Start accepting incoming connections
+    void run()
+    {
+        if(!acceptor_.is_open())
             return;
-        }
-
-        auto new_connection = std::make_shared<tcp_connection>(acceptor_.get_io_service());
-        acceptor_.async_accept(new_connection->socket(),
-                               boost::bind(
-                                   &tcp_listener::handle_accept,
-                                   shared_from_this(),
-                                   new_connection,
-                                   boost::asio::placeholders::error
-                                   ));
+        do_accept();
     }
+
+    void do_accept()
+    {
+        acceptor_.async_accept(
+            socket_,
+            std::bind(
+                &tcp_listener::on_accept,
+                shared_from_this(),
+                std::placeholders::_1));
+    }
+
+    virtual void on_accept(boost::system::error_code error)
+    {
+        if(error){
+            fail(error, "accept");
+            //acceptor_.get_io_service().stop();
+        }
+        else
+            on_accept_cb_(std::move(socket_), {});
+
+        // Accept another connection
+        do_accept();
+    }
+
+    virtual ~tcp_listener() = default;
+
+protected:
+
+    acceptor_type acceptor_;
+    boost::asio::ip::tcp::socket socket_;
 
 private:
 
-    void handle_accept(const tcp_connection::ptr & new_connection, const boost::system::error_code& error)
-    {
-        if (!error){
-            accept_start();
-            f_callback_(new_connection); // running task
-        }else{
-            fail(error, "accept");
-            acceptor_.get_io_service().stop();
-        }
-    }
-
-    acceptor_type acceptor_;
-    std::function< void(tcp_connection::ptr) > f_callback_;
+    std::function< void(boost::asio::ip::tcp::socket&&, boost::beast::flat_buffer&&) > on_accept_cb_;
 
 }; // class tcp_listener
 
