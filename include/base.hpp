@@ -111,32 +111,29 @@ public:
 
 //###########################################################################
 
-/// \brief The tcp_connection class
-class tcp_connection : private boost::noncopyable {
+/// \brief The connection class
+template<class Derived>
+class connection_base : private boost::noncopyable {
+
+    Derived& derived()
+    {
+        return static_cast<Derived&>(*this);
+    }
+
+protected:
+
+    boost::asio::strand<boost::asio::io_context::executor_type> strand_;
 
 public:
 
-    using ptr = std::shared_ptr<tcp_connection>;
-
-    // Constructor for server to client connection
-    explicit tcp_connection(boost::asio::ip::tcp::socket&& socket)
-        : socket_{std::move(socket)}, strand_{socket_.get_executor()}
+    explicit connection_base(boost::asio::io_context::executor_type executor)
+        : strand_{executor}
     {}
-
-    // Constructor for client to server connection
-    template<class F>
-    explicit tcp_connection(
-            boost::asio::io_service& ios,
-            const boost::asio::ip::tcp::endpoint& endpoint, F&& f)
-        : socket_{ios}, strand_{socket_.get_executor()}
-    {
-        socket_.async_connect(endpoint, std::forward<F>(f));
-    }
 
     template <class F, class R>
     void async_write(R& msg, F&& f)
     {
-        boost::beast::http::async_write(socket_, msg,
+        boost::beast::http::async_write(derived().stream(), msg,
             boost::asio::bind_executor(
                 strand_, std::forward<F>(f)));
     }
@@ -144,35 +141,60 @@ public:
     template <class F, class B, class R>
     void async_read(B& buf, R& msg, F&& f)
     {
-        boost::beast::http::async_read(socket_, buf, msg,
+        boost::beast::http::async_read(derived().stream(), buf, msg,
             boost::asio::bind_executor(
                 strand_, std::forward<F>(f)));
     }
 
     void shutdown() {
         boost::system::error_code ec;
-        socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+        derived().stream().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 
         if(ec)
             fail(ec, "shutdown");
 
     }
 
-    auto & socket(){
+}; // connection class
+
+/// \brief The plain connection class
+class connection : public connection_base<connection> {
+
+    using base_t = connection_base<connection>;
+
+    boost::asio::ip::tcp::socket socket_;
+
+public:
+
+    using ptr = std::shared_ptr<connection>;
+
+    // Constructor for server to client connection
+    explicit connection(boost::asio::ip::tcp::socket&& socket)
+        : base_t{socket.get_executor()},
+          socket_{std::move(socket)}
+    {}
+
+    // Constructor for client to server connection
+    template<class F>
+    explicit connection(
+            boost::asio::io_service& ios,
+            const boost::asio::ip::tcp::endpoint& endpoint, F&& f)
+        : base_t{ios.get_executor()},
+          socket_{ios}
+    {
+        socket_.async_connect(endpoint, std::forward<F>(f));
+    }
+
+    auto & stream(){
         return socket_;
     }
 
-private:
-
-    boost::asio::ip::tcp::socket socket_;
-    boost::asio::strand<boost::asio::io_context::executor_type> strand_;
-
-}; // tcp_connection class
+}; // plain_connection class
 
 //###########################################################################
 
-/// \brief The tcp_listener class
-class tcp_listener: public std::enable_shared_from_this<tcp_listener> ,
+/// \brief The listener class
+class listener : public std::enable_shared_from_this<listener> ,
         private boost::noncopyable
 {
 
@@ -180,12 +202,23 @@ class tcp_listener: public std::enable_shared_from_this<tcp_listener> ,
 
 public:
 
+    listener(boost::asio::io_service& io_service, const std::string & address, const std::string & port)
+        : acceptor_{io_service},
+          socket_{io_service}
+    {
+        init(io_service, address, port);
+    }
+
     template <class F>
-    tcp_listener(boost::asio::io_service& io_service, const std::string & address, const std::string & port, F&& callback)
+    listener(boost::asio::io_service& io_service, const std::string & address, const std::string & port, F&& callback)
         : acceptor_{io_service},
           socket_{io_service},
           on_accept_cb_{std::forward<F>(callback)}
     {
+        init(io_service, address, port);
+    }
+
+    void init(boost::asio::io_service& io_service, const std::string & address, const std::string & port){
         boost::asio::ip::tcp::resolver resolver(io_service);
         boost::asio::ip::tcp::resolver::query query(address, port);
 
@@ -234,11 +267,14 @@ public:
             acceptor_.get_io_service().stop();
             return;
         }
-
     }
 
     void stop() {
-        acceptor_.close();
+        boost::system::error_code ec;
+        acceptor_.close(ec);
+
+        if(ec)
+            fail(ec, "close");
     }
 
     // Start accepting incoming connections
@@ -254,16 +290,15 @@ public:
         acceptor_.async_accept(
             socket_,
             std::bind(
-                &tcp_listener::on_accept,
+                &listener::on_accept,
                 shared_from_this(),
                 std::placeholders::_1));
     }
 
-    virtual void on_accept(boost::system::error_code error)
+    void on_accept(boost::system::error_code error)
     {
         if(error){
             fail(error, "accept");
-            //acceptor_.get_io_service().stop();
         }
         else
             on_accept_cb_(std::move(socket_), {});
@@ -271,8 +306,6 @@ public:
         // Accept another connection
         do_accept();
     }
-
-    virtual ~tcp_listener() = default;
 
 protected:
 
@@ -292,7 +325,7 @@ class processor : private boost::noncopyable {
 
 private:
 
-    using listener_ptr = std::shared_ptr<tcp_listener>;
+    using listener_ptr = std::shared_ptr<listener>;
     using duration_type = boost::asio::deadline_timer::duration_type;
     using time_type = boost::asio::deadline_timer::time_type;
     using listeners_ptr_map = std::map<uint32_t, listener_ptr>;
@@ -341,7 +374,7 @@ public:
 
         listeners_.insert({
                               port,
-                              std::make_shared<tcp_listener>(ios_,address, boost::lexical_cast<std::string>(port),std::forward<F>(f))
+                              std::make_shared<listener>(ios_,address, boost::lexical_cast<std::string>(port),std::forward<F>(f))
                           });
 
         return listeners_.at(port);
@@ -358,8 +391,8 @@ public:
         return listener;
     }
 
-    template<class F>
-    tcp_connection::ptr create_connection(const std::string & address, uint32_t port, F&& f) {
+    template<class Connection, class F>
+    std::shared_ptr<Connection> create_connection(const std::string & address, uint32_t port, F&& f) {
         boost::asio::ip::tcp::resolver resolver(ios_);
         boost::asio::ip::tcp::resolver::query query(address, boost::lexical_cast<std::string>(port));
 
@@ -372,7 +405,7 @@ public:
         }
 
         boost::asio::ip::tcp::endpoint endpoint = *resolved;
-        return std::make_shared<tcp_connection>(ios_, endpoint, std::forward<F>(f));
+        return std::make_shared<Connection>(ios_, endpoint, std::forward<F>(f));
     }
 
     // This function is not threads safe!
