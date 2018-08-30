@@ -150,7 +150,7 @@ protected:
                         auto const & cb_p = value.second;
 
                         if(cb_p)
-                            return invoke_cb(boost::ref(req_), boost::ref(*this), *cb_p);
+                            return invoke_cb(req_, *this, *cb_p);
 
                     }
                 }
@@ -164,7 +164,7 @@ protected:
                     auto const & cb_p = value.second;
 
                     if(cb_p)
-                        return invoke_cb(boost::ref(req_), boost::ref(*this), *cb_p);
+                        return invoke_cb(req_, *this, *cb_p);
 
                 }
             }
@@ -250,7 +250,7 @@ private:
             return base::fail(ec, "read");
 
         if(response_cb_p_)
-            invoke_cb(boost::ref(res_), boost::ref(*this), *response_cb_p_);
+            invoke_cb(res_, *this, *response_cb_p_);
 
         // If we get here then the connection is closed gracefully
     }
