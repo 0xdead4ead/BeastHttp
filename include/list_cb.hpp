@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <functional>
-#include <list>
+#include <vector>
 #include <string>
 
 namespace http {
@@ -16,7 +16,7 @@ public:
     using self_type = list_cb<Message,Session>;
     using ptr = std::shared_ptr<list_cb<Message, Session> >;
     using F = std::function<void (Message &, Session &, list_cb &)>;
-    using L = std::list<F>;
+    using L = std::vector<F>;
 
     friend class cb_invoker;
     friend class exec_base;
