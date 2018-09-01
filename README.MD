@@ -15,8 +15,8 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 # DEPENDENCIES
 
 * [`Boost.Regex`](https://github.com/boostorg/regex), [`Boost.Asio`](https://github.com/boostorg/asio), [`Boost.Beast`](https://github.com/boostorg/beast/tree/develop) & [`Boost.LexicalCast`](https://github.com/boostorg/lexical_cast) library
-* [`JSON for Modern C++`](https://github.com/nlohmann/json)
-* [`OpenSSL`](https://github.com/openssl/openssl)
+* [`JSON for Modern C++`](https://github.com/nlohmann/json) (optional)
+* [`OpenSSL`](https://github.com/openssl/openssl) (optional)
 * Minimal C++ 14 compatible compilator (for generic lambda)
 
 # USAGE
