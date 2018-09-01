@@ -14,8 +14,8 @@ namespace http {
 template<class ReqBody>
 class server_impl{
 
-    using basic_r = basic_router<ReqBody>;
-    using chain_r = chain_router<ReqBody>;
+    using basic_r = basic_router<session<true, ReqBody>>;
+    using chain_r = chain_router<session<true, ReqBody>>;
     using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session<true, ReqBody>>;
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;

@@ -1,0 +1,20 @@
+openssl dhparam -out dh.pem 2048
+
+//https://wiki.mozilla.org/SecurityEngineering/x509Certs
+//////////////////////////////////
+
+Generate root CA:
+openssl genpkey -algorithm RSA -out rootkey.pem -pkeyopt rsa_keygen_bits:4096
+openssl req -new -key rootkey.pem -extensions v3_ca -batch -out root.csr -utf8 -subj '/C=US/ST=CA/O=Beast/L=Los Angeles'
+openssl x509 -req -sha256 -days 3650 -in root.csr -signkey rootkey.pem -set_serial 123 -extfile openssl.root.cnf -out root.pem
+
+Generate your Intermediate cert:
+openssl genpkey -algorithm RSA -out intkey.pem -pkeyopt rsa_keygen_bits:3072
+openssl req -new -key intkey.pem -extensions v3_ca -batch -out int.csr -utf8 -subj '/C=US/ST=CA/O=Beast/L=Los Angeles'
+openssl x509 -req -sha256 -days 2922 -in int.csr -CAkey rootkey.pem -CA root.pem -set_serial 321 -out int.pem -extfile openssl.int.cnf
+openssl pkcs12 -export -clcerts -in int.pem -inkey intkey.pem -out int.p12
+
+Generate the end entity certificate:
+openssl genpkey -algorithm RSA -out eekey.pem -pkeyopt rsa_keygen_bits:2048
+openssl req -new -key eekey.pem -extensions v3_ca -batch -out example.csr -utf8 -subj '/CN=localhost'
+openssl x509 -req -sha256 -days 1096 -in example.csr -CAkey intkey.pem -CA int.pem -set_serial 1 -out localhost.pem -extfile openssl.ss.cnf

@@ -40,6 +40,8 @@ class session  : private cb_invoker, private boost::noncopyable,
 
 public:
 
+    using ReqBody = Body;
+
     explicit session(boost::asio::ip::tcp::socket&& socket,
                      boost::beast::flat_buffer&& buffer,
                      const std::shared_ptr<resource_map_t> & resource_map_cb_p,

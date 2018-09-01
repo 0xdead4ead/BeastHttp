@@ -1,0 +1,6 @@
+basicConstraints = critical, CA:TRUE
+authorityKeyIdentifier = keyid, issuer
+subjectKeyIdentifier = hash
+keyUsage = keyCertSign, cRLSign
+extendedKeyUsage =serverAuth
+authorityInfoAccess = OCSP;URI:http://ocsp.localhost:8888/

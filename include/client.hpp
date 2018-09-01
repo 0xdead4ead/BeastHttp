@@ -31,6 +31,16 @@ public:
     ///                      void (Message & message, Session & session)
     template<class Callback1, class Callback2>
     void invoke(std::string const & host, uint32_t port, Callback1 && on_connect_handler, Callback2 && on_receive_handler){
+        typename list_cb_t::L cb{
+            std::bind<void>(
+                        std::forward<Callback2>(on_receive_handler),
+                        std::placeholders::_1,
+                        std::placeholders::_2
+                        )
+        };
+
+        response_cb_p_ = std::make_shared<list_cb_t>(cb);
+
         connection_p_ = base::processor::get()
                 .create_connection<base::connection>(host,
                                                      port,
@@ -46,19 +56,7 @@ public:
         if(!connection_p_){
             response_cb_p_ = {};
             base::processor::get().stop();
-
-            return;
         }
-
-        typename list_cb_t::L cb{
-            std::bind<void>(
-                        std::forward<Callback2>(on_receive_handler),
-                        std::placeholders::_1,
-                        std::placeholders::_2
-                        )
-        };
-
-        response_cb_p_ = std::make_shared<list_cb_t>(cb);
     }
 
 private:

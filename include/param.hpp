@@ -541,18 +541,18 @@ protected:
 
 
 // Generic parameter holder template class
-template<class ReqBody, class Router, class... Types>
+template<class Session, class Router, class... Types>
 class param_impl;
 
 //################################################################## List of param class for BASIC_ROUTER
 
-template<class ReqBody, class T1>
-class param_impl<ReqBody, basic_router<ReqBody>, T1>
-        : private param_base<basic_router<ReqBody>>{
+template<class Session, class T1>
+class param_impl<Session, basic_router<Session>, T1>
+        : private param_base<basic_router<Session>>{
 
-    using base_t = param_base<basic_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<basic_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
 protected:
@@ -654,13 +654,13 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2>
-class param_impl<ReqBody, basic_router<ReqBody>, T1, T2>
-        : private param_base<basic_router<ReqBody>>{
+template<class Session, class T1, class T2>
+class param_impl<Session, basic_router<Session>, T1, T2>
+        : private param_base<basic_router<Session>>{
 
-    using base_t = param_base<basic_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<basic_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
 protected:
@@ -776,13 +776,13 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2, class T3>
-class param_impl<ReqBody, basic_router<ReqBody>, T1, T2, T3>
-        : private param_base<basic_router<ReqBody>>{
+template<class Session, class T1, class T2, class T3>
+class param_impl<Session, basic_router<Session>, T1, T2, T3>
+        : private param_base<basic_router<Session>>{
 
-    using base_t = param_base<basic_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<basic_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
 protected:
@@ -916,13 +916,13 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2, class T3, class T4>
-class param_impl<ReqBody, basic_router<ReqBody>, T1, T2, T3, T4>
-        : private param_base<basic_router<ReqBody>>{
+template<class Session, class T1, class T2, class T3, class T4>
+class param_impl<Session, basic_router<Session>, T1, T2, T3, T4>
+        : private param_base<basic_router<Session>>{
 
-    using base_t = param_base<basic_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<basic_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
 protected:
@@ -1078,13 +1078,13 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2, class T3, class T4, class T5>
-class param_impl<ReqBody, basic_router<ReqBody>, T1, T2, T3, T4, T5>
-        : private param_base<basic_router<ReqBody>>{
+template<class Session, class T1, class T2, class T3, class T4, class T5>
+class param_impl<Session, basic_router<Session>, T1, T2, T3, T4, T5>
+        : private param_base<basic_router<Session>>{
 
-    using base_t = param_base<basic_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<basic_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
 protected:
@@ -1266,13 +1266,13 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2, class T3, class T4, class T5, class T6>
-class param_impl<ReqBody, basic_router<ReqBody>, T1, T2, T3, T4, T5, T6>
-        : private param_base<basic_router<ReqBody>>{
+template<class Session, class T1, class T2, class T3, class T4, class T5, class T6>
+class param_impl<Session, basic_router<Session>, T1, T2, T3, T4, T5, T6>
+        : private param_base<basic_router<Session>>{
 
-    using base_t = param_base<basic_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<basic_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
 protected:
@@ -1484,13 +1484,13 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2, class T3, class T4, class T5, class T6, class T7>
-class param_impl<ReqBody, basic_router<ReqBody>, T1, T2, T3, T4, T5, T6, T7>
-        : private param_base<basic_router<ReqBody>>{
+template<class Session, class T1, class T2, class T3, class T4, class T5, class T6, class T7>
+class param_impl<Session, basic_router<Session>, T1, T2, T3, T4, T5, T6, T7>
+        : private param_base<basic_router<Session>>{
 
-    using base_t = param_base<basic_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<basic_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
 protected:
@@ -1736,13 +1736,13 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
-class param_impl<ReqBody, basic_router<ReqBody>, T1, T2, T3, T4, T5, T6, T7, T8>
-        : private param_base<basic_router<ReqBody>>{
+template<class Session, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
+class param_impl<Session, basic_router<Session>, T1, T2, T3, T4, T5, T6, T7, T8>
+        : private param_base<basic_router<Session>>{
 
-    using base_t = param_base<basic_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<basic_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
 protected:
@@ -2026,13 +2026,13 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9>
-class param_impl<ReqBody, basic_router<ReqBody>, T1, T2, T3, T4, T5, T6, T7, T8, T9>
-        : private param_base<basic_router<ReqBody>>{
+template<class Session, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9>
+class param_impl<Session, basic_router<Session>, T1, T2, T3, T4, T5, T6, T7, T8, T9>
+        : private param_base<basic_router<Session>>{
 
-    using base_t = param_base<basic_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<basic_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
 protected:
@@ -2359,15 +2359,15 @@ public:
 
 //################################################################## List of param class for CHAIN_ROUTER
 
-template<class ReqBody, class T1>
-class param_impl<ReqBody, chain_router<ReqBody>, T1>
-        : private param_base<chain_router<ReqBody>>{
+template<class Session, class T1>
+class param_impl<Session, chain_router<Session>, T1>
+        : private param_base<chain_router<Session>>{
 
 protected:
 
-    using base_t = param_base<chain_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<chain_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
     template<class F>
@@ -2456,9 +2456,9 @@ protected:
 
     };
 
-    struct param_chain_node : private chain_router<ReqBody>::chain_node{
+    struct param_chain_node : private chain_router<Session>::chain_node{
 
-        using base_node = typename chain_router<ReqBody>::chain_node;
+        using base_node = typename chain_router<Session>::chain_node;
         using node_ref = std::add_lvalue_reference_t<param_chain_node>;
 
         param_chain_node(const typename base_t::shared_block_ptr & shared_block_p)
@@ -2490,15 +2490,15 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2>
-class param_impl<ReqBody, chain_router<ReqBody>, T1, T2>
-        : private param_base<chain_router<ReqBody>>{
+template<class Session, class T1, class T2>
+class param_impl<Session, chain_router<Session>, T1, T2>
+        : private param_base<chain_router<Session>>{
 
 protected:
 
-    using base_t = param_base<chain_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<chain_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
     template<class F>
@@ -2601,9 +2601,9 @@ protected:
 
     };
 
-    struct param_chain_node : private chain_router<ReqBody>::chain_node{
+    struct param_chain_node : private chain_router<Session>::chain_node{
 
-        using base_node = typename chain_router<ReqBody>::chain_node;
+        using base_node = typename chain_router<Session>::chain_node;
         using node_ref = std::add_lvalue_reference_t<param_chain_node>;
 
         param_chain_node(const typename base_t::shared_block_ptr & shared_block_p)
@@ -2635,15 +2635,15 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2, class T3>
-class param_impl<ReqBody, chain_router<ReqBody>, T1, T2, T3>
-        : private param_base<chain_router<ReqBody>>{
+template<class Session, class T1, class T2, class T3>
+class param_impl<Session, chain_router<Session>, T1, T2, T3>
+        : private param_base<chain_router<Session>>{
 
 protected:
 
-    using base_t = param_base<chain_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<chain_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
     template<class F>
@@ -2764,9 +2764,9 @@ protected:
 
     };
 
-    struct param_chain_node : private chain_router<ReqBody>::chain_node{
+    struct param_chain_node : private chain_router<Session>::chain_node{
 
-        using base_node = typename chain_router<ReqBody>::chain_node;
+        using base_node = typename chain_router<Session>::chain_node;
         using node_ref = std::add_lvalue_reference_t<param_chain_node>;
 
         param_chain_node(const typename base_t::shared_block_ptr & shared_block_p)
@@ -2798,15 +2798,15 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2, class T3, class T4>
-class param_impl<ReqBody, chain_router<ReqBody>, T1, T2, T3, T4>
-        : private param_base<chain_router<ReqBody>>{
+template<class Session, class T1, class T2, class T3, class T4>
+class param_impl<Session, chain_router<Session>, T1, T2, T3, T4>
+        : private param_base<chain_router<Session>>{
 
 protected:
 
-    using base_t = param_base<chain_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<chain_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
     template<class F>
@@ -2949,9 +2949,9 @@ protected:
 
     };
 
-    struct param_chain_node : private chain_router<ReqBody>::chain_node{
+    struct param_chain_node : private chain_router<Session>::chain_node{
 
-        using base_node = typename chain_router<ReqBody>::chain_node;
+        using base_node = typename chain_router<Session>::chain_node;
         using node_ref = std::add_lvalue_reference_t<param_chain_node>;
 
         param_chain_node(const typename base_t::shared_block_ptr & shared_block_p)
@@ -2983,15 +2983,15 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2, class T3, class T4, class T5>
-class param_impl<ReqBody, chain_router<ReqBody>, T1, T2, T3, T4, T5>
-        : private param_base<chain_router<ReqBody>>{
+template<class Session, class T1, class T2, class T3, class T4, class T5>
+class param_impl<Session, chain_router<Session>, T1, T2, T3, T4, T5>
+        : private param_base<chain_router<Session>>{
 
 protected:
 
-    using base_t = param_base<chain_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<chain_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
     template<class F>
@@ -3160,9 +3160,9 @@ protected:
 
     };
 
-    struct param_chain_node : private chain_router<ReqBody>::chain_node{
+    struct param_chain_node : private chain_router<Session>::chain_node{
 
-        using base_node = typename chain_router<ReqBody>::chain_node;
+        using base_node = typename chain_router<Session>::chain_node;
         using node_ref = std::add_lvalue_reference_t<param_chain_node>;
 
         param_chain_node(const typename base_t::shared_block_ptr & shared_block_p)
@@ -3194,15 +3194,15 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2, class T3, class T4, class T5, class T6>
-class param_impl<ReqBody, chain_router<ReqBody>, T1, T2, T3, T4, T5, T6>
-        : private param_base<chain_router<ReqBody>>{
+template<class Session, class T1, class T2, class T3, class T4, class T5, class T6>
+class param_impl<Session, chain_router<Session>, T1, T2, T3, T4, T5, T6>
+        : private param_base<chain_router<Session>>{
 
 protected:
 
-    using base_t = param_base<chain_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<chain_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
     template<class F>
@@ -3401,9 +3401,9 @@ protected:
 
     };
 
-    struct param_chain_node : private chain_router<ReqBody>::chain_node{
+    struct param_chain_node : private chain_router<Session>::chain_node{
 
-        using base_node = typename chain_router<ReqBody>::chain_node;
+        using base_node = typename chain_router<Session>::chain_node;
         using node_ref = std::add_lvalue_reference_t<param_chain_node>;
 
         param_chain_node(const typename base_t::shared_block_ptr & shared_block_p)
@@ -3435,15 +3435,15 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2, class T3, class T4, class T5, class T6, class T7>
-class param_impl<ReqBody, chain_router<ReqBody>, T1, T2, T3, T4, T5, T6, T7>
-        : private param_base<chain_router<ReqBody>>{
+template<class Session, class T1, class T2, class T3, class T4, class T5, class T6, class T7>
+class param_impl<Session, chain_router<Session>, T1, T2, T3, T4, T5, T6, T7>
+        : private param_base<chain_router<Session>>{
 
 protected:
 
-    using base_t = param_base<chain_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<chain_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
     template<class F>
@@ -3676,9 +3676,9 @@ protected:
 
     };
 
-    struct param_chain_node : private chain_router<ReqBody>::chain_node{
+    struct param_chain_node : private chain_router<Session>::chain_node{
 
-        using base_node = typename chain_router<ReqBody>::chain_node;
+        using base_node = typename chain_router<Session>::chain_node;
         using node_ref = std::add_lvalue_reference_t<param_chain_node>;
 
         param_chain_node(const typename base_t::shared_block_ptr & shared_block_p)
@@ -3710,15 +3710,15 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
-class param_impl<ReqBody, chain_router<ReqBody>, T1, T2, T3, T4, T5, T6, T7, T8>
-        : private param_base<chain_router<ReqBody>>{
+template<class Session, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
+class param_impl<Session, chain_router<Session>, T1, T2, T3, T4, T5, T6, T7, T8>
+        : private param_base<chain_router<Session>>{
 
 protected:
 
-    using base_t = param_base<chain_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<chain_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
     template<class F>
@@ -3989,9 +3989,9 @@ protected:
 
     };
 
-    struct param_chain_node : private chain_router<ReqBody>::chain_node{
+    struct param_chain_node : private chain_router<Session>::chain_node{
 
-        using base_node = typename chain_router<ReqBody>::chain_node;
+        using base_node = typename chain_router<Session>::chain_node;
         using node_ref = std::add_lvalue_reference_t<param_chain_node>;
 
         param_chain_node(const typename base_t::shared_block_ptr & shared_block_p)
@@ -4023,15 +4023,15 @@ public:
 };
 
 
-template<class ReqBody, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9>
-class param_impl<ReqBody, chain_router<ReqBody>, T1, T2, T3, T4, T5, T6, T7, T8, T9>
-        : private param_base<chain_router<ReqBody>>{
+template<class Session, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9>
+class param_impl<Session, chain_router<Session>, T1, T2, T3, T4, T5, T6, T7, T8, T9>
+        : private param_base<chain_router<Session>>{
 
 protected:
 
-    using base_t = param_base<chain_router<ReqBody>>;
-    using request = boost::beast::http::request<ReqBody>;
-    using session_t = session<true, ReqBody>;
+    using base_t = param_base<chain_router<Session>>;
+    using request = boost::beast::http::request<typename Session::ReqBody>;
+    using session_t = Session;
     using list_cb_t = list_cb<request, session_t>;
 
     template<class F>
@@ -4344,9 +4344,9 @@ protected:
 
     };
 
-    struct param_chain_node : private chain_router<ReqBody>::chain_node{
+    struct param_chain_node : private chain_router<Session>::chain_node{
 
-        using base_node = typename chain_router<ReqBody>::chain_node;
+        using base_node = typename chain_router<Session>::chain_node;
         using node_ref = std::add_lvalue_reference_t<param_chain_node>;
 
         param_chain_node(const typename base_t::shared_block_ptr & shared_block_p)

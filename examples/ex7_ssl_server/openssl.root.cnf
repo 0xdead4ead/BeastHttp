@@ -1,0 +1,4 @@
+basicConstraints = critical, CA:TRUE
+keyUsage = keyCertSign, cRLSign
+subjectKeyIdentifier = hash
+nameConstraints = permitted;DNS:localhost

@@ -146,15 +146,6 @@ public:
                 strand_, std::forward<F>(f)));
     }
 
-    void shutdown() {
-        boost::system::error_code ec;
-        derived().stream().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-
-        if(ec)
-            fail(ec, "shutdown");
-
-    }
-
 }; // connection class
 
 /// \brief The plain connection class
@@ -183,6 +174,15 @@ public:
           socket_{ios}
     {
         socket_.async_connect(endpoint, std::forward<F>(f));
+    }
+
+    void shutdown() {
+        boost::system::error_code ec;
+        socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+
+        if(ec)
+            fail(ec, "shutdown");
+
     }
 
     auto & stream(){
@@ -406,6 +406,23 @@ public:
 
         boost::asio::ip::tcp::endpoint endpoint = *resolved;
         return std::make_shared<Connection>(ios_, endpoint, std::forward<F>(f));
+    }
+
+    template<class Connection, class Context, class F>
+    std::shared_ptr<Connection> create_connection(Context & ctx, const std::string & address, uint32_t port, F&& f) {
+        boost::asio::ip::tcp::resolver resolver(ios_);
+        boost::asio::ip::tcp::resolver::query query(address, boost::lexical_cast<std::string>(port));
+
+        boost::system::error_code ec;
+
+        auto resolved = resolver.resolve(query, ec);
+        if(ec){
+            fail(ec, "resolve");
+            return {};
+        }
+
+        boost::asio::ip::tcp::endpoint endpoint = *resolved;
+        return std::make_shared<Connection>(ctx, ios_, endpoint, std::forward<F>(f));
     }
 
     // This function is not threads safe!

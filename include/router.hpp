@@ -8,12 +8,12 @@
 namespace http {
 
 /// \brief Routing module class
-template<class ReqBody>
+template<class Session>
 class router
 {
 
-    using self = router<ReqBody>;
-    using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session<true, ReqBody>>;
+    using self = router<Session>;
+    using list_cb_t = list_cb<boost::beast::http::request<typename Session::ReqBody>, Session>;
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;
 
@@ -189,12 +189,12 @@ protected:
 }; // router class
 
 
-template<class ReqBody>
-class basic_router : public router<ReqBody>{
+template<class Session>
+class basic_router : public router<Session>{
 
-    using base_t = router<ReqBody>;
-    using self_t = basic_router<ReqBody>;
-    using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session<true, ReqBody>>;
+    using base_t = router<Session>;
+    using self_t = basic_router<Session>;
+    using list_cb_t = list_cb<boost::beast::http::request<typename Session::ReqBody>, Session>;
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;
 
@@ -405,7 +405,7 @@ public:
     /// \tparam List of types output data
     template<class... Types>
     auto param(){
-        return param_impl<ReqBody, self_t, Types...>{*this};
+        return param_impl<Session, self_t, Types...>{*this};
     }
 
 private:
@@ -418,14 +418,14 @@ private:
 
 
 /// \brief Routing module class for chaining process
-template<class ReqBody>
-class chain_router : public router<ReqBody>{
+template<class Session>
+class chain_router : public router<Session>{
 
     friend class chain_node;
 
-    using base_t = router<ReqBody>;
-    using self_t = chain_router<ReqBody>;
-    using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session<true, ReqBody>>;
+    using base_t = router<Session>;
+    using self_t = chain_router<Session>;
+    using list_cb_t = list_cb<boost::beast::http::request<typename Session::ReqBody>, Session>;
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;
 
@@ -714,7 +714,7 @@ public:
     /// \tparam List of types output data
     template<class... Types>
     auto param(){
-        return param_impl<ReqBody, self_t, Types...>{*this};
+        return param_impl<Session, self_t, Types...>{*this};
     }
 
     /// \brief Save to to temporary regex resource
