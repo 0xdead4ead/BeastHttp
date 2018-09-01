@@ -2,24 +2,11 @@
 
 Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the Boost.Beast when constructing queries and answers.
 
-> **base.hpp:** Add/remove listener, create connections, manage signals, io, ...
-
-> **session.hpp:** Handles an HTTP server/client connection
-
-> **client.hpp:** Class for communication with a remote host
-
-> **server.hpp:** HTTP server class, registration of new routes
-
-> **router.hpp:** Container for storing routes
-
-> **list_cb.hpp:** Container for storing callback functions
-
-> **param.hpp:** Wrapper class above the user's callbacks for finding parametric arguments
-
 # FEATURES
 
 * Header-only
 * HTTP 1.0 / 1.1 / 2.0
+* TLS/SSL
 * Asynchronous request, response handling
 * Thread pool support
 * Platform independent
@@ -29,6 +16,7 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 
 * [`Boost.Regex`](https://github.com/boostorg/regex), [`Boost.Asio`](https://github.com/boostorg/asio), [`Boost.Beast`](https://github.com/boostorg/beast/tree/develop) & [`Boost.LexicalCast`](https://github.com/boostorg/lexical_cast) library
 * [`JSON for Modern C++`](https://github.com/nlohmann/json)
+* [`OpenSSL`](https://github.com/openssl/openssl)
 * Minimal C++ 14 compatible compilator (for generic lambda)
 
 # USAGE
@@ -154,12 +142,8 @@ Request content from the server:
     auto port = 80;
 
     const auto & on_connect = [&host](auto & session){
-        http::base::out("Successful connected!");
-
-        // Create request and fill fields...
-        
-        // Send 
-        // session.do_write(req);
+        http::base::out("Successful connected!"); 
+        session.do_write(make_request());
     };
 
     // Handler on received object
