@@ -1,4 +1,3 @@
-
 sudo: true
 language: cpp
 compiler: gcc
@@ -9,26 +8,27 @@ addons:
     update: true
     sources:
       - sourceline: 'ppa:mhier/libboost-latest'
-      - ubuntu-toolchain-r-test
     packages:
       - libssl-dev
       - libicu-dev
-      - cmake
-      - g++-7
-      - gcc-7
       - boost1.67
 
 before_install:
-  - export CXX="g++-7" CC="gcc-7"
-  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7
-  - sudo update-alternatives --config gcc
-  - g++ --version
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq
 
-#install: 
-#  - sudo apt-get install -qq g++-7
-#  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 90
+install:
+##C++14 
+  - sudo apt-get install -qq g++-7
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 90
+  - g++ --version
+##CMake
+  - wget https://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.sh
+  - chmod +x ./cmake-3.11.4-Linux-x86_64.sh
+  - sudo ./cmake-3.11.4-Linux-x86_64.sh --prefix=. --exclude-subdir --skip-license
+  - ./bin/cmake --version
 
 script: 
   - mkdir build && cd build
-  - cmake ..
-  - cmake --build . --target all
+  - ../bin/cmake ..
+  - ../bin/cmake --build . --target all
