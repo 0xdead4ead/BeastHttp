@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.11)
 
 find_package(Boost 1.66 COMPONENTS system thread regex)
 

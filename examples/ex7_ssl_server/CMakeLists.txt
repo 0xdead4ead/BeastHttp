@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.11)
 
 set(OUTPUT_NAME ex7_ssl_server)
 
