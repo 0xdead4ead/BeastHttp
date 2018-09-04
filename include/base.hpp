@@ -524,8 +524,8 @@ private:
           in{ios_, ::dup(STDIN_FILENO)},
           out{ios_, ::dup(STDOUT_FILENO)}
 #elif defined(BOOST_ASIO_HAS_WINDOWS_STREAM_HANDLE)
-          in{ *ios_ },
-          out{ *ios_ }
+          in{ ios_ },
+          out{ ios_ }
 #endif
     {}
 
