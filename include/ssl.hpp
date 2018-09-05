@@ -2,7 +2,10 @@
 #define SSL_HPP
 
 #include <boost/asio/ssl/stream.hpp>
-#include <server.hpp>
+#include <base.hpp>
+#include <session.hpp>
+#include <list_cb.hpp>
+#include <router.hpp>
 
 namespace http{
 
@@ -394,6 +397,8 @@ private:
 
 }; // class session
 
+#ifdef SERVER_HPP
+
 /// \brief HTTPS server class
 /// \tparam Body type for request message
 template <class ReqBody>
@@ -734,10 +739,14 @@ public:
 
 using server = server_impl<boost::beast::http::string_body>;
 
+#endif // SERVER_HPP
+
+#ifdef CLIENT_HPP
+
 /// \brief Class for communication with a remote host (SSL)
 /// \tparam Body type for response message
 template<class ResBody>
-class client_impl{
+class client_impl : private http::client_impl<ResBody>{
 
 public:
 
@@ -802,6 +811,8 @@ private:
 }; // client_impl class
 
 using client = client_impl<boost::beast::http::string_body>;
+
+#endif // CLIENT_HPP
 
 } // namespace ssl
 
