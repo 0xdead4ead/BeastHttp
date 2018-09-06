@@ -12,7 +12,7 @@
 #include <boost/config.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/asio/io_service.hpp>
-#include <boost/asio/deadline_timer.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <boost/asio/write.hpp>
@@ -39,86 +39,32 @@ void out(const std::string & info);
 void fail(const std::string & info);
 void fail(const boost::system::error_code & ec, const std::string & info);
 
-namespace detail{
+class timer{
 
-/// \brief class storing a task
-/// \tparam functor
-template <class F>
-struct task_wrapped {
-
-private:
-
-    F f_;
+    boost::asio::strand<boost::asio::io_context::executor_type> strand_;
+    boost::asio::steady_timer timer_;
 
 public:
 
-    explicit task_wrapped(const F& f)
-        : f_{f}
+    using ptr = std::shared_ptr<timer>;
+
+    template<class Time>
+    explicit timer(boost::asio::io_context::executor_type executor, const Time& duration_or_time)
+        : timer_{executor, duration_or_time}
     {}
 
-    void operator()() {
-         f_();
+    auto & stream(){
+        return timer_;
     }
 
-    void operator()() const{
-         f_();
+    template<class F>
+    void async_wait(F&& f){
+        timer_.async_wait(
+                    boost::asio::bind_executor(
+                        strand_, std::forward<F>(f)));
     }
 
-    static inline auto make(const F& f) {
-        return task_wrapped<F>(f);
-    }
-
-}; // class task_wrapped
-
-//###########################################################################
-
-/// \brief Executes the stored procedure after the time expires
-/// \tparam Procedure itself
-template <class F>
-struct timer_task: public task_wrapped<F> {
-
-private:
-
-    using base_type = task_wrapped<F>;
-    using timer_ptr = std::shared_ptr<boost::asio::deadline_timer>;
-    timer_ptr timer_;
-
-public:
-
-    template <class Time>
-    explicit timer_task(boost::asio::io_service& ios, const Time& duration_or_time, const F& f)
-        : base_type{f},
-          timer_{std::make_shared<boost::asio::deadline_timer>(
-                     boost::ref(ios), duration_or_time)}
-    {}
-
-    void launch() const {
-        timer_->async_wait(*this);
-    }
-
-    void operator()(const boost::system::error_code& error) {
-        if (!error)
-            base_type::operator()();
-        else
-            fail(error, "timer_task");
-    }
-
-    void operator()(const boost::system::error_code& error) const {
-        if (!error)
-            base_type::operator()();
-        else
-            fail(error, "timer_task");
-    }
-
-    template <class Time>
-    static inline auto make(boost::asio::io_service& ios, const Time& duration_or_time, const F& f)
-    {
-        return timer_task<F>(ios, duration_or_time, f);
-    }
-
-}; // class timer_task
-
-} // detail namespace
+}; // class timer
 
 //###########################################################################
 
@@ -212,6 +158,8 @@ class listener : public std::enable_shared_from_this<listener> ,
     using acceptor_type = boost::asio::ip::tcp::acceptor;
 
 public:
+
+    using ptr = std::shared_ptr<listener>;
 
     listener(boost::asio::io_service& io_service, const std::string & address, const std::string & port)
         : acceptor_{io_service},
@@ -336,21 +284,13 @@ class processor : private boost::noncopyable {
 
 private:
 
-    using listener_ptr = std::shared_ptr<listener>;
-    using duration_type = boost::asio::deadline_timer::duration_type;
-    using time_type = boost::asio::deadline_timer::time_type;
-    using listeners_ptr_map = std::map<uint32_t, listener_ptr>;
+    using listeners_ptr_map = std::map<uint32_t, listener::ptr>;
 
 public:
 
     static auto& get(){
         static processor base_proc;
         return base_proc;
-    }
-
-    template <class F>
-    inline void push_task(F&& f) {
-        ios_.post(detail::task_wrapped<F>::make(std::forward<F>(f)));
     }
 
     void start(std::size_t threads_count) {
@@ -364,16 +304,6 @@ public:
 
     void wait(){
         threads_pool_.join_all();
-    }
-
-    template <class F>
-    void run_after(duration_type duration, F&& f) {
-        detail::timer_task<F>::make(ios_, duration, std::forward<F>(f)).launch();
-    }
-
-    template <class F>
-    void run_at(time_type time, F&& f) {
-        detail::timer_task<F>::make(ios_, time, std::forward<F>(f)).launch();
     }
 
     template <class F>
