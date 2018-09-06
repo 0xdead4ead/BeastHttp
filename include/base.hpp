@@ -60,6 +60,10 @@ public:
          f_();
     }
 
+    void operator()() const{
+         f_();
+    }
+
     static inline auto make(const F& f) {
         return task_wrapped<F>(f);
     }
@@ -93,6 +97,13 @@ public:
     }
 
     void operator()(const boost::system::error_code& error) {
+        if (!error)
+            base_type::operator()();
+        else
+            fail(error, "timer_task");
+    }
+
+    void operator()(const boost::system::error_code& error) const {
         if (!error)
             base_type::operator()();
         else
