@@ -1,5 +1,5 @@
-#ifndef LIST_CB_HPP
-#define LIST_CB_HPP
+#ifndef BEAST_HTTP_LIST_CB_HPP
+#define BEAST_HTTP_LIST_CB_HPP
 
 #include <memory>
 #include <functional>
@@ -142,4 +142,4 @@ private:
 
 } // namespace http
 
-#endif // LIST_CB_HPP
+#endif // BEAST_HTTP_LIST_CB_HPP

@@ -1,5 +1,5 @@
-#ifndef SSL_HPP
-#define SSL_HPP
+#ifndef BEAST_HTTP_SSL_HPP
+#define BEAST_HTTP_SSL_HPP
 
 #include <boost/asio/ssl/stream.hpp>
 #include <base.hpp>
@@ -397,7 +397,7 @@ private:
 
 }; // class session
 
-#ifdef SERVER_HPP
+#ifdef BEAST_HTTP_SERVER_HPP
 
 /// \brief HTTPS server class
 /// \tparam Body type for request message
@@ -739,9 +739,9 @@ public:
 
 using server = server_impl<boost::beast::http::string_body>;
 
-#endif // SERVER_HPP
+#endif // BEAST_HTTP_SERVER_HPP
 
-#ifdef CLIENT_HPP
+#ifdef BEAST_HTTP_CLIENT_HPP
 
 /// \brief Class for communication with a remote host (SSL)
 /// \tparam Body type for response message
@@ -812,11 +812,11 @@ private:
 
 using client = client_impl<boost::beast::http::string_body>;
 
-#endif // CLIENT_HPP
+#endif // BEAST_HTTP_CLIENT_HPP
 
 } // namespace ssl
 
 } // namespace http
 
 
-#endif // SSL_HPP
+#endif // BEAST_HTTP_SSL_HPP

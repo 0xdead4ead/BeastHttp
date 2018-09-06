@@ -1,5 +1,5 @@
-#ifndef ROUTER_HPP
-#define ROUTER_HPP
+#ifndef BEAST_HTTP_ROUTER_HPP
+#define BEAST_HTTP_ROUTER_HPP
 
 #include <session.hpp>
 #include <list_cb.hpp>
@@ -734,4 +734,4 @@ private:
 
 }
 
-#endif // ROUTER_HPP
+#endif // BEAST_HTTP_ROUTER_HPP

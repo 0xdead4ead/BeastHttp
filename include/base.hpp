@@ -1,5 +1,5 @@
-#ifndef BASE_HPP
-#define BASE_HPP
+#ifndef BEAST_HTTP_BASE_HPP
+#define BEAST_HTTP_BASE_HPP
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -584,4 +584,4 @@ void fail(const boost::system::error_code & ec, const std::string & info){
 
 } // namespace http
 
-#endif // BASE_HPP
+#endif // BEAST_HTTP_BASE_HPP

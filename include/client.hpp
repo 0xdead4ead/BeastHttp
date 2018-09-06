@@ -1,5 +1,5 @@
-#ifndef CLIENT_HPP
-#define CLIENT_HPP
+#ifndef BEAST_HTTP_CLIENT_HPP
+#define BEAST_HTTP_CLIENT_HPP
 
 #include <base.hpp>
 #include <session.hpp>
@@ -71,4 +71,4 @@ using client = client_impl<boost::beast::http::string_body>;
 
 } // namespace http
 
-#endif // CLIENT_HPP
+#endif // BEAST_HTTP_CLIENT_HPP

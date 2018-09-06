@@ -1,5 +1,5 @@
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#ifndef BEAST_HTTP_SERVER_HPP
+#define BEAST_HTTP_SERVER_HPP
 
 #include <base.hpp>
 #include <session.hpp>
@@ -346,4 +346,4 @@ using server = server_impl<boost::beast::http::string_body>;
 
 } // namespace http
 
-#endif // SERVER_HPP
+#endif // BEAST_HTTP_SERVER_HPP

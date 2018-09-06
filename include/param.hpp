@@ -1,5 +1,5 @@
-#ifndef PARAM_HPP
-#define PARAM_HPP
+#ifndef BEAST_HTTP_PARAM_HPP
+#define BEAST_HTTP_PARAM_HPP
 
 #include <list>
 #include <memory>
@@ -4379,4 +4379,4 @@ public:
 
 } // namespace http
 
-#endif // PARAM_HPP
+#endif // BEAST_HTTP_PARAM_HPP

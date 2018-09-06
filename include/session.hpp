@@ -1,5 +1,5 @@
-#ifndef SESSION_HPP
-#define SESSION_HPP
+#ifndef BEAST_HTTP_SESSION_HPP
+#define BEAST_HTTP_SESSION_HPP
 
 #include <base.hpp>
 #include <list_cb.hpp>
@@ -278,4 +278,4 @@ private:
 
 } // namespace http
 
-#endif // SESSION_HPP
+#endif // BEAST_HTTP_SESSION_HPP
