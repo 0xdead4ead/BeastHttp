@@ -46,7 +46,9 @@ public:
                      boost::beast::flat_buffer&& buffer,
                      const std::shared_ptr<resource_map_t> & resource_map_cb_p,
                      const std::shared_ptr<method_map_t> & method_map_cb_p)
-        : connection_p_{std::make_shared<base::connection>(std::move(socket))},
+        : timer_p_{std::make_shared<http::base::timer>(socket.get_executor(),
+                                                       (std::chrono::steady_clock::time_point::max)())},
+          connection_p_{std::make_shared<base::connection>(std::move(socket))},
           resource_map_cb_p_{resource_map_cb_p},
           method_map_cb_p_{method_map_cb_p},
           buffer_{std::move(buffer)}
@@ -69,6 +71,8 @@ public:
     }
 
     void do_read(){
+
+        timer_p_->stream().expires_after(std::chrono::seconds(10));
 
         req_ = {};
 
@@ -98,7 +102,33 @@ public:
         connection_p_->shutdown();
     }
 
+    void launch_timer(){
+        timer_p_->async_wait(
+                    std::bind(
+                        &session<true, Body>::on_timer,
+                        this->shared_from_this(),
+                        std::placeholders::_1));
+    }
+
 protected:
+
+    void on_timer(boost::system::error_code ec)
+    {
+        if(ec && ec != boost::asio::error::operation_aborted)
+            return base::fail(ec, "timer");
+
+        // Verify that the timer really expired since the deadline may have moved.
+        if(timer_p_->stream().expiry() <= std::chrono::steady_clock::now())
+        {
+            // Closing the socket cancels all outstanding operations. They
+            // will complete with boost::asio::error::operation_aborted
+            connection_p_->stream().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+            connection_p_->stream().close(ec);
+            return;
+        }
+
+        launch_timer();
+    }
 
     void on_read(const boost::system::error_code & ec, std::size_t bytes_transferred){
 
@@ -175,6 +205,7 @@ protected:
 
     }
 
+    base::timer::ptr timer_p_;
     base::connection::ptr connection_p_;
     std::shared_ptr<resource_map_t> resource_map_cb_p_;
     std::shared_ptr<method_map_t> method_map_cb_p_;

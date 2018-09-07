@@ -98,7 +98,9 @@ public:
                      boost::beast::flat_buffer&& buffer,
                      const std::shared_ptr<resource_map_t> & resource_map_cb_p,
                      const std::shared_ptr<method_map_t> & method_map_cb_p)
-        : connection_p_{std::make_shared<base::connection>(ctx, std::move(socket))},
+        : timer_p_{std::make_shared<http::base::timer>(socket.get_executor(),
+                                                       (std::chrono::steady_clock::time_point::max)())},
+          connection_p_{std::make_shared<base::connection>(ctx, std::move(socket))},
           buffer_{std::move(buffer)},
           resource_map_cb_p_{resource_map_cb_p},
           method_map_cb_p_{method_map_cb_p}
@@ -130,6 +132,8 @@ public:
         if(!handshake)
             return;
 
+        timer_p_->stream().expires_after(std::chrono::seconds(10));
+
         req_ = {};
 
         connection_p_->async_read(
@@ -160,6 +164,14 @@ public:
                                           &session<true, Body>::on_shutdown,
                                           this->shared_from_this(),
                                           std::placeholders::_1));
+    }
+
+    void launch_timer(){
+        timer_p_->async_wait(
+                    std::bind(
+                        &session<true, Body>::on_timer,
+                        this->shared_from_this(),
+                        std::placeholders::_1));
     }
 
 protected:
@@ -254,6 +266,7 @@ protected:
         return do_read();
     }
 
+    http::base::timer::ptr timer_p_;
     base::connection::ptr connection_p_;
     boost::beast::flat_buffer buffer_;
     std::shared_ptr<resource_map_t> resource_map_cb_p_;

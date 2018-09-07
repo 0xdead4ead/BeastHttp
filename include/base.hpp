@@ -47,10 +47,13 @@ class timer{
 public:
 
     using ptr = std::shared_ptr<timer>;
+    using duration = boost::asio::steady_timer::duration;
+    using time_point = boost::asio::steady_timer::time_point;
 
     template<class Time>
     explicit timer(boost::asio::io_context::executor_type executor, const Time& duration_or_time)
-        : timer_{executor, duration_or_time}
+        : strand_{executor},
+          timer_{executor.context(), duration_or_time}
     {}
 
     auto & stream(){
