@@ -39,14 +39,23 @@ class server_impl{
         return chain_router_;
     }
 
-protected:
-
-    bool status_;
+    void process(const std::string & address, uint32_t port){
+        base::processor::get().add_listener(address, port,
+                                            std::bind(&session<true, ReqBody>::on_accept,
+                                                        std::placeholders::_1,
+                                                        std::placeholders::_2,
+                                                        std::cref(resource_map_cb_p_),
+                                                        std::cref(method_map_cb_p_),
+                                                        std::cref(on_accept)
+                                                        )
+                                            )->run();
+    }
 
 public:
 
+    std::function<void(session<true, ReqBody>&)> on_accept;
+
     explicit server_impl() :
-        status_{false},
         basic_router_{nullptr},
         chain_router_{nullptr},
         resource_map_cb_p_{nullptr},
@@ -240,6 +249,9 @@ public:
         return get_basic_router()->template param<Types...>();
     }
 
+    void listen(const std::string & address, uint32_t port){
+        process(address, port);
+    }
     /// \brief Start accepting incoming connections
     /// \param Listening interface
     /// \param port
@@ -248,17 +260,9 @@ public:
     ///                     void (Session & session)
     template<class Callback>
     void listen(const std::string & address, uint32_t port, Callback && on_accept_handler){
-        base::processor::get().add_listener(address, port,
-                                            std::bind(&session<true, ReqBody>::template on_accept<Callback>,
-                                                        std::placeholders::_1,
-                                                        std::placeholders::_2,
-                                                        std::cref(resource_map_cb_p_),
-                                                        std::cref(method_map_cb_p_),
-                                                        std::forward<Callback>(on_accept_handler)
-                                                        )
-                                            )->run();
+        on_accept = std::forward<Callback>(on_accept_handler);
+        process(address, port);
     }
-
 
     basic_r BasicRouter() noexcept{
         return {};

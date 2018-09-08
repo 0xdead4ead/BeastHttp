@@ -180,16 +180,16 @@ public:
           queue_{*this}
     {}
 
-    template<class Callback>
     static void on_accept(boost::asio::ssl::context& ctx,
                           boost::asio::ip::tcp::socket&& socket,
                           boost::beast::flat_buffer&& buffer,
                           const std::shared_ptr<resource_map_t> & resource_map_cb_p,
                           const std::shared_ptr<method_map_t> & method_map_cb_p,
-                          const Callback & handler)
+                          const std::function<void(session<true, ReqBody>&)> & on_accept_cb)
     {
         auto new_session_p = std::make_shared<session<true, Body> >(ctx, std::move(socket), std::move(buffer), resource_map_cb_p, method_map_cb_p);
-        handler(*new_session_p);
+        if(on_accept_cb)
+            on_accept_cb(*new_session_p);
     }
 
     void do_handshake(){
@@ -495,7 +495,6 @@ private:
 template <class ReqBody>
 class server_impl : private http::server_impl<ReqBody>{
 
-
     using basic_r = basic_router<session<true, ReqBody>>;
     using chain_r = chain_router<session<true, ReqBody>>;
     using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session<true, ReqBody>>;
@@ -521,17 +520,30 @@ class server_impl : private http::server_impl<ReqBody>{
         return chain_router_;
     }
 
+    void process(const std::string & address, uint32_t port){
+        http::base::processor::get().add_listener(address, port,
+                                            std::bind(&session<true, ReqBody>::on_accept,
+                                                      std::ref(ctx_),
+                                                      std::placeholders::_1,
+                                                      std::placeholders::_2,
+                                                      std::cref(resource_map_cb_p_),
+                                                      std::cref(method_map_cb_p_),
+                                                      std::cref(on_accept)
+                                                      )
+                                            )->run();
+    }
+
 protected:
 
-    bool status_;
     boost::asio::ssl::context & ctx_;
 
 public:
 
+    std::function<void(session<true, ReqBody>&)> on_accept;
+
     // new ssl context
     explicit server_impl(boost::asio::ssl::context & ctx) :
         ctx_{ctx},
-        status_{false},
         basic_router_{nullptr},
         chain_router_{nullptr},
         resource_map_cb_p_{nullptr},
@@ -725,6 +737,9 @@ public:
         return get_basic_router()->template param<Types...>();
     }
 
+    void listen(const std::string & address, uint32_t port){
+        process(address, port);
+    }
     /// \brief Start accepting incoming connections
     /// \param Listening interface
     /// \param port
@@ -733,16 +748,8 @@ public:
     ///                     void (Session & session)
     template<class Callback>
     void listen(const std::string & address, uint32_t port, Callback && on_accept_handler){
-        http::base::processor::get().add_listener(address, port,
-                                            std::bind(&session<true, ReqBody>::template on_accept<Callback>,
-                                                      std::ref(ctx_),
-                                                      std::placeholders::_1,
-                                                      std::placeholders::_2,
-                                                      std::cref(resource_map_cb_p_),
-                                                      std::cref(method_map_cb_p_),
-                                                      std::forward<Callback>(on_accept_handler)
-                                                      )
-                                            )->run();
+        on_accept = std::forward<Callback>(on_accept_handler);
+        process(address, port);
     }
 
 

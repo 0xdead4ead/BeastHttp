@@ -128,15 +128,15 @@ public:
           queue_{*this}
     {}
 
-    template<class Callback>
     static void on_accept(boost::asio::ip::tcp::socket&& socket,
                           boost::beast::flat_buffer&& buffer,
                           const std::shared_ptr<resource_map_t> & resource_map_cb_p,
                           const std::shared_ptr<method_map_t> & method_map_cb_p,
-                          const Callback & handler)
+                          const std::function<void(session<true, ReqBody>&)> & on_accept_cb)
     {
         auto new_session_p = std::make_shared<session<true, Body> >(std::move(socket), std::move(buffer), resource_map_cb_p, method_map_cb_p);
-        handler(*new_session_p);
+        if(on_accept_cb)
+            on_accept_cb(*new_session_p);
     }
 
     auto & getConnection() const
