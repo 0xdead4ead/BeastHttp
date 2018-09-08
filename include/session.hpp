@@ -299,21 +299,19 @@ class session<false, Body>  : private cb_invoker, private boost::noncopyable,
 
 public:
 
-    using list_cb_t = list_cb<boost::beast::http::response<Body>, session<false, Body> >;
-
-    explicit session(const base::connection::ptr & connection_p,
-                     const typename list_cb_t::ptr & response_cb_p)
+    explicit session(base::connection::ptr & connection_p,
+                     const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb)
         : connection_p_{connection_p},
-          response_cb_p_{response_cb_p}
+          on_message_cb_{on_message_cb}
     {}
 
-    template<class Callback>
-    static void on_connect(const base::connection::ptr & connection_p,
-                           const typename list_cb_t::ptr & response_cb_p,
-                           const Callback & handler)
+    static void on_connect(base::connection::ptr & connection_p,
+                           const std::function<void (session<false, Body>&)> & on_connect_cb,
+                           const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb)
     {
-        auto new_session_p = std::make_shared<session<false, Body>>(connection_p, response_cb_p);
-        handler(*new_session_p);
+        auto new_session_p = std::make_shared<session<false, Body>>(connection_p, on_message_cb);
+        if(on_connect_cb)
+            on_connect_cb(*new_session_p);
     }
 
     void do_read()
@@ -361,8 +359,8 @@ private:
         if(ec)
             return base::fail(ec, "read");
 
-        if(response_cb_p_)
-            invoke_cb(res_, *this, *response_cb_p_);
+        if(on_message_cb_)
+            on_message_cb_(res_, *this);
 
         // If we get here then the connection is closed gracefully
     }
@@ -377,8 +375,8 @@ private:
         do_read();
     }
 
-    base::connection::ptr connection_p_;
-    typename list_cb_t::ptr response_cb_p_;
+    base::connection::ptr & connection_p_;
+    const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb_;
     boost::beast::http::response<Body> res_;
     std::shared_ptr<void> msg_p_;
     boost::beast::flat_buffer buffer_;

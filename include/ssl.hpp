@@ -199,7 +199,8 @@ public:
         connection_p_->async_handshake_server(buffer_,
                                        std::bind(&session<true, Body>::on_handshake,
                                                  this->shared_from_this(),
-                                                 std::placeholders::_1));
+                                                 std::placeholders::_1,
+                                                 std::placeholders::_2));
     }
 
     void do_read(){
@@ -243,12 +244,15 @@ public:
 
 protected:
 
-    void on_handshake(const boost::system::error_code & ec)
+    void on_handshake(const boost::system::error_code & ec, std::size_t bytes_used)
     {
         if(ec)
             return http::base::fail(ec, "handshake");
 
         handshake = true;
+
+        // Consume the portion of the buffer used by the handshake
+        buffer_.consume(bytes_used);
 
         do_read();
     }
@@ -356,23 +360,23 @@ class session<false, Body>  : private cb_invoker, private boost::noncopyable,
 
 public:
 
-    using list_cb_t = list_cb<boost::beast::http::response<Body>, session<false, Body> >;
-
-    explicit session(const base::connection::ptr & connection_p,
-                     const typename list_cb_t::ptr & response_cb_p,
-                     const std::function<void (session<false, Body> &)> & handshake_cb)
+    explicit session(base::connection::ptr & connection_p,
+                     const std::function<void (session<false, Body>&)> & on_handshake_cb,
+                     const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb)
         : connection_p_{connection_p},
-          response_cb_p_{response_cb_p},
-          handshake_cb_{handshake_cb}
+          on_handshake_cb_{on_handshake_cb},
+          on_message_cb_{on_message_cb}
+
     {}
 
-    template<class Callback>
-    static void on_connect(const base::connection::ptr & connection_p,
-                           const typename list_cb_t::ptr & response_cb_p,
-                           const std::function<void (session<false, Body> &)> & handshake_cb,
-                           const Callback & handler){
-        auto new_session_p = std::make_shared<session<false, Body>>(connection_p, response_cb_p, handshake_cb);
-        handler(*new_session_p);
+    static void on_connect(base::connection::ptr & connection_p,
+                           const std::function<void (session<false, Body>&)> & on_connect_cb,
+                           const std::function<void (session<false, Body> &)> & on_handshake_cb,
+                           const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb){
+        auto new_session_p = std::make_shared<session<false, Body>>(connection_p, on_handshake_cb, on_message_cb);
+        if(on_connect_cb)
+            on_connect_cb(*new_session_p);
+
     }
 
     void do_handshake(){
@@ -432,7 +436,9 @@ private:
             return http::base::fail(ec, "handshake");
 
         handshake = true;
-        handshake_cb_(*this);
+
+        if(on_handshake_cb_)
+            on_handshake_cb_(*this);
     }
 
     void on_shutdown(boost::system::error_code ec)
@@ -456,8 +462,8 @@ private:
         if(ec)
             return http::base::fail(ec, "read");
 
-        if(response_cb_p_)
-            invoke_cb(res_, *this, *response_cb_p_);
+        if(on_message_cb_)
+            on_message_cb_(res_, *this);
 
         // If we get here then the connection is closed gracefully
     }
@@ -473,9 +479,9 @@ private:
     }
 
     bool handshake = false;
-    base::connection::ptr connection_p_;
-    typename list_cb_t::ptr response_cb_p_;
-    std::function<void (session<false, Body> &)> handshake_cb_;
+    base::connection::ptr & connection_p_;
+    const std::function<void (session<false, Body> &)> & on_handshake_cb_;
+    const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb_;
     boost::beast::http::response<Body> res_;
     std::shared_ptr<void> msg_p_;
     boost::beast::flat_buffer buffer_;
@@ -777,65 +783,65 @@ using server = server_impl<boost::beast::http::string_body>;
 template<class ResBody>
 class client_impl : private http::client_impl<ResBody>{
 
+    void process(std::string const & host, uint32_t port){
+        connection_p_ = http::base::processor::get()
+                .create_connection<base::connection>(ctx_, host,
+                                                     port,
+                                                     [this](const boost::system::error_code & ec){
+            if(ec){
+                connection_p_->stream().get_executor().context().stop();
+                return http::base::fail(ec, "connect");
+            }
+
+            session<false, ResBody>::on_connect(std::ref(connection_p_), std::cref(on_connect), std::cref(on_handshake), std::cref(on_message));
+        });
+
+        if(!connection_p_){
+            on_connect = {};
+            on_handshake = {};
+            on_message = {};
+            http::base::processor::get().stop();
+        }
+    }
+
+    base::connection::ptr connection_p_;
+    boost::asio::ssl::context & ctx_;
+
 public:
 
-    using list_cb_t = list_cb<boost::beast::http::response<ResBody>, session<false, ResBody>>;
+    std::function<void (session<false, ResBody>&)> on_connect;
+    std::function<void (session<false, ResBody>&)> on_handshake;
+    std::function<void (boost::beast::http::response<ResBody>&, session<false, ResBody>&)> on_message;
 
-    explicit client_impl(boost::asio::ssl::context & ctx) : status{false},
-        ctx_{ctx},
-        connection_p_{nullptr},
-        response_cb_p_{nullptr}
+    explicit client_impl(boost::asio::ssl::context & ctx)
+        :ctx_{ctx},
+        connection_p_{nullptr}
     {}
 
+    void invoke(std::string const & host, uint32_t port){
+        process(host, port);
+    }
     /// \brief Get request a resource
     /// \param Remote host (www.example.com, 127.0.0.1 and etc.)
     /// \param Session port (80, 8080)
     /// \param handler informing you of a successful connection
     /// Callback1 signature : template<class Session>
     ///                      void (Session & session)
+    /// \param handler informing you of a handshake
+    /// Callback2 signature : template<class Session>
+    ///                      void (Session & session)
     /// \param handler on the received message
-    /// Callback2 signature : template<class Message>
+    /// Callback3 signature : template<class Message>
     ///                      void (Message & message, Session & session)
     template<class Callback1, class Callback2, class Callback3>
-    void invoke(std::string const & host, uint32_t port,
-                Callback1 && on_connect_handler, Callback2 && on_handshake_handler, Callback3 && on_receive_handler){
-        handshake_cb_ = std::forward<Callback2>(on_handshake_handler);
+    void invoke(std::string const & host, uint32_t port, Callback1 && on_connect_handler, Callback2 && on_handshake_handler, Callback3 && on_message_handler){
 
-        typename list_cb_t::L cb{
-            std::bind<void>(
-                        std::forward<Callback3>(on_receive_handler),
-                        std::placeholders::_1,
-                        std::placeholders::_2
-                        )
-        };
+        on_connect = std::forward<Callback1>(on_connect_handler);
+        on_handshake = std::forward<Callback2>(on_handshake_handler);
+        on_message = std::forward<Callback3>(on_message_handler);
 
-        response_cb_p_ = std::make_shared<list_cb_t>(cb);
-
-        connection_p_ = http::base::processor::get()
-                .create_connection<base::connection>(ctx_, host,
-                                                     port,
-                                                     [this, handler_ = std::forward<Callback1>(on_connect_handler)](const boost::system::error_code & ec){
-            if(ec){
-                connection_p_->stream().get_executor().context().stop();
-                return http::base::fail(ec, "connect");
-            }
-
-            session<false, ResBody>::on_connect(connection_p_, response_cb_p_, handshake_cb_, handler_);
-        });
-
-        if(!connection_p_){
-            response_cb_p_ = {};
-            http::base::processor::get().stop();
-        }
+        process(host, port);
     }
-
-private:
-
-    bool status;
-    boost::asio::ssl::context & ctx_;
-    base::connection::ptr connection_p_;
-    typename list_cb_t::ptr response_cb_p_;
-    std::function<void (session<false, ResBody> &)> handshake_cb_;
 
 }; // client_impl class
 

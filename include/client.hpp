@@ -11,15 +11,40 @@ namespace http{
 template<class ResBody>
 class client_impl{
 
+    void process(std::string const & host, uint32_t port){
+        connection_p_ = base::processor::get()
+                .create_connection<base::connection>(host,
+                                                     port,
+                                                     [this](const boost::system::error_code & ec){
+            if(ec){
+                connection_p_->stream().get_executor().context().stop();
+                return base::fail(ec, "connect");
+            }
+
+            session<false, ResBody>::on_connect(std::ref(connection_p_), std::cref(on_connect), std::cref(on_message));
+        });
+
+        if(!connection_p_){
+            on_connect = {};
+            on_message = {};
+            base::processor::get().stop();
+        }
+    }
+
+    base::connection::ptr connection_p_;
+
 public:
 
-    using list_cb_t = list_cb<boost::beast::http::response<ResBody>, session<false, ResBody>>;
+    std::function<void (session<false, ResBody>&)> on_connect;
+    std::function<void (boost::beast::http::response<ResBody>&, session<false, ResBody>&)> on_message;
 
-    explicit client_impl() : status{false},
-        connection_p_{nullptr},
-        response_cb_p_{nullptr}
+    explicit client_impl()
+        :  connection_p_{nullptr}
     {}
 
+    void invoke(std::string const & host, uint32_t port){
+        process(host, port);
+    }
     /// \brief Get request a resource
     /// \param Remote host (www.example.com, 127.0.0.1 and etc.)
     /// \param Session port (80, 8080)
@@ -30,40 +55,13 @@ public:
     /// Callback2 signature : template<class Message>
     ///                      void (Message & message, Session & session)
     template<class Callback1, class Callback2>
-    void invoke(std::string const & host, uint32_t port, Callback1 && on_connect_handler, Callback2 && on_receive_handler){
-        typename list_cb_t::L cb{
-            std::bind<void>(
-                        std::forward<Callback2>(on_receive_handler),
-                        std::placeholders::_1,
-                        std::placeholders::_2
-                        )
-        };
+    void invoke(std::string const & host, uint32_t port, Callback1 && on_connect_handler, Callback2 && on_message_handler){
 
-        response_cb_p_ = std::make_shared<list_cb_t>(cb);
+        on_connect = std::forward<Callback1>(on_connect_handler);
+        on_message = std::forward<Callback2>(on_message_handler);
 
-        connection_p_ = base::processor::get()
-                .create_connection<base::connection>(host,
-                                                     port,
-                                                     [this, handler_ = std::forward<Callback1>(on_connect_handler)](const boost::system::error_code & ec){
-            if(ec){
-                connection_p_->stream().get_executor().context().stop();
-                return base::fail(ec, "connect");
-            }
-
-            session<false, ResBody>::on_connect(connection_p_, response_cb_p_, handler_);
-        });
-
-        if(!connection_p_){
-            response_cb_p_ = {};
-            base::processor::get().stop();
-        }
+        process(host, port);
     }
-
-private:
-
-    bool status;
-    base::connection::ptr connection_p_;
-    typename list_cb_t::ptr response_cb_p_;
 
 }; // client_impl class
 
