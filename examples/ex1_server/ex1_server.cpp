@@ -31,6 +31,7 @@ int main()
 //g++ -c -std=gnu++14 -I../../include -o ex1_server.o ./ex1_server.cpp
 //g++ -o ex1_server ex1_server.o -lboost_system -lboost_thread -lpthread -lboost_regex -licui18n
 
+//    root@x0x0:~# (echo -en "GET /1 HTTP/1.1\nHost: localhost\n\nGET /2 HTTP/1.1\nHost: localhost\n\n"; sleep 0.1) | telnet localhost 80
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/1'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/2'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/a/b/c/d'
