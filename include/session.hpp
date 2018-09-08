@@ -5,6 +5,7 @@
 #include <list_cb.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/regex.hpp>
+#include <array>
 
 namespace http {
 
@@ -38,6 +39,79 @@ class session  : private cb_invoker, private boost::noncopyable,
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;
 
+    //https://www.boost.org/doc/libs/1_68_0/libs/beast/example/advanced/server/advanced_server.cpp
+    class queue{
+        constexpr static size_t limit = 8;
+
+        struct work
+        {
+            virtual ~work() = default;
+            virtual void operator()() = 0;
+        };
+
+        session<true, Body>& self_;
+        std::vector<std::unique_ptr<work>> items_;
+
+    public:
+        explicit queue(session<true, Body>& self)
+            : self_(self)
+        {
+            static_assert(limit > 0, "queue limit must be positive");
+            items_.reserve(limit);
+        }
+
+        // Returns `true` if we have reached the queue limit
+        bool is_full() const
+        {
+            return items_.size() >= limit;
+        }
+
+        // Called when a message finishes sending
+        // Returns `true` if the caller should initiate a read
+        bool on_write()
+        {
+            assert(! items_.empty());
+            auto const was_full = is_full();
+            items_.erase(items_.begin());
+            if(! items_.empty())
+                (*items_.front())();
+            return was_full;
+        }
+
+        // Called by the HTTP handler to send a response.
+        template<class Responce>
+        void operator()(Responce && msg)
+        {
+            // This holds a work item
+            struct work_impl : work
+            {
+                session<true, Body>& self_;
+                std::remove_reference_t<Responce> msg_;
+
+                work_impl(session<true, Body>& self, Responce&& msg)
+                    : self_(self)
+                    , msg_(std::forward<Responce>(msg))
+                {}
+
+                void operator()()
+                {
+                    self_.connection_p_->async_write(msg_,
+                                             std::bind(&session<true, Body>::on_write, self_.shared_from_this(),
+                                                         std::placeholders::_1,
+                                                         std::placeholders::_2,
+                                                         msg_.need_eof()));
+                }
+            };
+
+            // Allocate and store the work
+            items_.push_back(std::make_unique<work_impl>(self_, std::forward<Responce>(msg)));
+
+            // If there was no previous work, start this one
+            if(items_.size() == 1)
+                (*items_.front())();
+        }
+    };
+
 public:
 
     using ReqBody = Body;
@@ -51,7 +125,8 @@ public:
           connection_p_{std::make_shared<base::connection>(std::move(socket))},
           resource_map_cb_p_{resource_map_cb_p},
           method_map_cb_p_{method_map_cb_p},
-          buffer_{std::move(buffer)}
+          buffer_{std::move(buffer)},
+          queue_{*this}
     {}
 
     template<class Callback>
@@ -82,19 +157,13 @@ public:
                     std::bind(&session<true, Body>::on_read, this->shared_from_this(),
                                 std::placeholders::_1,
                                 std::placeholders::_2));
+
     }
 
     template<class Responce>
-    void do_write(Responce && msg){
-
-        auto sp = std::make_shared<std::decay_t<Responce>>(std::forward<Responce>(msg));
-        msg_p_ = sp;
-
-        connection_p_->async_write(*sp,
-                                 std::bind(&session<true, Body>::on_write, this->shared_from_this(),
-                                             std::placeholders::_1,
-                                             std::placeholders::_2,
-                                             sp->need_eof()));
+    void do_write(Responce && msg)
+    {
+        queue_(std::forward<Responce>(msg));
     }
 
     void do_close()
@@ -102,7 +171,8 @@ public:
         connection_p_->shutdown();
     }
 
-    void launch_timer(){
+    void launch_timer()
+    {
         timer_p_->async_wait(
                     std::bind(
                         &session<true, Body>::on_timer,
@@ -130,7 +200,8 @@ protected:
         launch_timer();
     }
 
-    void on_read(const boost::system::error_code & ec, std::size_t bytes_transferred){
+    void on_read(const boost::system::error_code & ec, std::size_t bytes_transferred)
+    {
 
         boost::ignore_unused(bytes_transferred);
 
@@ -141,6 +212,7 @@ protected:
             return base::fail(ec, "read");
 
         process_request();
+
     }
 
     void on_write(const boost::system::error_code & ec, std::size_t bytes_transferred, bool close)
@@ -157,11 +229,12 @@ protected:
             return do_close();
         }
 
-        // We're done with the response so delete it
-        msg_p_.reset();
-
-        // Read another request
-        do_read();
+        // Inform the queue that a write completed
+        if(queue_.on_write())
+        {
+            // Read another request
+            do_read();
+        }
     }
 
     void process_request()
@@ -170,6 +243,7 @@ protected:
         resource_t target = req_.target();
         method_t method = req_.method();
 
+        bool invoked = false;
         if(method_map_cb_p_){
             auto method_pos = method_map_cb_p_->find(method);
             if(method_pos != method_map_cb_p_->end()){
@@ -181,9 +255,10 @@ protected:
                     if(boost::regex_match(std::string(target.data(), target.size()), e)){
                         auto const & cb_p = value.second;
 
-                        if(cb_p)
-                            return invoke_cb(req_, *this, *cb_p);
-
+                        if(cb_p){
+                            invoke_cb(req_, *this, *cb_p);
+                            invoked = true;
+                        }
                     }
                 }
             }
@@ -195,13 +270,14 @@ protected:
                 if(boost::regex_match(std::string(target.data(), target.size()), e)){
                     auto const & cb_p = value.second;
 
-                    if(cb_p)
-                        return invoke_cb(req_, *this, *cb_p);
-
+                    if(cb_p && !invoked)
+                        invoke_cb(req_, *this, *cb_p);
                 }
             }
 
-        return do_read();
+        // If we aren't at the queue limit, try to pipeline another request
+        if(! queue_.is_full())
+            do_read();
 
     }
 
@@ -210,8 +286,8 @@ protected:
     std::shared_ptr<resource_map_t> resource_map_cb_p_;
     std::shared_ptr<method_map_t> method_map_cb_p_;
     boost::beast::http::request<Body> req_;
-    std::shared_ptr<void> msg_p_;
     boost::beast::flat_buffer buffer_;
+    queue queue_;
 
 }; // class session
 
@@ -235,12 +311,14 @@ public:
     template<class Callback>
     static void on_connect(const base::connection::ptr & connection_p,
                            const typename list_cb_t::ptr & response_cb_p,
-                           const Callback & handler){
+                           const Callback & handler)
+    {
         auto new_session_p = std::make_shared<session<false, Body>>(connection_p, response_cb_p);
         handler(*new_session_p);
     }
 
-    void do_read(){
+    void do_read()
+    {
         res_ = {};
 
         connection_p_->async_read(
@@ -252,7 +330,8 @@ public:
     }
 
     template<class Request>
-    void do_write(Request && msg){
+    void do_write(Request && msg)
+    {
         auto sp = std::make_shared<std::decay_t<Request>>(std::forward<Request>(msg));
         msg_p_ = sp;
 
@@ -263,7 +342,8 @@ public:
                                              ));
     }
 
-    void do_close(){
+    void do_close()
+    {
         boost::system::error_code ec;
         // Gracefully close the socket
         connection_p_->stream().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);

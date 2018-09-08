@@ -89,6 +89,79 @@ class session  : private cb_invoker, private boost::noncopyable,
 
     bool handshake = false;
 
+    //https://www.boost.org/doc/libs/1_68_0/libs/beast/example/advanced/server/advanced_server.cpp
+    class queue{
+        constexpr static size_t limit = 8;
+
+        struct work
+        {
+            virtual ~work() = default;
+            virtual void operator()() = 0;
+        };
+
+        session<true, Body>& self_;
+        std::vector<std::unique_ptr<work>> items_;
+
+    public:
+        explicit queue(session<true, Body>& self)
+            : self_(self)
+        {
+            static_assert(limit > 0, "queue limit must be positive");
+            items_.reserve(limit);
+        }
+
+        // Returns `true` if we have reached the queue limit
+        bool is_full() const
+        {
+            return items_.size() >= limit;
+        }
+
+        // Called when a message finishes sending
+        // Returns `true` if the caller should initiate a read
+        bool on_write()
+        {
+            assert(! items_.empty());
+            auto const was_full = is_full();
+            items_.erase(items_.begin());
+            if(! items_.empty())
+                (*items_.front())();
+            return was_full;
+        }
+
+        // Called by the HTTP handler to send a response.
+        template<class Responce>
+        void operator()(Responce && msg)
+        {
+            // This holds a work item
+            struct work_impl : work
+            {
+                session<true, Body>& self_;
+                std::remove_reference_t<Responce> msg_;
+
+                work_impl(session<true, Body>& self, Responce&& msg)
+                    : self_(self)
+                    , msg_(std::forward<Responce>(msg))
+                {}
+
+                void operator()()
+                {
+                    self_.connection_p_->async_write(msg_,
+                                             std::bind(&session<true, Body>::on_write, self_.shared_from_this(),
+                                                         std::placeholders::_1,
+                                                         std::placeholders::_2,
+                                                         msg_.need_eof()));
+                }
+            };
+
+            // Allocate and store the work
+            items_.push_back(std::make_unique<work_impl>(self_, std::forward<Responce>(msg)));
+
+            // If there was no previous work, start this one
+            if(items_.size() == 1)
+                (*items_.front())();
+        }
+    };
+
 public:
 
     using ReqBody = Body;
@@ -103,7 +176,8 @@ public:
           connection_p_{std::make_shared<base::connection>(ctx, std::move(socket))},
           buffer_{std::move(buffer)},
           resource_map_cb_p_{resource_map_cb_p},
-          method_map_cb_p_{method_map_cb_p}
+          method_map_cb_p_{method_map_cb_p},
+          queue_{*this}
     {}
 
     template<class Callback>
@@ -149,14 +223,7 @@ public:
         if(!handshake)
             return;
 
-        auto sp = std::make_shared<std::decay_t<Responce>>(std::forward<Responce>(msg));
-        msg_p_ = sp;
-
-        connection_p_->async_write(*sp,
-                                 std::bind(&session<true, Body>::on_write, this->shared_from_this(),
-                                             std::placeholders::_1,
-                                             std::placeholders::_2,
-                                             sp->need_eof()));
+        queue_(std::forward<Responce>(msg));
     }
 
     void do_close(){
@@ -219,11 +286,12 @@ protected:
             return do_close();
         }
 
-        // We're done with the response so delete it
-        msg_p_.reset();
-
-        // Read another request
-        do_read();
+        // Inform the queue that a write completed
+        if(queue_.on_write())
+        {
+            // Read another request
+            do_read();
+        }
     }
 
     void process_request()
@@ -232,6 +300,7 @@ protected:
         resource_t target = req_.target();
         method_t method = req_.method();
 
+        bool invoked = false;
         if(method_map_cb_p_){
             auto method_pos = method_map_cb_p_->find(method);
             if(method_pos != method_map_cb_p_->end()){
@@ -243,9 +312,10 @@ protected:
                     if(boost::regex_match(std::string(target.data(), target.size()), e)){
                         auto const & cb_p = value.second;
 
-                        if(cb_p)
-                            return invoke_cb(req_, *this, *cb_p);
-
+                        if(cb_p){
+                            invoke_cb(req_, *this, *cb_p);
+                            invoked = true;
+                        }
                     }
                 }
             }
@@ -257,13 +327,15 @@ protected:
                 if(boost::regex_match(std::string(target.data(), target.size()), e)){
                     auto const & cb_p = value.second;
 
-                    if(cb_p)
-                        return invoke_cb(req_, *this, *cb_p);
-
+                    if(cb_p && !invoked)
+                        invoke_cb(req_, *this, *cb_p);
                 }
             }
 
-        return do_read();
+        // If we aren't at the queue limit, try to pipeline another request
+        if(! queue_.is_full())
+            do_read();
+
     }
 
     http::base::timer::ptr timer_p_;
@@ -272,7 +344,7 @@ protected:
     std::shared_ptr<resource_map_t> resource_map_cb_p_;
     std::shared_ptr<method_map_t> method_map_cb_p_;
     boost::beast::http::request<Body> req_;
-    std::shared_ptr<void> msg_p_;
+    queue queue_;
 
 };
 
