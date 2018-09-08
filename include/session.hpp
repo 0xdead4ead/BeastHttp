@@ -5,7 +5,6 @@
 #include <list_cb.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/regex.hpp>
-#include <array>
 
 namespace http {
 
@@ -283,8 +282,8 @@ protected:
 
     base::timer::ptr timer_p_;
     base::connection::ptr connection_p_;
-    std::shared_ptr<resource_map_t> resource_map_cb_p_;
-    std::shared_ptr<method_map_t> method_map_cb_p_;
+    const std::shared_ptr<resource_map_t> & resource_map_cb_p_;
+    const std::shared_ptr<method_map_t> & method_map_cb_p_;
     boost::beast::http::request<Body> req_;
     boost::beast::flat_buffer buffer_;
     queue queue_;
