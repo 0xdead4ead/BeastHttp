@@ -627,7 +627,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 1){
@@ -742,7 +742,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 2){
@@ -821,7 +821,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 3){
@@ -873,7 +873,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 3){
@@ -961,7 +961,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 4){
@@ -1024,7 +1024,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 4){
@@ -1123,7 +1123,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 5){
@@ -1199,7 +1199,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 5){
@@ -1311,7 +1311,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 6){
@@ -1402,7 +1402,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 6){
@@ -1529,7 +1529,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 7){
@@ -1637,7 +1637,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 7){
@@ -1781,7 +1781,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 8){
@@ -1908,7 +1908,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 8){
@@ -2071,7 +2071,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 9){
@@ -2219,7 +2219,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 9){
@@ -2404,7 +2404,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 1){
@@ -2440,7 +2440,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 1){
@@ -2535,7 +2535,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 2){
@@ -2578,7 +2578,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 2){
@@ -2680,7 +2680,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 3){
@@ -2732,7 +2732,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 3){
@@ -2843,7 +2843,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 4){
@@ -2906,7 +2906,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 4){
@@ -3028,7 +3028,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 5){
@@ -3104,7 +3104,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 5){
@@ -3239,7 +3239,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 6){
@@ -3330,7 +3330,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 6){
@@ -3480,7 +3480,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 7){
@@ -3588,7 +3588,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 7){
@@ -3755,7 +3755,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 8){
@@ -3882,7 +3882,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 8){
@@ -4068,7 +4068,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 9){
@@ -4216,7 +4216,7 @@ protected:
                 auto target = req.target().to_string();
                 if (boost::regex_match(target, what, expr))
                     for(size_t i = 1; i < what.size(); i++)
-                        shared_block_p_->str_args.push_back(what[i]);
+                        shared_block_p_->str_args.push_back(what[int(i)]);
             }
 
             if(shared_block_p_->str_args.size() >= 9){
