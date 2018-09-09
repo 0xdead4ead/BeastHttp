@@ -164,12 +164,12 @@ public:
 
     using ptr = std::shared_ptr<listener>;
 
-    listener(boost::asio::io_service& io_service, const std::string & address, const std::string & port)
-        : acceptor_{io_service},
-          socket_{io_service}
-    {
-        init(io_service, address, port);
-    }
+//    listener(boost::asio::io_service& io_service, const std::string & address, const std::string & port)
+//        : acceptor_{io_service},
+//          socket_{io_service}
+//    {
+//        init(io_service, address, port);
+//    }
 
     template <class F>
     listener(boost::asio::io_service& io_service, const std::string & address, const std::string & port, F&& callback)
@@ -263,7 +263,7 @@ public:
             fail(error, "accept");
         }
         else
-            on_accept_cb_(std::move(socket_), {});
+            on_accept_cb_(std::move(socket_));
 
         // Accept another connection
         do_accept();
@@ -276,7 +276,7 @@ protected:
 
 private:
 
-    std::function< void(boost::asio::ip::tcp::socket&&, boost::beast::flat_buffer&&) > on_accept_cb_;
+    std::function< void(boost::asio::ip::tcp::socket&&) > on_accept_cb_;
 
 }; // class tcp_listener
 

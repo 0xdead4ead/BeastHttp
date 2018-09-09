@@ -87,7 +87,9 @@ class session  : private cb_invoker, private boost::noncopyable,
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;
 
-    bool handshake = false;
+    bool handshake_ = false;
+    bool close_ = false;
+    std::function<void(session<true, Body>&)> on_timer_cb;
 
     //https://www.boost.org/doc/libs/1_68_0/libs/beast/example/advanced/server/advanced_server.cpp
     class queue{
@@ -168,13 +170,11 @@ public:
 
     explicit session(boost::asio::ssl::context& ctx,
                      boost::asio::ip::tcp::socket&& socket,
-                     boost::beast::flat_buffer&& buffer,
                      const std::shared_ptr<resource_map_t> & resource_map_cb_p,
                      const std::shared_ptr<method_map_t> & method_map_cb_p)
         : timer_p_{std::make_shared<http::base::timer>(socket.get_executor(),
-                                                       (std::chrono::steady_clock::time_point::max)())},
+                                                       (std::chrono::steady_clock::duration::max)())},
           connection_p_{std::make_shared<base::connection>(ctx, std::move(socket))},
-          buffer_{std::move(buffer)},
           resource_map_cb_p_{resource_map_cb_p},
           method_map_cb_p_{method_map_cb_p},
           queue_{*this}
@@ -182,19 +182,20 @@ public:
 
     static void on_accept(boost::asio::ssl::context& ctx,
                           boost::asio::ip::tcp::socket&& socket,
-                          boost::beast::flat_buffer&& buffer,
                           const std::shared_ptr<resource_map_t> & resource_map_cb_p,
                           const std::shared_ptr<method_map_t> & method_map_cb_p,
-                          const std::function<void(session<true, ReqBody>&)> & on_accept_cb)
+                          const std::function<void(session<true, Body>&)> & on_accept_cb)
     {
-        auto new_session_p = std::make_shared<session<true, Body> >(ctx, std::move(socket), std::move(buffer), resource_map_cb_p, method_map_cb_p);
+        auto new_session_p = std::make_shared<session<true, Body> >(ctx, std::move(socket), resource_map_cb_p, method_map_cb_p);
         if(on_accept_cb)
             on_accept_cb(*new_session_p);
     }
 
     void do_handshake(){
-        if(handshake)
+        if(handshake_)
             return;
+
+        timer_p_->stream().expires_after(std::chrono::seconds(10));
 
         connection_p_->async_handshake_server(buffer_,
                                        std::bind(&session<true, Body>::on_handshake,
@@ -204,7 +205,7 @@ public:
     }
 
     void do_read(){
-        if(!handshake)
+        if(!handshake_)
             return;
 
         timer_p_->stream().expires_after(std::chrono::seconds(10));
@@ -221,13 +222,19 @@ public:
 
     template<class Responce>
     void do_write(Responce && msg){
-        if(!handshake)
+        if(!handshake_)
             return;
 
         queue_(std::forward<Responce>(msg));
     }
 
     void do_close(){
+        close_ = true;
+
+        // Set the timer
+        timer_p_->stream().expires_after(std::chrono::seconds(10));
+
+        // Perform the SSL shutdown
         connection_p_->async_shutdown(std::bind(
                                           &session<true, Body>::on_shutdown,
                                           this->shared_from_this(),
@@ -242,14 +249,55 @@ public:
                         std::placeholders::_1));
     }
 
+    template<class F>
+    void launch_timer(F&& f){
+
+        on_timer_cb = std::forward<F>(f);
+
+        timer_p_->async_wait(
+                    std::bind(
+                        &session<true, Body>::on_timer,
+                        this->shared_from_this(),
+                        std::placeholders::_1));
+    }
+
 protected:
+
+    void on_timer(boost::system::error_code ec)
+    {
+        if(ec && ec != boost::asio::error::operation_aborted)
+            return http::base::fail(ec, "timer");
+
+        // Verify that the timer really expired since the deadline may have moved.
+        if(timer_p_->stream().expiry() <= std::chrono::steady_clock::now())
+        {
+            // If this is true it means we timed out performing the shutdown
+            if(close_)
+                return;
+
+            if(on_timer_cb)
+            {
+                on_timer_cb(*this);
+                return;
+            }
+
+            // Start the timer again
+            timer_p_->stream().expires_at(
+                (std::chrono::steady_clock::time_point::max)());
+            launch_timer();
+            do_close();
+            return;
+        }
+
+        launch_timer();
+    }
 
     void on_handshake(const boost::system::error_code & ec, std::size_t bytes_used)
     {
         if(ec)
             return http::base::fail(ec, "handshake");
 
-        handshake = true;
+        handshake_ = true;
 
         // Consume the portion of the buffer used by the handshake
         buffer_.consume(bytes_used);
@@ -259,6 +307,10 @@ protected:
 
     void on_shutdown(const boost::system::error_code & ec)
     {
+        // Happens when the shutdown times out
+        if(ec == boost::asio::error::operation_aborted)
+            return;
+
         if(ec)
             return http::base::fail(ec, "shutdown");
     }
@@ -525,7 +577,6 @@ class server_impl : private http::server_impl<ReqBody>{
                                             std::bind(&session<true, ReqBody>::on_accept,
                                                       std::ref(ctx_),
                                                       std::placeholders::_1,
-                                                      std::placeholders::_2,
                                                       std::cref(resource_map_cb_p_),
                                                       std::cref(method_map_cb_p_),
                                                       std::cref(on_accept)

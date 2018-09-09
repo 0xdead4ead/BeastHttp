@@ -43,7 +43,6 @@ class server_impl{
         base::processor::get().add_listener(address, port,
                                             std::bind(&session<true, ReqBody>::on_accept,
                                                         std::placeholders::_1,
-                                                        std::placeholders::_2,
                                                         std::cref(resource_map_cb_p_),
                                                         std::cref(method_map_cb_p_),
                                                         std::cref(on_accept)

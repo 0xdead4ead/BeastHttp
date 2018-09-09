@@ -38,6 +38,8 @@ class session  : private cb_invoker, private boost::noncopyable,
     using resource_map_t = boost::unordered_map<resource_regex_t,typename list_cb_t::ptr>;
     using method_map_t = std::map<method_t, resource_map_t>;
 
+    std::function<void(session<true, Body>&)> on_timer_cb;
+
     //https://www.boost.org/doc/libs/1_68_0/libs/beast/example/advanced/server/advanced_server.cpp
     class queue{
         constexpr static size_t limit = 8;
@@ -116,7 +118,6 @@ public:
     using ReqBody = Body;
 
     explicit session(boost::asio::ip::tcp::socket&& socket,
-                     boost::beast::flat_buffer&& buffer,
                      const std::shared_ptr<resource_map_t> & resource_map_cb_p,
                      const std::shared_ptr<method_map_t> & method_map_cb_p)
         : timer_p_{std::make_shared<http::base::timer>(socket.get_executor(),
@@ -124,17 +125,15 @@ public:
           connection_p_{std::make_shared<base::connection>(std::move(socket))},
           resource_map_cb_p_{resource_map_cb_p},
           method_map_cb_p_{method_map_cb_p},
-          buffer_{std::move(buffer)},
           queue_{*this}
     {}
 
     static void on_accept(boost::asio::ip::tcp::socket&& socket,
-                          boost::beast::flat_buffer&& buffer,
                           const std::shared_ptr<resource_map_t> & resource_map_cb_p,
                           const std::shared_ptr<method_map_t> & method_map_cb_p,
                           const std::function<void(session<true, ReqBody>&)> & on_accept_cb)
     {
-        auto new_session_p = std::make_shared<session<true, Body> >(std::move(socket), std::move(buffer), resource_map_cb_p, method_map_cb_p);
+        auto new_session_p = std::make_shared<session<true, Body> >(std::move(socket), resource_map_cb_p, method_map_cb_p);
         if(on_accept_cb)
             on_accept_cb(*new_session_p);
     }
@@ -179,6 +178,18 @@ public:
                         std::placeholders::_1));
     }
 
+    template<class F>
+    void launch_timer(F&& f){
+
+        on_timer_cb = std::forward<F>(f);
+
+        timer_p_->async_wait(
+                    std::bind(
+                        &session<true, Body>::on_timer,
+                        this->shared_from_this(),
+                        std::placeholders::_1));
+    }
+
 protected:
 
     void on_timer(boost::system::error_code ec)
@@ -189,6 +200,13 @@ protected:
         // Verify that the timer really expired since the deadline may have moved.
         if(timer_p_->stream().expiry() <= std::chrono::steady_clock::now())
         {
+
+            if(on_timer_cb)
+            {
+                on_timer_cb(*this);
+                return;
+            }
+
             // Closing the socket cancels all outstanding operations. They
             // will complete with boost::asio::error::operation_aborted
             connection_p_->stream().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
