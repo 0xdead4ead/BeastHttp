@@ -10,6 +10,7 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 * Pipeline
 * Asynchronous request, response handling
 * Thread pool support
+* Timer manage (default timeout: 10 seconds, default action: Closing connection)
 * Platform independent
 * Simple way to add REST resources using regex for path, and anonymous functions
 
