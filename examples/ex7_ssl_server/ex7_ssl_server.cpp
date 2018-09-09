@@ -119,13 +119,18 @@ int main()
     http::ssl::server my_https_server{ctx};
 
     my_https_server.get("/1", [](auto & req, auto & session){
-       cout << req << endl; //
+       cout << req << endl; // '/1'
        session.do_write(make_response(req, "GET 1\n"));
     });
 
     my_https_server.get("/2", [](auto & req, auto & session){
-       cout << req << endl; //
+       cout << req << endl; // '/2'
        session.do_write(make_response(req, "GET 2\n"));
+    });
+
+    my_https_server.all(".*", [](auto & req, auto & session){
+       cout << req << endl; // 'any'
+       session.do_write(make_response(req, "error\n"));
     });
 
     const auto & address = "127.0.0.1";
