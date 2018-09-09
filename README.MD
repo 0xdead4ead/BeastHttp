@@ -7,6 +7,7 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 * Header-only
 * HTTP 1.0 / 1.1
 * TLS/SSL
+* Pipeline
 * Asynchronous request, response handling
 * Thread pool support
 * Platform independent
@@ -161,4 +162,4 @@ Request content from the server:
 
 ```
 
-Copyright (c) 2018 0xdead4ead
+Copyright © 2018 0xdead4ead
