@@ -28,6 +28,7 @@
 #include <functional>
 #include <memory>
 
+#define BEAST_HTTP_SERVER_VERSION 100
 
 namespace http {
 
@@ -163,13 +164,6 @@ class listener : public std::enable_shared_from_this<listener> ,
 public:
 
     using ptr = std::shared_ptr<listener>;
-
-//    listener(boost::asio::io_service& io_service, const std::string & address, const std::string & port)
-//        : acceptor_{io_service},
-//          socket_{io_service}
-//    {
-//        init(io_service, address, port);
-//    }
 
     template <class F>
     listener(boost::asio::io_service& io_service, const std::string & address, const std::string & port, F&& callback)
@@ -504,22 +498,25 @@ void read_up_to_enter(std::string & value){
 }
 
 void out(const std::string & info){
-    std::ostringstream os;
-    os << info << std::endl;
-    const std::string & info_ = os.str();
-    processor::get().write_to_stream(info_, boost::asio::transfer_exactly(info_.size()));
-}
+    boost::posix_time::ptime timeLocal = boost::posix_time::second_clock::local_time();
 
-void fail(const std::string & info){
     std::ostringstream os;
-    os << info << std::endl;
+    os << '(' << "beast_http_server/" << BEAST_HTTP_SERVER_VERSION << " [" << BOOST_BEAST_VERSION_STRING << ']' << ' '
+       << timeLocal.date().year() << '/' << timeLocal.date().day() << '/' << timeLocal.date().month() << ' '
+       << timeLocal.time_of_day().hours() << ':' << timeLocal.time_of_day().minutes() << ':' << timeLocal.time_of_day().seconds() << ')' << ' '
+       << info << std::endl;
     const std::string & info_ = os.str();
     processor::get().write_to_stream(info_, boost::asio::transfer_exactly(info_.size()));
 }
 
 void fail(const boost::system::error_code & ec, const std::string & info){
+    boost::posix_time::ptime timeLocal = boost::posix_time::second_clock::local_time();
+
     std::ostringstream os;
-    os << info  << " : " << ec.message() << std::endl;
+    os << '(' << "beast_http_server/" << BEAST_HTTP_SERVER_VERSION << " [" << BOOST_BEAST_VERSION_STRING << ']' << ' '
+       << timeLocal.date().year() << '/' << timeLocal.date().day() << '/' << timeLocal.date().month() << ' '
+       << timeLocal.time_of_day().hours() << ':' << timeLocal.time_of_day().minutes() << ':' << timeLocal.time_of_day().seconds() << ')' << ' '
+       << info  << " : " << ec.message() << std::endl;
     const std::string & info_ = os.str();
     processor::get().write_to_stream(info_, boost::asio::transfer_exactly(info_.size()));
 }
