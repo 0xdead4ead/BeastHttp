@@ -150,6 +150,10 @@ public:
         return socket_;
     }
 
+    auto release_stream(){
+        return std::move(socket_);
+    }
+
 }; // plain_connection class
 
 //###########################################################################

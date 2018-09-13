@@ -72,6 +72,10 @@ public:
         return stream_;
     }
 
+    auto release_stream(){
+        return std::move(socket_);
+    }
+
 };
 
 } // namespace base
@@ -471,7 +475,6 @@ public:
     }
 
     void do_close(){
-        boost::system::error_code ec;
         // Gracefully close the socket
         connection_p_->async_shutdown(std::bind(
                                           &session::on_shutdown,
