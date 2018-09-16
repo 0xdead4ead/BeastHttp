@@ -227,6 +227,9 @@ public:
             acceptor_.get_io_service().stop();
             return;
         }
+
+        out(std::string("TCP listener up on ") + address + ":" + port);
+
     }
 
     void stop() {
