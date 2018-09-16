@@ -242,17 +242,19 @@ int main(int argc, char* argv[])
     });
 
     my_http_server.listen(address.data(), boost::lexical_cast<uint32_t>(port), [](auto & session){
+        http::base::out(session.getConnection()->stream().local_endpoint().address().to_string() + " connected");
         session.do_read();
     });
 
     //##################################################################
 
-    std::cout << "Server starting on " << address << ':' << port << std::endl;
-
-    //##################################################################
-
-    http::base::processor::get().register_signals_handler([](int){
-        std::cout << "\nPlease wait!"  << std::endl;
+    http::base::processor::get().register_signals_handler([](int signal){
+        if(signal == SIGINT)
+            http::base::out("Interactive attention signal");
+        else if(signal == SIGTERM)
+            http::base::out("Termination request");
+        else
+            http::base::out("Quit");
         http::base::processor::get().stop();
     }, std::vector<int>{SIGINT,SIGTERM, SIGQUIT});
 

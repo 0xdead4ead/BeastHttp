@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include <server.hpp>
-#include <boost/lexical_cast.hpp>
 
 using namespace std;
 
@@ -44,38 +43,17 @@ int main()
 
     my_http_server.param<int, int, int>()
             .get("/user/date[?]y=(\\d+)&d=(\\d+)&m=(\\d+)",
-       [](auto &, auto &, auto & next, auto &){
+       [](auto & req, auto &, auto & next, auto &){
         // process '/user'
+        cout << req << endl;
         next();
     }, [](auto & req, auto & session, auto & args){
         // process '/date'
+        cout << req << endl;
         std::ostringstream os;
         os << "y = " << args._1 << " d = " << args._2 << " m = " << args._3 << std::endl;
         session.do_write(make_response(req, os.str()));
     });
-
-    auto books_router = my_http_server.ChainRouter();
-
-    books_router.param<int>().route("/book/(\\d+)")
-      .get([](auto & req, auto & session, auto & args){
-
-        cout << req << endl;
-        session.do_write(make_response(req, std::to_string(args._1) + " get"));
-
-    }).post([](auto & req, auto & session, auto & args){
-
-        cout << req << endl;
-        session.do_write(make_response(req, std::to_string(args._1) + " post"));
-
-    }).put([](auto & req, auto & session, auto & args){
-
-        cout << req << endl;
-        session.do_write(make_response(req, std::to_string(args._1) + " put"));
-
-    });
-
-    my_http_server.use(books_router);
-
 
     my_http_server.get("/1", [](auto & req, auto & session){
        cout << req << endl; // '/1'
@@ -118,15 +96,41 @@ int main()
     const auto & address = "127.0.0.1";
     uint32_t port = 80;
 
-    my_http_server.listen(address, port, [](auto & session){
-        http::base::out("New client!!!");
+    my_http_server.listen(address, port, [&my_http_server](auto & session){
+        http::base::out(session.getConnection()->stream().local_endpoint().address().to_string() + " connected");
+
+        auto books_router = my_http_server.ChainRouter();
+
+        books_router.param<int>().route("/book/(\\d+)")
+          .get([](auto & req, auto & session, auto & args){
+
+            cout << req << endl;
+            session.do_write(make_response(req, std::to_string(args._1) + " get"));
+
+        }).post([](auto & req, auto & session, auto & args){
+
+            cout << req << endl;
+            session.do_write(make_response(req, std::to_string(args._1) + " post"));
+
+        }).put([](auto & req, auto & session, auto & args){
+
+            cout << req << endl;
+            session.do_write(make_response(req, std::to_string(args._1) + " put"));
+
+        });
+
+        my_http_server.use(books_router);
+
         session.do_read();
     });
 
-    cout << "Server starting on " << address << ':' << boost::lexical_cast<string>(port) << endl;
-
-    http::base::processor::get().register_signals_handler([](int){
-        std::cout << "\nPlease wait!"  << std::endl;
+    http::base::processor::get().register_signals_handler([](int signal){
+        if(signal == SIGINT)
+            http::base::out("Interactive attention signal");
+        else if(signal == SIGTERM)
+            http::base::out("Termination request");
+        else
+            http::base::out("Quit");
         http::base::processor::get().stop();
     }, std::vector<int>{SIGINT,SIGTERM, SIGQUIT});
 
