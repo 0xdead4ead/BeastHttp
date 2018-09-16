@@ -7,7 +7,6 @@
 
 #include <iostream>
 #include <client.hpp>
-#include <boost/lexical_cast.hpp>
 #include <array>
 
 // Copyright (c) 2018 0xdead4ead

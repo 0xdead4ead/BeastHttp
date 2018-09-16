@@ -2,7 +2,6 @@
 
 #include <server.hpp>
 #include <ssl.hpp>
-#include <boost/lexical_cast.hpp>
 
 using namespace std;
 
