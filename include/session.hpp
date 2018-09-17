@@ -293,7 +293,7 @@ protected:
             }
 
         // If we aren't at the queue limit, try to pipeline another request
-        if(! queue_.is_full())
+        if(! queue_.is_full() && connection_p_->stream().is_open())
             do_read();
 
     }
