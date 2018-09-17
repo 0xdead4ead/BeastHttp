@@ -97,7 +97,7 @@ int main()
     uint32_t port = 80;
 
     my_http_server.listen(address, port, [&my_http_server](auto & session){
-        http::base::out(session.getConnection()->stream().local_endpoint().address().to_string() + " connected");
+        http::base::out(session.getConnection()->stream().remote_endpoint().address().to_string() + " connected");
 
         auto books_router = my_http_server.ChainRouter();
 

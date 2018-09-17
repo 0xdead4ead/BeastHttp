@@ -136,7 +136,7 @@ int main()
     uint32_t port = 443;
 
     my_https_server.listen(address, port, [](auto & session){
-        http::base::out(session.getConnection()->stream().lowest_layer().local_endpoint().address().to_string() + " connected");
+        http::base::out(session.getConnection()->stream().lowest_layer().remote_endpoint().address().to_string() + " connected");
         session.do_handshake();
     });
 

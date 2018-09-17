@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
     });
 
     my_http_server.listen(address.data(), boost::lexical_cast<uint32_t>(port), [](auto & session){
-        http::base::out(session.getConnection()->stream().local_endpoint().address().to_string() + " connected");
+        http::base::out(session.getConnection()->stream().remote_endpoint().address().to_string() + " connected");
         session.do_read();
     });
 
