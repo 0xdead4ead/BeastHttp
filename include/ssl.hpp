@@ -465,7 +465,7 @@ public:
     }
 
     template<class Request>
-    void do_write(Request && msg){
+    void do_write(Request && msg, bool next_read = true){
         if(!handshake)
             return;
 
@@ -474,9 +474,10 @@ public:
 
         connection_p_->async_write(*sp,
                                  std::bind(&session<false, Body>::on_write, this->shared_from_this(),
-                                             std::placeholders::_1,
-                                             std::placeholders::_2
-                                             ));
+                                           std::placeholders::_1,
+                                           std::placeholders::_2,
+                                           next_read
+                                           ));
     }
 
     void do_close(){
@@ -528,14 +529,15 @@ private:
         // If we get here then the connection is closed gracefully
     }
 
-    void on_write(const boost::system::error_code & ec, std::size_t bytes_transferred)
+    void on_write(const boost::system::error_code & ec, std::size_t bytes_transferred, bool next_read)
     {
         boost::ignore_unused(bytes_transferred);
 
         if(ec)
             return http::base::fail(ec, "write");
 
-        do_read();
+        if(next_read)
+            do_read();
     }
 
     bool handshake = false;
@@ -859,7 +861,7 @@ class client_impl : private http::client_impl<ResBody>{
                 return http::base::fail(ec, "connect");
             }
 
-            session<false, ResBody>::on_connect(std::ref(connection_p_), std::cref(on_connect), std::cref(on_handshake), std::cref(on_message));
+            session<false, ResBody>::on_connect(connection_p_, on_connect, on_handshake, on_message);
         });
 
         if(!connection_p_){
@@ -887,18 +889,16 @@ public:
     void invoke(std::string const & host, uint32_t port){
         process(host, port);
     }
-    /// \brief Get request a resource
-    /// \param Remote host (www.example.com, 127.0.0.1 and etc.)
-    /// \param Session port (80, 8080)
-    /// \param handler informing you of a successful connection
-    /// Callback1 signature : template<class Session>
-    ///                      void (Session & session)
-    /// \param handler informing you of a handshake
-    /// Callback2 signature : template<class Session>
-    ///                      void (Session & session)
-    /// \param handler on the received message
-    /// Callback3 signature : template<class Message>
-    ///                      void (Message & message, Session & session)
+
+    template<class Callback1, class Callback2>
+    void invoke(std::string const & host, uint32_t port, Callback1 && on_connect_handler, Callback2 && on_handshake_handler){
+
+        on_connect = std::forward<Callback1>(on_connect_handler);
+        on_handshake = std::forward<Callback2>(on_handshake_handler);
+
+        process(host, port);
+    }
+
     template<class Callback1, class Callback2, class Callback3>
     void invoke(std::string const & host, uint32_t port, Callback1 && on_connect_handler, Callback2 && on_handshake_handler, Callback3 && on_message_handler){
 

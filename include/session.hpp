@@ -345,16 +345,17 @@ public:
     }
 
     template<class Request>
-    void do_write(Request && msg)
+    void do_write(Request && msg, bool next_read = true)
     {
         auto sp = std::make_shared<std::decay_t<Request>>(std::forward<Request>(msg));
         msg_p_ = sp;
 
         connection_p_->async_write(*sp,
                                  std::bind(&session<false, Body>::on_write, this->shared_from_this(),
-                                             std::placeholders::_1,
-                                             std::placeholders::_2
-                                             ));
+                                           std::placeholders::_1,
+                                           std::placeholders::_2,
+                                           next_read
+                                           ));
     }
 
     void do_close()
@@ -383,14 +384,15 @@ private:
         // If we get here then the connection is closed gracefully
     }
 
-    void on_write(const boost::system::error_code & ec, std::size_t bytes_transferred)
+    void on_write(const boost::system::error_code & ec, std::size_t bytes_transferred, bool next_read)
     {
         boost::ignore_unused(bytes_transferred);
 
         if(ec)
             return base::fail(ec, "write");
 
-        do_read();
+        if(next_read)
+            do_read();
     }
 
     base::connection::ptr & connection_p_;

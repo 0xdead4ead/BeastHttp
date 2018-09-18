@@ -21,7 +21,7 @@ class client_impl{
                 return base::fail(ec, "connect");
             }
 
-            session<false, ResBody>::on_connect(std::ref(connection_p_), std::cref(on_connect), std::cref(on_message));
+            session<false, ResBody>::on_connect(connection_p_, on_connect, on_message);
         });
 
         if(!connection_p_){
@@ -45,15 +45,15 @@ public:
     void invoke(std::string const & host, uint32_t port){
         process(host, port);
     }
-    /// \brief Get request a resource
-    /// \param Remote host (www.example.com, 127.0.0.1 and etc.)
-    /// \param Session port (80, 8080)
-    /// \param handler informing you of a successful connection
-    /// Callback1 signature : template<class Session>
-    ///                      void (Session & session)
-    /// \param handler on the received message
-    /// Callback2 signature : template<class Message>
-    ///                      void (Message & message, Session & session)
+
+    template<class Callback1>
+    void invoke(std::string const & host, uint32_t port, Callback1 && on_connect_handler){
+
+        on_connect = std::forward<Callback1>(on_connect_handler);
+
+        process(host, port);
+    }
+
     template<class Callback1, class Callback2>
     void invoke(std::string const & host, uint32_t port, Callback1 && on_connect_handler, Callback2 && on_message_handler){
 
