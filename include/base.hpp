@@ -14,6 +14,7 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/system/error_code.hpp>
+#include <boost/asio/connect.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/asio/read.hpp>
@@ -36,9 +37,8 @@ namespace base {
 
 class processor;
 
-void out(const std::string & info);
-void fail(const std::string & info);
-void fail(const boost::system::error_code & ec, const std::string & info);
+void out(const boost::beast::string_view & info);
+void fail(const boost::system::error_code & ec, const boost::beast::string_view & info);
 
 class timer{
 
@@ -92,7 +92,7 @@ public:
     {}
 
     template <class F, class R>
-    void async_write(R& msg, F&& f)
+    void async_write(/*const*/ R& msg, F&& f)
     {
         boost::beast::http::async_write(derived().stream(), msg,
             boost::asio::bind_executor(
@@ -105,6 +105,30 @@ public:
         boost::beast::http::async_read(derived().stream(), buf, msg,
             boost::asio::bind_executor(
                 strand_, std::forward<F>(f)));
+    }
+
+    template<class R, class B>
+    auto read(B& buf, R& msg){
+        boost::beast::error_code ec;
+
+        boost::beast::http::read(derived().stream(), buf, msg, ec);
+
+        if(ec)
+            fail(ec, "read");
+
+        return ec;
+    }
+
+    template<class R>
+    auto write(R& msg){
+        boost::beast::error_code ec;
+
+        boost::beast::http::write(derived().stream(), msg, ec);
+
+        if(ec)
+            fail(ec, "write");
+
+        return ec;
     }
 
 }; // connection class
@@ -137,13 +161,38 @@ public:
         socket_.async_connect(endpoint, std::forward<F>(f));
     }
 
-    void shutdown() {
-        boost::system::error_code ec;
-        socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+    // Constructor for client to server connection (sync)
+    explicit connection(
+            boost::asio::io_service& ios,
+            const boost::asio::ip::tcp::endpoint& endpoint)
+        : base_t{ios.get_executor()},
+          socket_{ios}
+    {
+        boost::beast::error_code ec;
+        socket_.connect(endpoint, ec);
+
+        if(ec)
+            fail(ec, "connect");
+    }
+
+    auto shutdown(boost::asio::ip::tcp::socket::shutdown_type type) {
+        boost::beast::error_code ec;
+        socket_.shutdown(type, ec);
 
         if(ec)
             fail(ec, "shutdown");
 
+        return ec;
+    }
+
+    auto close(){
+        boost::beast::error_code ec;
+        socket_.close(ec);
+
+        if(ec)
+            fail(ec, "close");
+
+        return ec;
     }
 
     auto & stream(){
@@ -336,6 +385,40 @@ public:
         return listener;
     }
 
+    template<class Connection>
+    std::shared_ptr<Connection> create_connection(const std::string & address, uint32_t port) {
+        boost::asio::ip::tcp::resolver resolver(ios_);
+        boost::asio::ip::tcp::resolver::query query(address, boost::lexical_cast<std::string>(port));
+
+        boost::system::error_code ec;
+
+        auto resolved = resolver.resolve(query, ec);
+        if(ec){
+            fail(ec, "resolve");
+            return {};
+        }
+
+        boost::asio::ip::tcp::endpoint endpoint = *resolved;
+        return std::make_shared<Connection>(ios_, endpoint);
+    }
+
+    template<class Connection, class Context>
+    std::shared_ptr<Connection> create_connection(Context & ctx, const std::string & address, uint32_t port) {
+        boost::asio::ip::tcp::resolver resolver(ios_);
+        boost::asio::ip::tcp::resolver::query query(address, boost::lexical_cast<std::string>(port));
+
+        boost::system::error_code ec;
+
+        auto resolved = resolver.resolve(query, ec);
+        if(ec){
+            fail(ec, "resolve");
+            return {};
+        }
+
+        boost::asio::ip::tcp::endpoint endpoint = *resolved;
+        return std::make_shared<Connection>(ctx, ios_, endpoint);
+    }
+
     template<class Connection, class F>
     std::shared_ptr<Connection> create_connection(const std::string & address, uint32_t port, F&& f) {
         boost::asio::ip::tcp::resolver resolver(ios_);
@@ -504,7 +587,7 @@ void read_up_to_enter(std::string & value){
     }, boost::ref(value), _1));
 }
 
-void out(const std::string & info){
+void out(const boost::beast::string_view & info){
     boost::posix_time::ptime timeLocal = boost::posix_time::second_clock::local_time();
 
     std::ostringstream os;
@@ -516,7 +599,7 @@ void out(const std::string & info){
     processor::get().write_to_stream(info_, boost::asio::transfer_exactly(info_.size()));
 }
 
-void fail(const boost::system::error_code & ec, const std::string & info){
+void fail(const boost::system::error_code & ec, const boost::beast::string_view & info){
     boost::posix_time::ptime timeLocal = boost::posix_time::second_clock::local_time();
 
     std::ostringstream os;
@@ -529,6 +612,34 @@ void fail(const boost::system::error_code & ec, const std::string & info){
 }
 
 } // namespace base
+
+// synchronous calls
+template<class Body>
+auto send_request(const base::connection::ptr & connection_p,
+                  /*const*/ boost::beast::http::request<Body> & msg){
+    return connection_p->write(msg);
+}
+
+template<class Body>
+auto send_responce(const base::connection::ptr & connection_p,
+                   /*const*/ boost::beast::http::response<Body> & msg){
+    return connection_p->write(msg);
+}
+
+template<class Body>
+auto recv_request(const base::connection::ptr & connection_p,
+                  boost::beast::http::request<Body> & msg){
+    boost::beast::flat_buffer buffer;
+    return connection_p->read(buffer, msg);
+}
+
+template<class Body>
+auto recv_responce(const base::connection::ptr & connection_p,
+                   boost::beast::http::response<Body> & msg){
+    boost::beast::flat_buffer buffer;
+    return connection_p->read(buffer, msg);
+}
+////
 
 } // namespace http
 

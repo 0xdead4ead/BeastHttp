@@ -166,7 +166,8 @@ public:
 
     void do_close()
     {
-        connection_p_->shutdown();
+        connection_p_->shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+        connection_p_->close();
     }
 
     void launch_timer()
@@ -209,9 +210,7 @@ protected:
 
             // Closing the socket cancels all outstanding operations. They
             // will complete with boost::asio::error::operation_aborted
-            connection_p_->stream().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-            connection_p_->stream().close(ec);
-            return;
+            return do_close();
         }
 
         launch_timer();
@@ -269,7 +268,7 @@ protected:
 
                 for(const auto & value : resource_map){
                     const boost::regex e(value.first, boost::regex::perl | boost::regex::no_except);
-                    if(boost::regex_match(std::string(target.data(), target.size()), e)){
+                    if(boost::regex_match(target.to_string(), e)){
                         auto const & cb_p = value.second;
 
                         if(cb_p){
@@ -284,7 +283,7 @@ protected:
         if(resource_map_cb_p_)
             for(const auto & value : *resource_map_cb_p_){
                 const boost::regex e(value.first, boost::regex::perl | boost::regex::no_except);
-                if(boost::regex_match(std::string(target.data(), target.size()), e)){
+                if(boost::regex_match(target.to_string(), e)){
                     auto const & cb_p = value.second;
 
                     if(cb_p && !invoked)
@@ -360,13 +359,16 @@ public:
 
     void do_close()
     {
-        boost::system::error_code ec;
-        // Gracefully close the socket
+        boost::beast::error_code ec;
         connection_p_->stream().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 
-        // not_connected happens sometimes so don't bother reporting it.
         if(ec && ec != boost::system::errc::not_connected)
-            return base::fail(ec, "shutdown");
+            base::fail(ec, "shutdown");
+
+        connection_p_->stream().close(ec);
+
+        if(ec)
+            base::fail(ec, "close");
     }
 
 private:

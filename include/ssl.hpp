@@ -45,8 +45,24 @@ public:
         socket_.async_connect(endpoint, std::forward<F>(f));
     }
 
+    // Constructor for client to server connection (sync)
+    explicit connection(
+            boost::asio::ssl::context& ctx,
+            boost::asio::io_service& ios,
+            const boost::asio::ip::tcp::endpoint& endpoint)
+        : base_t{ios.get_executor()},
+          socket_{ios},
+          stream_{socket_, ctx}
+    {
+        boost::beast::error_code ec;
+        socket_.connect(endpoint, ec);
+
+        if(ec)
+            http::base::fail(ec, "connect");
+    }
+
     template <class F, class B>
-    void async_handshake_server(B& buf, F&& f){
+    void async_handshake_server(const B& buf, F&& f){
         stream_.async_handshake(
             boost::asio::ssl::stream_base::server, buf.data(),
             boost::asio::bind_executor(
@@ -61,11 +77,42 @@ public:
                 strand_, std::forward<F>(f)));
     }
 
+    template<class B>
+    auto handshake_server(const B& buf){
+        boost::beast::error_code ec;
+        stream_.handshake(boost::asio::ssl::stream_base::server, buf.data(), ec);
+
+        if(ec)
+            http::base::fail(ec, "handshake");
+
+        return ec;
+    }
+
+    auto handshake_client(){
+        boost::beast::error_code ec;
+        stream_.handshake(boost::asio::ssl::stream_base::client, ec);
+
+        if(ec)
+            http::base::fail(ec, "handshake");
+
+        return ec;
+    }
+
     template<class F>
     void async_shutdown(F&& f){
         stream_.async_shutdown(
                     boost::asio::bind_executor(
                         strand_, std::forward<F>(f)));
+    }
+
+    auto shutdown(){
+        boost::beast::error_code ec;
+        stream_.shutdown(ec);
+
+        if(ec)
+            http::base::fail(ec, "shutdown");
+
+        return ec;
     }
 
     auto & stream(){
@@ -79,6 +126,44 @@ public:
 };
 
 } // namespace base
+
+// synchronous calls
+
+auto handshake_server(const base::connection::ptr & connection_p){
+    boost::beast::multi_buffer buffer;
+    return connection_p->handshake_server(buffer);
+}
+
+auto handshake_client(const base::connection::ptr & connection_p){
+    return connection_p->handshake_client();
+}
+
+template<class Body>
+auto send_request(const base::connection::ptr & connection_p,
+                  /*const*/ boost::beast::http::request<Body> & msg){
+    return connection_p->write(msg);
+}
+
+template<class Body>
+auto send_responce(const base::connection::ptr & connection_p,
+                   /*const*/ boost::beast::http::response<Body> & msg){
+    return connection_p->write(msg);
+}
+
+template<class Body>
+auto recv_request(const base::connection::ptr & connection_p,
+                  boost::beast::http::request<Body> & msg){
+    boost::beast::multi_buffer buffer;
+    return connection_p->read(buffer, msg);
+}
+
+template<class Body>
+auto recv_responce(const base::connection::ptr & connection_p,
+                   boost::beast::http::response<Body> & msg){
+    boost::beast::multi_buffer buffer;
+    return connection_p->read(buffer, msg);
+}
+////
 
 /// \brief session class. Handles an HTTPS server connection
 /// \tparam Type of body request message
@@ -374,7 +459,7 @@ protected:
 
                 for(const auto & value : resource_map){
                     const boost::regex e(value.first, boost::regex::perl | boost::regex::no_except);
-                    if(boost::regex_match(std::string(target.data(), target.size()), e)){
+                    if(boost::regex_match(target.to_string(), e)){
                         auto const & cb_p = value.second;
 
                         if(cb_p){
@@ -389,7 +474,7 @@ protected:
         if(resource_map_cb_p_)
             for(const auto & value : *resource_map_cb_p_){
                 const boost::regex e(value.first, boost::regex::perl | boost::regex::no_except);
-                if(boost::regex_match(std::string(target.data(), target.size()), e)){
+                if(boost::regex_match(target.to_string(), e)){
                     auto const & cb_p = value.second;
 
                     if(cb_p && !invoked)
