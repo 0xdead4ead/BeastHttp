@@ -525,6 +525,11 @@ public:
 
     }
 
+    auto & getConnection() const
+    {
+        return connection_p_;
+    }
+
     void do_handshake(){
         if(handshake)
             return;
@@ -936,25 +941,25 @@ using server = server_impl<boost::beast::http::string_body>;
 template<class ResBody>
 class client_impl : private http::client_impl<ResBody>{
 
-    void process(std::string const & host, uint32_t port){
+    template<class Callback0>
+    bool process(std::string const & host, uint32_t port, Callback0 && on_error_handler){
         connection_p_ = http::base::processor::get()
                 .create_connection<base::connection>(ctx_, host,
                                                      port,
-                                                     [this](const boost::system::error_code & ec){
+                                                     [this, on_error = std::forward<Callback0>(on_error_handler)](const boost::system::error_code & ec){
             if(ec){
-                connection_p_->stream().get_executor().context().stop();
-                return http::base::fail(ec, "connect");
+                http::base::fail(ec, "connect");
+                on_error(ec);
+                return;
             }
 
             session<false, ResBody>::on_connect(connection_p_, on_connect, on_handshake, on_message);
         });
 
-        if(!connection_p_){
-            on_connect = {};
-            on_handshake = {};
-            on_message = {};
-            http::base::processor::get().stop();
-        }
+        if(!connection_p_)
+            return false;
+
+        return true;
     }
 
     base::connection::ptr connection_p_;
@@ -971,27 +976,9 @@ public:
         connection_p_{nullptr}
     {}
 
-    void invoke(std::string const & host, uint32_t port){
-        process(host, port);
-    }
-
-    template<class Callback1, class Callback2>
-    void invoke(std::string const & host, uint32_t port, Callback1 && on_connect_handler, Callback2 && on_handshake_handler){
-
-        on_connect = std::forward<Callback1>(on_connect_handler);
-        on_handshake = std::forward<Callback2>(on_handshake_handler);
-
-        process(host, port);
-    }
-
-    template<class Callback1, class Callback2, class Callback3>
-    void invoke(std::string const & host, uint32_t port, Callback1 && on_connect_handler, Callback2 && on_handshake_handler, Callback3 && on_message_handler){
-
-        on_connect = std::forward<Callback1>(on_connect_handler);
-        on_handshake = std::forward<Callback2>(on_handshake_handler);
-        on_message = std::forward<Callback3>(on_message_handler);
-
-        process(host, port);
+    template<class Callback0>
+    bool invoke(std::string const & host, uint32_t port, Callback0 && on_error_handler){
+        return process(host, port, std::forward<Callback0>(on_error_handler));
     }
 
 }; // client_impl class

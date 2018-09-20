@@ -331,6 +331,11 @@ public:
             on_connect_cb(*new_session_p);
     }
 
+    auto & getConnection() const
+    {
+        return connection_p_;
+    }
+
     void do_read()
     {
         res_ = {};
