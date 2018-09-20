@@ -135,32 +135,61 @@ Run the I/O service on the requested number of threads:
 
 ```
 
-Request content from the server:
+Request content from the server (Async):
 
 ```cpp
 
     http::client my_http_client;
 
-    const auto & host = "www.example.com";
-    auto port = 80;
-
-    const auto & on_connect = [&host](auto & session){
-        http::base::out("Successful connected!"); 
+    my_http_client.on_connect = [](auto & session){
+        http::base::out("Successful connected!");
         session.do_write(make_request());
     };
 
-    // Handler on received object
-    const auto & on_receive = [](auto & res, auto & session){
+    my_http_client.on_message = [](auto & res, auto & session){
         cout << res << endl;
-
-        session.do_close();
+        
         // The answer is received, stop!
+        session.do_close();
         http::base::processor::get().stop();
     };
 
-    // Connect to host:port
-    my_http_client.invoke(host, port, on_connect, on_receive);
+    if(!my_http_client.invoke("www.example.com", 80, [](auto & error){
+        cout << "Connection failed with code " << error << endl;
+        http::base::processor::get().stop();
+    })){
+        cout << "Failed to resolve address!" << endl;
+        return -1;
+    }
 
 ```
 
-Copyright © 2018 0xdead4ead
+Request content from the server (Sync):
+
+```cpp
+
+    auto connection_p = http::base::processor::get().create_connection<http::base::connection>("www.example.com", 80);
+
+    if(!connection_p){
+        cout << "Failed to resolve address!" << endl;
+        return -1;    
+    }
+    
+    // Send to host
+    if(http::send_request(connection_p, make_request())){
+        cout << "http::send_request fail!" << endl;
+        return -1;
+    }
+
+    auto res = make_response();
+    // Receive from host
+    if(http::recv_responce(connection_p, res)){
+        cout << "http::recv_responce fail!" << endl;
+        return -1;
+    }
+
+    cout << res << endl;
+
+```
+
+Copyright © 2018 0xdead4ead, License [`BSD 2-Clause`](https://github.com/0xdead4ead/beast_http_server/blob/dev/LICENSE)
