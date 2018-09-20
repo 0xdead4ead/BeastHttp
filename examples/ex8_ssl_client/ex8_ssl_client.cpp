@@ -88,34 +88,35 @@ int main()
 
     http::ssl::client my_https_client{ctx};
 
-    const auto & host = "www.google.com";
-    uint32_t port = 443;
-
-    const auto & on_connect = [](auto & session){
-        http::base::out("Successful connected!");
-
+    my_https_client.on_connect = [](auto & session){
+        http::base::out(session.getConnection()->stream().next_layer().remote_endpoint().address().to_string() + " successful connected!");
         session.do_handshake();
     };
 
-    const auto & on_handshake = [&host](auto & session){
-        http::base::out("Successful handshake!");
+    my_https_client.on_handshake = [](auto & session){
+        http::base::out(session.getConnection()->stream().next_layer().remote_endpoint().address().to_string() + " successful handshake!");
 
         boost::beast::http::request<boost::beast::http::string_body> req;
         req.version(11); // HTTP 1.1
         req.method(boost::beast::http::verb::get); // GET
         req.target("/");
-        req.set(boost::beast::http::field::host, host);
         req.set(boost::beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
         session.do_write(std::move(req));
     };
 
-    const auto & on_receive = [](auto & res, auto & session){
+    my_https_client.on_message = [](auto & res, auto & session){
         cout << res << endl;
         session.do_close();
         http::base::processor::get().stop();
     };
 
-    my_https_client.invoke(host, port, on_connect, on_handshake, on_receive);
+    if(!my_https_client.invoke("www.google.com", 443, [](auto & error){
+        cout << "Connection failed with code " << error << endl;
+        http::base::processor::get().stop();
+    })){
+        cout << "Failed to resolve address!" << endl;
+        return -1;
+    }
 
 
     uint32_t pool_size = boost::thread::hardware_concurrency();
