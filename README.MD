@@ -8,7 +8,7 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 * HTTP 1.0 / 1.1
 * TLS/SSL
 * Pipeline
-* Asynchronous request, response handling
+* Asynchronous/Synchronous request, response handling
 * Thread pool support
 * Timer manage (default timeout: 10 seconds, default action: Closing connection)
 * Platform independent
@@ -168,7 +168,8 @@ Request content from the server (Sync):
 
 ```cpp
 
-    auto connection_p = http::base::processor::get().create_connection<http::base::connection>("www.example.com", 80);
+    auto connection_p = http::base::processor::get().create_connection
+                                 <http::base::connection>("www.example.com", 80);
 
     if(!connection_p){
         cout << "Failed to resolve address!" << endl;
