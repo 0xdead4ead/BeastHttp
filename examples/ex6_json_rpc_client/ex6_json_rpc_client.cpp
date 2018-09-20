@@ -22,6 +22,7 @@ template<class K, class V, class dummy_compare, class A>
 using workaround_fifo_map = nlohmann::fifo_map<K, V, nlohmann::fifo_map_compare<K>, A>;
 using json = nlohmann::basic_json<workaround_fifo_map>;
 
+using namespace std;
 
 int main()
 {
@@ -32,10 +33,7 @@ int main()
     // Before start this app, run an ex5_json_rpc_server!
     http::client my_http_client;
 
-    const auto & host = "127.0.0.1";
-    uint32_t port = 80;
-
-    const auto & on_connect = [](auto & session){
+    my_http_client.on_connect = [](auto & session){
         http::base::out("Success connect!");
 
             int a = 20, b = 10;
@@ -74,14 +72,19 @@ int main()
         session.do_write(std::move(req));
     };
 
-    const auto & on_receive = [](auto & res, auto & session){
+    my_http_client.on_message = [](auto & res, auto & session){
         std::cout << res << std::endl;
         session.do_close();
         http::base::processor::get().stop();
     };
 
-    my_http_client.invoke(host, port, on_connect, on_receive);
-
+    if(!my_http_client.invoke("127.0.0.1", 80, [](auto & error){
+        cout << "Connection failed with code " << error << endl;
+        http::base::processor::get().stop();
+    })){
+        cout << "Failed to resolve address!" << endl;
+        return -1;
+    }
 
     uint32_t pool_size = boost::thread::hardware_concurrency();
     http::base::processor::get().start(pool_size == 0 ? 4 : pool_size << 1);
