@@ -11,28 +11,31 @@ int main()
 //g++ -o ex2_client ex2_client.o -lboost_system -lboost_thread -lpthread -lboost_regex -licui18n
     http::client my_http_client;
 
-    const auto & host = "www.google.com";
-    uint32_t port = 80;
-
-    const auto & on_connect = [&host](auto & session){
-        http::base::out("Successful connected!");
+    my_http_client.on_connect = [](auto & session){
+        http::base::out(session.getConnection()->stream().remote_endpoint().address().to_string() + " successful connected!");
 
         boost::beast::http::request<boost::beast::http::string_body> req;
         req.version(11); // HTTP 1.1
         req.method(boost::beast::http::verb::get); // GET
         req.target("/");
-        req.set(boost::beast::http::field::host, host);
         req.set(boost::beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
         session.do_write(std::move(req));
     };
 
-    const auto & on_receive = [](auto & res, auto & session){
+    my_http_client.on_message = [](auto & res, auto & session){
         cout << res << endl;
+
         session.do_close();
         http::base::processor::get().stop();
     };
 
-    my_http_client.invoke(host, port, on_connect, on_receive);
+    if(!my_http_client.invoke("www.google.com", 80, [](auto & error){
+        cout << "Connection failed with code " << error << endl;
+        http::base::processor::get().stop();
+    })){
+        cout << "Failed to resolve address!" << endl;
+        return -1;
+    }
 
 
     uint32_t pool_size = boost::thread::hardware_concurrency();
