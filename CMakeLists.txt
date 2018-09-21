@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 
-project(beast_http_server VERSION 101)
+project(beast_http_server VERSION 102)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
