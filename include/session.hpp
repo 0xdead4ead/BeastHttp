@@ -166,6 +166,11 @@ public:
 
     void do_close()
     {
+        // Is this connection alive?
+        if(!connection_p_->stream().is_open())
+            return;
+
+
         connection_p_->shutdown(boost::asio::ip::tcp::socket::shutdown_both);
         connection_p_->close();
     }
@@ -376,7 +381,7 @@ public:
             base::fail(ec, "close");
     }
 
-private:
+protected:
 
     void on_read(const boost::system::error_code & ec, std::size_t bytes_transferred)
     {

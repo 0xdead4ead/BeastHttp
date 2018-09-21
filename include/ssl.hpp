@@ -325,6 +325,10 @@ public:
     void do_close(){
         close_ = true;
 
+        // Is this connection alive?
+        if(!connection_p_->stream().lowest_layer().is_open())
+            return;
+
         // Set the timer
         timer_p_->stream().expires_after(std::chrono::seconds(10));
 
@@ -579,7 +583,7 @@ public:
 
     }
 
-private:
+protected:
 
     void on_handshake(boost::system::error_code ec)
     {
