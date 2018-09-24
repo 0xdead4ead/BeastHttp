@@ -7,7 +7,18 @@ using namespace std;
 int main()
 {
 
-    auto connection_p = http::base::processor::get().create_connection<http::base::connection>("www.google.com", 80);
+    boost::system::error_code ec;
+    auto connection_p = http::base::processor::get().create_connection<http::base::connection>("www.google.com", 80, ec);
+
+    if(!connection_p){
+        cout << "Failed to resolve address!" << endl;
+        return -1;
+    }
+
+    if(ec){
+        cout << "Connection invalid!" << endl;
+        return -1;
+    }
 
     boost::beast::http::request<boost::beast::http::string_body> req;
     req.version(11); // HTTP 1.1

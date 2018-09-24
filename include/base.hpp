@@ -164,11 +164,10 @@ public:
     // Constructor for client to server connection (sync)
     explicit connection(
             boost::asio::io_service& ios,
-            const boost::asio::ip::tcp::endpoint& endpoint)
+            const boost::asio::ip::tcp::endpoint& endpoint, boost::system::error_code& ec)
         : base_t{ios.get_executor()},
           socket_{ios}
     {
-        boost::beast::error_code ec;
         socket_.connect(endpoint, ec);
 
         if(ec)
@@ -386,11 +385,9 @@ public:
     }
 
     template<class Connection>
-    std::shared_ptr<Connection> create_connection(const std::string & address, uint32_t port) {
+    std::shared_ptr<Connection> create_connection(const std::string & address, uint32_t port, boost::system::error_code& ec) {
         boost::asio::ip::tcp::resolver resolver(ios_);
         boost::asio::ip::tcp::resolver::query query(address, boost::lexical_cast<std::string>(port));
-
-        boost::system::error_code ec;
 
         auto resolved = resolver.resolve(query, ec);
         if(ec){
@@ -399,15 +396,13 @@ public:
         }
 
         boost::asio::ip::tcp::endpoint endpoint = *resolved;
-        return std::make_shared<Connection>(ios_, endpoint);
+        return std::make_shared<Connection>(ios_, endpoint, ec);
     }
 
     template<class Connection, class Context>
-    std::shared_ptr<Connection> create_connection(Context & ctx, const std::string & address, uint32_t port) {
+    std::shared_ptr<Connection> create_connection(Context & ctx, const std::string & address, uint32_t port, boost::system::error_code& ec) {
         boost::asio::ip::tcp::resolver resolver(ios_);
         boost::asio::ip::tcp::resolver::query query(address, boost::lexical_cast<std::string>(port));
-
-        boost::system::error_code ec;
 
         auto resolved = resolver.resolve(query, ec);
         if(ec){
@@ -416,7 +411,7 @@ public:
         }
 
         boost::asio::ip::tcp::endpoint endpoint = *resolved;
-        return std::make_shared<Connection>(ctx, ios_, endpoint);
+        return std::make_shared<Connection>(ctx, ios_, endpoint, ec);
     }
 
     template<class Connection, class F>

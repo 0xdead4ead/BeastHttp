@@ -49,12 +49,12 @@ public:
     explicit connection(
             boost::asio::ssl::context& ctx,
             boost::asio::io_service& ios,
-            const boost::asio::ip::tcp::endpoint& endpoint)
+            const boost::asio::ip::tcp::endpoint& endpoint,
+            boost::system::error_code& ec)
         : base_t{ios.get_executor()},
           socket_{ios},
           stream_{socket_, ctx}
     {
-        boost::beast::error_code ec;
         socket_.connect(endpoint, ec);
 
         if(ec)

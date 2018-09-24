@@ -83,8 +83,19 @@ int main()
     ctx.add_certificate_authority(
         boost::asio::buffer(cert.data(), cert.size()));
 
+    boost::system::error_code ec;
     auto connection_p = http::base::processor::get()
-            .create_connection<http::ssl::base::connection>(ctx, "www.google.com", 443);
+            .create_connection<http::ssl::base::connection>(ctx, "www.google.com", 443, ec);
+
+    if(!connection_p){
+        cout << "Failed to resolve address!" << endl;
+        return -1;
+    }
+
+    if(ec){
+        cout << "Connection invalid!" << endl;
+        return -1;
+    }
 
     if(http::ssl::handshake_client(connection_p)){
         cout << "http::ssl::handshake_client fail" << endl;
