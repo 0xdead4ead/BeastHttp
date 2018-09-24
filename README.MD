@@ -168,12 +168,18 @@ Request content from the server (Sync):
 
 ```cpp
 
+    boost::system::error_code ec;
     auto connection_p = http::base::processor::get().create_connection
-                                 <http::base::connection>("www.example.com", 80);
+                                         <http::base::connection>("www.example.com", 80, ec);
 
     if(!connection_p){
         cout << "Failed to resolve address!" << endl;
-        return -1;    
+        return -1;
+    }
+
+    if(ec){
+        cout << "Connection invalid!" << endl;
+        return -1;
     }
     
     // Send to host
