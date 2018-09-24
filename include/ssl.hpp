@@ -227,7 +227,7 @@ class session  : private cb_invoker, private boost::noncopyable,
             struct work_impl : work
             {
                 session<true, Body>& self_;
-                std::remove_reference_t<Responce> msg_;
+                std::decay_t<Responce> msg_;
 
                 work_impl(session<true, Body>& self, Responce&& msg)
                     : self_(self)
