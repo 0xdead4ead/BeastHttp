@@ -1034,7 +1034,7 @@ protected:
                     boost::lexical_cast<T3>(shared_block_p_->str_args[2]),
                     boost::lexical_cast<T4>(shared_block_p_->str_args[3])
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 3){
                 auto args = arguments<T1, T2, T3, T4>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1042,7 +1042,7 @@ protected:
                     boost::lexical_cast<T3>(shared_block_p_->str_args[2]),
                     T4{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 2){
                 auto args = arguments<T1, T2, T3, T4>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1050,7 +1050,7 @@ protected:
                     T3{},
                     T4{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 1){
                 auto args = arguments<T1, T2, T3, T4>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1058,10 +1058,10 @@ protected:
                     T3{},
                     T4{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else{
                 auto args = arguments<T1, T2, T3, T4>{T1{}, T2{}, T3{}, T4{}};
-                f_(req, session, args);
+                f_(req, session, next, args);
             }
         }
     };
@@ -1210,7 +1210,7 @@ protected:
                     boost::lexical_cast<T4>(shared_block_p_->str_args[3]),
                     boost::lexical_cast<T5>(shared_block_p_->str_args[4])
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 4){
                 auto args = arguments<T1, T2, T3, T4, T5>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1219,7 +1219,7 @@ protected:
                     boost::lexical_cast<T4>(shared_block_p_->str_args[3]),
                     T5{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 3){
                 auto args = arguments<T1, T2, T3, T4, T5>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1228,7 +1228,7 @@ protected:
                     T4{},
                     T5{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 2){
                 auto args = arguments<T1, T2, T3, T4, T5>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1237,7 +1237,7 @@ protected:
                     T4{},
                     T5{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 1){
                 auto args = arguments<T1, T2, T3, T4, T5>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1246,10 +1246,10 @@ protected:
                     T4{},
                     T5{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else{
                 auto args = arguments<T1, T2, T3, T4, T5>{T1{}, T2{}, T3{}, T4{}, T5{}};
-                f_(req, session, args);
+                f_(req, session, next, args);
             }
         }
     };
@@ -1414,7 +1414,7 @@ protected:
                     boost::lexical_cast<T5>(shared_block_p_->str_args[4]),
                     boost::lexical_cast<T6>(shared_block_p_->str_args[5])
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 5){
                 auto args = arguments<T1, T2, T3, T4, T5, T6>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1424,7 +1424,7 @@ protected:
                     boost::lexical_cast<T5>(shared_block_p_->str_args[4]),
                     T6{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 4){
                 auto args = arguments<T1, T2, T3, T4, T5, T6>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1434,7 +1434,7 @@ protected:
                     T5{},
                     T6{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 3){
                 auto args = arguments<T1, T2, T3, T4, T5, T6>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1444,7 +1444,7 @@ protected:
                     T5{},
                     T6{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 2){
                 auto args = arguments<T1, T2, T3, T4, T5, T6>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1454,7 +1454,7 @@ protected:
                     T5{},
                     T6{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 1){
                 auto args = arguments<T1, T2, T3, T4, T5, T6>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1464,10 +1464,10 @@ protected:
                     T5{},
                     T6{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else{
                 auto args = arguments<T1, T2, T3, T4, T5, T6>{T1{}, T2{}, T3{}, T4{}, T5{}, T6{}};
-                f_(req, session, args);
+                f_(req, session, next, args);
             }
         }
     };
@@ -1650,7 +1650,7 @@ protected:
                     boost::lexical_cast<T6>(shared_block_p_->str_args[5]),
                     boost::lexical_cast<T7>(shared_block_p_->str_args[6])
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 6){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1661,7 +1661,7 @@ protected:
                     boost::lexical_cast<T6>(shared_block_p_->str_args[5]),
                     T7{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 5){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1672,7 +1672,7 @@ protected:
                     T6{},
                     T7{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 4){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1683,7 +1683,7 @@ protected:
                     T6{},
                     T7{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 3){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1694,7 +1694,7 @@ protected:
                     T6{},
                     T7{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 2){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1705,7 +1705,7 @@ protected:
                     T6{},
                     T7{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 1){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1716,10 +1716,10 @@ protected:
                     T6{},
                     T7{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else{
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7>{T1{}, T2{}, T3{}, T4{}, T5{}, T6{}, T7{}};
-                f_(req, session, args);
+                f_(req, session, next, args);
             }
         }
     };
@@ -1922,7 +1922,7 @@ protected:
                     boost::lexical_cast<T7>(shared_block_p_->str_args[6]),
                     boost::lexical_cast<T8>(shared_block_p_->str_args[7])
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 7){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1934,7 +1934,7 @@ protected:
                     boost::lexical_cast<T7>(shared_block_p_->str_args[6]),
                     T8{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 6){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1946,7 +1946,7 @@ protected:
                     T7{},
                     T8{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 5){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1958,7 +1958,7 @@ protected:
                     T7{},
                     T8{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 4){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1970,7 +1970,7 @@ protected:
                     T7{},
                     T8{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 3){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1982,7 +1982,7 @@ protected:
                     T7{},
                     T8{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 2){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -1994,7 +1994,7 @@ protected:
                     T7{},
                     T8{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 1){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -2006,10 +2006,10 @@ protected:
                     T7{},
                     T8{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else{
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{T1{}, T2{}, T3{}, T4{}, T5{}, T6{}, T7{}, T8{}};
-                f_(req, session, args);
+                f_(req, session, next, args);
             }
         }
     };
@@ -2234,7 +2234,7 @@ protected:
                     boost::lexical_cast<T8>(shared_block_p_->str_args[7]),
                     boost::lexical_cast<T9>(shared_block_p_->str_args[8])
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 8){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -2247,7 +2247,7 @@ protected:
                     boost::lexical_cast<T8>(shared_block_p_->str_args[7]),
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 7){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -2260,7 +2260,7 @@ protected:
                     T8{},
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 6){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -2273,7 +2273,7 @@ protected:
                     T8{},
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 5){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -2286,7 +2286,7 @@ protected:
                     T8{},
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 4){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -2299,7 +2299,7 @@ protected:
                     T8{},
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 3){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -2312,7 +2312,7 @@ protected:
                     T8{},
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 2){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -2325,7 +2325,7 @@ protected:
                     T8{},
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 1){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -2338,10 +2338,10 @@ protected:
                     T8{},
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else{
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{T1{}, T2{}, T3{}, T4{}, T5{}, T6{}, T7{}, T8{}, T9{}};
-                f_(req, session, args);
+                f_(req, session, next, args);
             }
         }
     };
@@ -2916,7 +2916,7 @@ protected:
                     boost::lexical_cast<T3>(shared_block_p_->str_args[2]),
                     boost::lexical_cast<T4>(shared_block_p_->str_args[3])
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 3){
                 auto args = arguments<T1, T2, T3, T4>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -2924,7 +2924,7 @@ protected:
                     boost::lexical_cast<T3>(shared_block_p_->str_args[2]),
                     T4{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 2){
                 auto args = arguments<T1, T2, T3, T4>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -2932,7 +2932,7 @@ protected:
                     T3{},
                     T4{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 1){
                 auto args = arguments<T1, T2, T3, T4>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -2940,10 +2940,10 @@ protected:
                     T3{},
                     T4{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else{
                 auto args = arguments<T1, T2, T3, T4>{T1{}, T2{}, T3{}, T4{}};
-                f_(req, session, args);
+                f_(req, session, next, args);
             }
         }
 
@@ -3115,7 +3115,7 @@ protected:
                     boost::lexical_cast<T4>(shared_block_p_->str_args[3]),
                     boost::lexical_cast<T5>(shared_block_p_->str_args[4])
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 4){
                 auto args = arguments<T1, T2, T3, T4, T5>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3124,7 +3124,7 @@ protected:
                     boost::lexical_cast<T4>(shared_block_p_->str_args[3]),
                     T5{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 3){
                 auto args = arguments<T1, T2, T3, T4, T5>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3133,7 +3133,7 @@ protected:
                     T4{},
                     T5{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 2){
                 auto args = arguments<T1, T2, T3, T4, T5>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3142,7 +3142,7 @@ protected:
                     T4{},
                     T5{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 1){
                 auto args = arguments<T1, T2, T3, T4, T5>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3151,10 +3151,10 @@ protected:
                     T4{},
                     T5{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else{
                 auto args = arguments<T1, T2, T3, T4, T5>{T1{}, T2{}, T3{}, T4{}, T5{}};
-                f_(req, session, args);
+                f_(req, session, next, args);
             }
         }
 
@@ -3342,7 +3342,7 @@ protected:
                     boost::lexical_cast<T5>(shared_block_p_->str_args[4]),
                     boost::lexical_cast<T6>(shared_block_p_->str_args[5])
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 5){
                 auto args = arguments<T1, T2, T3, T4, T5, T6>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3352,7 +3352,7 @@ protected:
                     boost::lexical_cast<T5>(shared_block_p_->str_args[4]),
                     T6{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 4){
                 auto args = arguments<T1, T2, T3, T4, T5, T6>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3362,7 +3362,7 @@ protected:
                     T5{},
                     T6{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 3){
                 auto args = arguments<T1, T2, T3, T4, T5, T6>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3372,7 +3372,7 @@ protected:
                     T5{},
                     T6{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 2){
                 auto args = arguments<T1, T2, T3, T4, T5, T6>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3382,7 +3382,7 @@ protected:
                     T5{},
                     T6{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 1){
                 auto args = arguments<T1, T2, T3, T4, T5, T6>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3392,10 +3392,10 @@ protected:
                     T5{},
                     T6{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else{
                 auto args = arguments<T1, T2, T3, T4, T5, T6>{T1{}, T2{}, T3{}, T4{}, T5{}, T6{}};
-                f_(req, session, args);
+                f_(req, session, next, args);
             }
         }
 
@@ -3601,7 +3601,7 @@ protected:
                     boost::lexical_cast<T6>(shared_block_p_->str_args[5]),
                     boost::lexical_cast<T7>(shared_block_p_->str_args[6])
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 6){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3612,7 +3612,7 @@ protected:
                     boost::lexical_cast<T6>(shared_block_p_->str_args[5]),
                     T7{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 5){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3623,7 +3623,7 @@ protected:
                     T6{},
                     T7{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 4){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3634,7 +3634,7 @@ protected:
                     T6{},
                     T7{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 3){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3645,7 +3645,7 @@ protected:
                     T6{},
                     T7{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 2){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3656,7 +3656,7 @@ protected:
                     T6{},
                     T7{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 1){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3667,10 +3667,10 @@ protected:
                     T6{},
                     T7{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else{
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7>{T1{}, T2{}, T3{}, T4{}, T5{}, T6{}, T7{}};
-                f_(req, session, args);
+                f_(req, session, next, args);
             }
         }
 
@@ -3896,7 +3896,7 @@ protected:
                     boost::lexical_cast<T7>(shared_block_p_->str_args[6]),
                     boost::lexical_cast<T8>(shared_block_p_->str_args[7])
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 7){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3908,7 +3908,7 @@ protected:
                     boost::lexical_cast<T7>(shared_block_p_->str_args[6]),
                     T8{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 6){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3920,7 +3920,7 @@ protected:
                     T7{},
                     T8{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 5){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3932,7 +3932,7 @@ protected:
                     T7{},
                     T8{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 4){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3944,7 +3944,7 @@ protected:
                     T7{},
                     T8{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 3){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3956,7 +3956,7 @@ protected:
                     T7{},
                     T8{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 2){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3968,7 +3968,7 @@ protected:
                     T7{},
                     T8{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 1){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -3980,10 +3980,10 @@ protected:
                     T7{},
                     T8{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else{
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8>{T1{}, T2{}, T3{}, T4{}, T5{}, T6{}, T7{}, T8{}};
-                f_(req, session, args);
+                f_(req, session, next, args);
             }
         }
 
@@ -4231,7 +4231,7 @@ protected:
                     boost::lexical_cast<T8>(shared_block_p_->str_args[7]),
                     boost::lexical_cast<T9>(shared_block_p_->str_args[8])
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 8){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -4244,7 +4244,7 @@ protected:
                     boost::lexical_cast<T8>(shared_block_p_->str_args[7]),
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 7){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -4257,7 +4257,7 @@ protected:
                     T8{},
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 6){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -4270,7 +4270,7 @@ protected:
                     T8{},
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 5){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -4283,7 +4283,7 @@ protected:
                     T8{},
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 4){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -4296,7 +4296,7 @@ protected:
                     T8{},
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 3){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -4309,7 +4309,7 @@ protected:
                     T8{},
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 2){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -4322,7 +4322,7 @@ protected:
                     T8{},
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else if(shared_block_p_->str_args.size() == 1){
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{
                     boost::lexical_cast<T1>(shared_block_p_->str_args[0]),
@@ -4335,10 +4335,10 @@ protected:
                     T8{},
                     T9{}
                 };
-                f_(req, session, args);
+                f_(req, session, next, args);
             }else{
                 auto args = arguments<T1, T2, T3, T4, T5, T6, T7, T8, T9>{T1{}, T2{}, T3{}, T4{}, T5{}, T6{}, T7{}, T8{}, T9{}};
-                f_(req, session, args);
+                f_(req, session, next, args);
             }
         }
 
