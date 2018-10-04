@@ -47,6 +47,16 @@ Add new route for GET request with "/" resource:
 
 ```
 
+Add a route using a literal operator (as above)
+
+```cpp
+
+    "/"_get.bind(my_http_server, [](auto & req, auto & session){
+        cout << req << endl;
+    });
+
+```
+
 Getting a parameter from a URI `/user/1992` :
 
 ```cpp
