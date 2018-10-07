@@ -565,11 +565,11 @@ private:
 
 }; // class processor
 
-void read_all(std::string & value){
+inline void read_all(std::string & value){
     http::base::processor::get().read_from_stream(value, boost::asio::transfer_all());
 }
 
-void read_up_to_enter(std::string & value){
+inline void read_up_to_enter(std::string & value){
     http::base::processor::get()
             .read_from_stream(value, boost::bind<size_t>([](auto & value, auto & err) -> size_t{
         if ( err)
@@ -582,7 +582,7 @@ void read_up_to_enter(std::string & value){
     }, boost::ref(value), _1));
 }
 
-void out(const boost::beast::string_view & info){
+inline void out(const boost::beast::string_view & info){
     boost::posix_time::ptime timeLocal = boost::posix_time::second_clock::local_time();
 
     std::ostringstream os;
@@ -594,7 +594,7 @@ void out(const boost::beast::string_view & info){
     processor::get().write_to_stream(info_, boost::asio::transfer_exactly(info_.size()));
 }
 
-void fail(const boost::system::error_code & ec, const boost::beast::string_view & info){
+inline void fail(const boost::system::error_code & ec, const boost::beast::string_view & info){
     boost::posix_time::ptime timeLocal = boost::posix_time::second_clock::local_time();
 
     std::ostringstream os;
