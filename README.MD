@@ -32,16 +32,16 @@ Add new route for GET request with "/" resource:
 
     http::server my_http_server;
 
-    my_http_server.get("/", [](auto & req, auto & session){
+    my_http_server.get("/", [](auto & req, auto & /*session*/){
         cout << req << endl;
     });
 
     // or
 
-    my_http_server.get("/a/b", [](auto & req, auto & session, auto & next){
+    my_http_server.get("/a/b", [](auto & /*req*/, auto & /*session*/, auto & next){
         // process '/a'
         next();
-    }, [](auto & req, auto & session){
+    }, [](auto & /*req*/, auto & /*session*/){
         // process '/b'
     });
 
@@ -51,7 +51,7 @@ Add a route using a literal operator (as above)
 
 ```cpp
 
-    "/"_get.bind(my_http_server, [](auto & req, auto & session){
+    "/"_get.bind(my_http_server, [](auto & req, auto & /*session*/){
         cout << req << endl;
     });
 
@@ -62,17 +62,17 @@ Getting a parameter from a URI `/user/1992` :
 ```cpp
 
     my_http_server.param<int>().get("/user/(\\d+)",
-       [](auto & req, auto & session, auto & args){
+       [](auto & /*req*/, auto & /*session*/, auto & args){
         assert(args._1 == 1992);
     });
 
     // or
 
     my_http_server.param<int>().get("/user/(\\d+)",
-       [](auto & req, auto & session, auto & next, auto & args){
+       [](auto & /*req*/, auto & /*session*/, auto & next, auto & /*args*/){
         // process '/user'
         next();
-    }, [](auto & req, auto & session, auto & args){
+    }, [](auto & /*req*/, auto & /*session*/, auto & args){
         // process '/id'
         assert(args._1 == 1992);
     });
