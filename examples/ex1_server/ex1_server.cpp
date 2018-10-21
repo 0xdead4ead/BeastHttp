@@ -41,8 +41,11 @@ int main()
 
     http::server my_http_server;
 
-    my_http_server.param<int, int, int>()
-            .get("/user/date[?]y=(\\d+)&d=(\\d+)&m=(\\d+)",
+    using http::literal::operator""_get;
+    using http::literal::operator""_all;
+
+    "/user/date[?]y=(\\d+)&d=(\\d+)&m=(\\d+)"_get
+            .assign(my_http_server.param<int, int, int>()).with(
        [](auto & req, auto &, auto & next, auto &){
         // process '/user'
         cout << req << endl;
@@ -55,22 +58,22 @@ int main()
         session.do_write(make_response(req, os.str()));
     });
 
-    my_http_server.get("/1", [](auto & req, auto & session){
-       cout << req << endl; // '/1'
-       session.do_write(make_response(req, "GET 1\n"));
+    "/1"_get.assign(my_http_server, [](auto & req, auto & session){
+        cout << req << endl; // '/1'
+        session.do_write(make_response(req, "GET 1\n"));
     });
 
-    my_http_server.get("/2", [](auto & req, auto & session){
-       cout << req << endl; // '/2'
-       session.do_write(make_response(req, "GET 2\n"));
+    "/2"_get.assign(my_http_server, [](auto & req, auto & session){
+        cout << req << endl; // '/2'
+        session.do_write(make_response(req, "GET 2\n"));
     });
 
-    my_http_server.all(".*", [](auto & req, auto & session){
-        cout << req << endl; // any
+    ".*"_all.assign(my_http_server, [](auto & req, auto & session){
+        cout << req << endl; // 'any'
         session.do_write(make_response(req, "error\n"));
     });
 
-    my_http_server.get("/a/b/c/d",
+    "/a/b/c/d"_get.assign(my_http_server,
        [](auto & req, auto & session, auto & next){
 
         cout << req << endl; // '/a'
@@ -105,17 +108,17 @@ int main()
           .get([](auto & req, auto & session, auto & args){
 
             cout << req << endl;
-            session.do_write(make_response(req, std::to_string(args._1) + " get"));
+            session.do_write(make_response(req, std::to_string(args._1) + " get\n"));
 
         }).post([](auto & req, auto & session, auto & args){
 
             cout << req << endl;
-            session.do_write(make_response(req, std::to_string(args._1) + " post"));
+            session.do_write(make_response(req, std::to_string(args._1) + " post\n"));
 
         }).put([](auto & req, auto & session, auto & args){
 
             cout << req << endl;
-            session.do_write(make_response(req, std::to_string(args._1) + " put"));
+            session.do_write(make_response(req, std::to_string(args._1) + " put\n"));
 
         });
 
