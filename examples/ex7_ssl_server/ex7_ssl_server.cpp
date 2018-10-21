@@ -117,20 +117,23 @@ int main()
 
     http::ssl::server my_https_server{ctx};
 
-    my_https_server.get("/1", [](auto & req, auto & session){
-       cout << req << endl; // '/1'
-       session.do_write(make_response(req, "GET 1\n"));
-    });
+    using http::ssl::literal::operator""_get;
+    using http::ssl::literal::operator""_all;
 
-    my_https_server.get("/2", [](auto & req, auto & session){
-       cout << req << endl; // '/2'
-       session.do_write(make_response(req, "GET 2\n"));
-    });
+    R"(/1)"_get.assign(my_https_server, [](auto & req, auto & session){
+        cout << req << endl; // '/1'
+        session.do_write(make_response(req, "GET 1\n"));
+     });
 
-    my_https_server.all(".*", [](auto & req, auto & session){
-       cout << req << endl; // 'any'
-       session.do_write(make_response(req, "error\n"));
-    });
+    R"(/2)"_get.assign(my_https_server, [](auto & req, auto & session){
+        cout << req << endl; // '/2'
+        session.do_write(make_response(req, "GET 2\n"));
+     });
+
+    R"(.*)"_all.assign(my_https_server, [](auto & req, auto & session){
+        cout << req << endl; // 'any'
+        session.do_write(make_response(req, "error\n"));
+     });
 
     const auto & address = "127.0.0.1";
     uint32_t port = 443;
