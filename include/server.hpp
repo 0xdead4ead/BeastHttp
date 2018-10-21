@@ -293,6 +293,11 @@ public:
 using server = server_impl<boost::beast::http::string_body>;
 
 // the list wrapped methods (string literal only)
+namespace literal{
+
+template<class, class>
+struct wrap_param;
+
 struct wrap_get{ // GET
 
     const char * s_;
@@ -303,8 +308,13 @@ struct wrap_get{ // GET
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
-        instance.get({s_, n_}, std::forward<Callback>(f)...);
+    void assign(server_impl<ReqBody> & instance, Callback&&... fs) &&{
+        instance.get({s_, n_}, std::forward<Callback>(fs)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_get, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -319,8 +329,13 @@ struct wrap_post{ // POST
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.post({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_post, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -335,8 +350,13 @@ struct wrap_put{ // PUT
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.put({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_put, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -351,8 +371,13 @@ struct wrap_head{ // HEAD
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.head({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_head, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -367,8 +392,13 @@ struct wrap_delete_{ // DELETE
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.delete_({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_delete_, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -383,8 +413,13 @@ struct wrap_options{ // OPTIONS
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.options({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_options, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -399,8 +434,13 @@ struct wrap_connect{ // CONNECT
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.connect({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_connect, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -415,8 +455,13 @@ struct wrap_trace{ // TRACE
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.trace({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_trace, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -431,8 +476,13 @@ struct wrap_copy{ // COPY
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.copy({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_copy, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -447,8 +497,13 @@ struct wrap_lock{ // LOCK
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.lock({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_lock, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -463,8 +518,13 @@ struct wrap_mkcol{ // MKCOL
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.mkcol({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_mkcol, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -479,8 +539,13 @@ struct wrap_move{ // MOVE
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.move({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_move, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -495,8 +560,13 @@ struct wrap_propfind{ // PROPFIND
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.propfind({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_propfind, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -511,8 +581,13 @@ struct wrap_proppatch{ // PROPPATCH
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.proppatch({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_proppatch, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -527,8 +602,13 @@ struct wrap_search{ // SEARCH
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.search({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_search, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -543,8 +623,13 @@ struct wrap_unlock{ // UNLOCK
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.unlock({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_unlock, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -559,8 +644,13 @@ struct wrap_bind{ // BIND
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.bind({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_bind, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -575,8 +665,13 @@ struct wrap_rebind{ // REBIND
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.rebind({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_rebind, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -591,8 +686,13 @@ struct wrap_unbind{ // UNBIND
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.unbind({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_unbind, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -607,8 +707,13 @@ struct wrap_acl{ // ACL
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.acl({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_acl, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -623,8 +728,13 @@ struct wrap_report{ // REPORT
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.report({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_report, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -639,8 +749,13 @@ struct wrap_mkactivity{ // MKACTIVITY
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.mkactivity({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_mkactivity, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -655,8 +770,13 @@ struct wrap_checkout{ // CHECKOUT
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.checkout({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_checkout, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -671,8 +791,13 @@ struct wrap_merge{ // MERGE
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.merge({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_merge, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -687,8 +812,13 @@ struct wrap_msearch{ // MSEARCH
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.msearch({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_msearch, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -703,8 +833,13 @@ struct wrap_notify{ // NOTIFY
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.notify({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_notify, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -719,8 +854,13 @@ struct wrap_subscribe{ // SUBSCRIBE
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.subscribe({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_subscribe, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -735,8 +875,13 @@ struct wrap_unsubscribe{ // UNSUBSCRIBE
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.options({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_unsubscribe, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -751,8 +896,13 @@ struct wrap_patch{ // PATCH
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.patch({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_patch, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -767,8 +917,13 @@ struct wrap_purge{ // PURGE
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.purge({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_purge, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -783,8 +938,13 @@ struct wrap_mkcalendar{ // MKCALENDAR
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.mkcalendar({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_mkcalendar, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -799,8 +959,13 @@ struct wrap_link{ // LINK
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.link({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_link, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -815,8 +980,13 @@ struct wrap_unlink{ // UNLINK
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.unlink({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_unlink, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
@@ -831,185 +1001,209 @@ struct wrap_all{ // ALL
     {}
 
     template<class ReqBody, class... Callback>
-    void bind(server_impl<ReqBody> & instance, Callback&&... f){
+    void assign(server_impl<ReqBody> & instance, Callback&&... f){
         instance.all({s_, n_}, std::forward<Callback>(f)...);
+    }
+
+    template<class Session, class Router, class... Types>
+    auto assign(param_impl<Session, Router, Types...> && instance) &&{
+        return wrap_param<wrap_all, param_impl<Session, Router, Types...>>{*this, std::move(instance)};
     }
 
 };
 
-} // namespace http
+template<class Wrap_Method, class Param>
+struct wrap_param{ // Wrapped class for param implementation
+
+    std::add_lvalue_reference_t<Wrap_Method> wrap_method_;
+    std::add_rvalue_reference_t<Param> instance_;
+
+    wrap_param(Wrap_Method & wrap_method, Param && instance)
+        : wrap_method_{wrap_method}, instance_{std::move(instance)}
+    {}
+
+    template<class... Callback>
+    std::enable_if_t<std::is_same<Wrap_Method, wrap_get>::value, void> with(Callback && ... fs) &&{
+        static_cast<Param&&>(instance_).get({wrap_method_.s_, wrap_method_.n_}, std::forward<Callback>(fs)...);
+    }
+
+};
 
 /// \param s - pointer to resource regex
 /// \param n - length of string
 
 inline auto operator "" _get(const char* s, std::size_t n)
 {
-    return http::wrap_get{s, n};
+    return wrap_get{s, n};
 }
 
 inline auto operator "" _post(const char* s, std::size_t n)
 {
-    return http::wrap_post{s, n};
+    return wrap_post{s, n};
 }
 
 inline auto operator "" _put(const char* s, std::size_t n)
 {
-    return http::wrap_put{s, n};
+    return wrap_put{s, n};
 }
 
 inline auto operator "" _head(const char* s, std::size_t n)
 {
-    return http::wrap_put{s, n};
+    return wrap_put{s, n};
 }
 
 inline auto operator "" _delete_(const char* s, std::size_t n)
 {
-    return http::wrap_delete_{s, n};
+    return wrap_delete_{s, n};
 }
 
 inline auto operator "" _options(const char* s, std::size_t n)
 {
-    return http::wrap_options{s, n};
+    return wrap_options{s, n};
 }
 
 inline auto operator "" _connect(const char* s, std::size_t n)
 {
-    return http::wrap_connect{s, n};
+    return wrap_connect{s, n};
 }
 
 inline auto operator "" _trace(const char* s, std::size_t n)
 {
-    return http::wrap_trace{s, n};
+    return wrap_trace{s, n};
 }
 
 inline auto operator "" _copy(const char* s, std::size_t n)
 {
-    return http::wrap_copy{s, n};
+    return wrap_copy{s, n};
 }
 
 inline auto operator "" _lock(const char* s, std::size_t n)
 {
-    return http::wrap_lock{s, n};
+    return wrap_lock{s, n};
 }
 
 inline auto operator "" _mkcol(const char* s, std::size_t n)
 {
-    return http::wrap_mkcol{s, n};
+    return wrap_mkcol{s, n};
 }
 
 inline auto operator "" _move(const char* s, std::size_t n)
 {
-    return http::wrap_move{s, n};
+    return wrap_move{s, n};
 }
 
 inline auto operator "" _propfind(const char* s, std::size_t n)
 {
-    return http::wrap_propfind{s, n};
+    return wrap_propfind{s, n};
 }
 
 inline auto operator "" _proppatch(const char* s, std::size_t n)
 {
-    return http::wrap_proppatch{s, n};
+    return wrap_proppatch{s, n};
 }
 
 inline auto operator "" _search(const char* s, std::size_t n)
 {
-    return http::wrap_search{s, n};
+    return wrap_search{s, n};
 }
 
 inline auto operator "" _unlock(const char* s, std::size_t n)
 {
-    return http::wrap_unlock{s, n};
+    return wrap_unlock{s, n};
 }
 
 inline auto operator "" _bind(const char* s, std::size_t n)
 {
-    return http::wrap_bind{s, n};
+    return wrap_bind{s, n};
 }
 
 inline auto operator "" _rebind(const char* s, std::size_t n)
 {
-    return http::wrap_rebind{s, n};
+    return wrap_rebind{s, n};
 }
 
 inline auto operator "" _unbind(const char* s, std::size_t n)
 {
-    return http::wrap_unbind{s, n};
+    return wrap_unbind{s, n};
 }
 
 inline auto operator "" _acl(const char* s, std::size_t n)
 {
-    return http::wrap_acl{s, n};
+    return wrap_acl{s, n};
 }
 
 inline auto operator "" _report(const char* s, std::size_t n)
 {
-    return http::wrap_report{s, n};
+    return wrap_report{s, n};
 }
 
 inline auto operator "" _mkactivity(const char* s, std::size_t n)
 {
-    return http::wrap_mkactivity{s, n};
+    return wrap_mkactivity{s, n};
 }
 
 inline auto operator "" _checkout(const char* s, std::size_t n)
 {
-    return http::wrap_checkout{s, n};
+    return wrap_checkout{s, n};
 }
 
 inline auto operator "" _merge(const char* s, std::size_t n)
 {
-    return http::wrap_merge{s, n};
+    return wrap_merge{s, n};
 }
 
 inline auto operator "" _msearch(const char* s, std::size_t n)
 {
-    return http::wrap_msearch{s, n};
+    return wrap_msearch{s, n};
 }
 
 inline auto operator "" _notify(const char* s, std::size_t n)
 {
-    return http::wrap_notify{s, n};
+    return wrap_notify{s, n};
 }
 
 inline auto operator "" _subscribe(const char* s, std::size_t n)
 {
-    return http::wrap_subscribe{s, n};
+    return wrap_subscribe{s, n};
 }
 
 inline auto operator "" _unsubscribe(const char* s, std::size_t n)
 {
-    return http::wrap_unsubscribe{s, n};
+    return wrap_unsubscribe{s, n};
 }
 
 inline auto operator "" _patch(const char* s, std::size_t n)
 {
-    return http::wrap_patch{s, n};
+    return wrap_patch{s, n};
 }
 
 inline auto operator "" _purge(const char* s, std::size_t n)
 {
-    return http::wrap_purge{s, n};
+    return wrap_purge{s, n};
 }
 
 inline auto operator "" _mkcalendar(const char* s, std::size_t n)
 {
-    return http::wrap_mkcalendar{s, n};
+    return wrap_mkcalendar{s, n};
 }
 
 inline auto operator "" _link(const char* s, std::size_t n)
 {
-    return http::wrap_link{s, n};
+    return wrap_link{s, n};
 }
 
 inline auto operator "" _unlink(const char* s, std::size_t n)
 {
-    return http::wrap_unlink{s, n};
+    return wrap_unlink{s, n};
 }
 
 inline auto operator "" _all(const char* s, std::size_t n)
 {
-    return http::wrap_all{s, n};
+    return wrap_all{s, n};
 }
+
+} // namespace literal
+
+} // namespace http
 
 #endif // BEAST_HTTP_SERVER_HPP
