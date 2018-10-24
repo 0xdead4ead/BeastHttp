@@ -73,16 +73,56 @@ matrix:
           - clang++-6.0
           - g++-8
 
+  - os: osx
+    osx_image: xcode9.4
+    env:
+      - FLAGS="-std=c++14"
+      
+  - os: osx
+    osx_image: xcode9.4
+    env:
+      - FLAGS="-std=c++17"
+
+  - os: osx
+    osx_image: xcode10
+    env:
+      - FLAGS="-std=c++14"
+      
+  - os: osx
+    osx_image: xcode10
+    env:
+      - FLAGS="-std=c++17"
+          
 install:
   - uname -a
-  - $COMPILER --version
-##CMake
-  - wget https://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.sh
-  - chmod +x ./cmake-3.11.4-Linux-x86_64.sh
-  - sudo ./cmake-3.11.4-Linux-x86_64.sh --prefix=. --exclude-subdir --skip-license
-  - ./bin/cmake --version
-
-script: 
+  - if [[ "${COMPILER}" != "" ]]; then $COMPILER --version; fi
+  - OS=`uname -s`
+  - |
+     if [[ (-x $(which brew)) ]]; then
+       brew update
+       brew install boost cmake icu4c openssl
+       brew upgrade cmake openssl
+       brew link openssl icu4c --force
+       export LDFLAGS="${LDFLAGS} -L/usr/local/opt/icu4c/lib"
+       export CPPFLAGS="${CPPFLAGS} -I/usr/local/opt/icu4c/include"
+       export LDFLAGS="${LDFLAGS} -L/usr/local/opt/openssl/lib"
+       export CPPFLAGS="${CPPFLAGS} -I/usr/local/opt/openssl/include"
+       export OPENSSL_ROOT_DIR="/usr/local/opt/openssl"
+       cmake --version
+     else
+       wget https://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.sh
+       chmod +x ./cmake-3.11.4-Linux-x86_64.sh
+       sudo ./cmake-3.11.4-Linux-x86_64.sh --prefix=. --exclude-subdir --skip-license
+       ./bin/cmake --version
+     fi
+     
+script:
   - mkdir build && cd build
-  - ../bin/cmake .. -DCMAKE_CXX_FLAGS="${FLAGS}" -DCMAKE_CXX_COMPILER=${COMPILER}
-  - ../bin/cmake --build . --target all
+  - |
+     if [[ ($OS == Darwin) ]]; then    ## OS X
+       cmake .. -DCMAKE_CXX_FLAGS="${FLAGS}"
+       cmake --build . --target all
+     else                              ## Linux
+       ../bin/cmake .. -DCMAKE_CXX_FLAGS="${FLAGS}" -DCMAKE_CXX_COMPILER=${COMPILER}
+       ../bin/cmake --build . --target all
+     fi
