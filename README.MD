@@ -1,4 +1,4 @@
-# SYNOPSIS [![Build Status](https://travis-ci.org/0xdead4ead/beast_http_server.svg?branch=master)](https://travis-ci.org/0xdead4ead/beast_http_server)
+# SYNOPSIS [![Build Status](https://travis-ci.org/0xdead4ead/BeastHttp.svg?branch=master)](https://travis-ci.org/0xdead4ead/BeastHttp)
 
 Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the Boost.Beast when constructing queries and answers. The implementations websocket is [`here...`](https://github.com/0xdead4ead/beast_ws_server)
 
