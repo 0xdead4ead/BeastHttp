@@ -29,7 +29,7 @@
 #include <functional>
 #include <memory>
 
-#define BEAST_HTTP_SERVER_VERSION 104
+#define BEAST_HTTP_VERSION 104
 
 namespace http {
 
@@ -586,7 +586,7 @@ inline void out(const boost::beast::string_view & info){
     boost::posix_time::ptime timeLocal = boost::posix_time::second_clock::local_time();
 
     std::ostringstream os;
-    os << '(' << "beast_http_server/" << BEAST_HTTP_SERVER_VERSION << " [" << BOOST_BEAST_VERSION_STRING << ']' << ' '
+    os << '(' << "BeastHttp/" << BEAST_HTTP_VERSION << " [" << BOOST_BEAST_VERSION_STRING << ']' << ' '
        << timeLocal.date().year() << '/' << timeLocal.date().day() << '/' << timeLocal.date().month() << ' '
        << timeLocal.time_of_day().hours() << ':' << timeLocal.time_of_day().minutes() << ':' << timeLocal.time_of_day().seconds() << ')' << ' '
        << info << std::endl;
@@ -598,7 +598,7 @@ inline void fail(const boost::system::error_code & ec, const boost::beast::strin
     boost::posix_time::ptime timeLocal = boost::posix_time::second_clock::local_time();
 
     std::ostringstream os;
-    os << '(' << "beast_http_server/" << BEAST_HTTP_SERVER_VERSION << " [" << BOOST_BEAST_VERSION_STRING << ']' << ' '
+    os << '(' << "BeastHttp/" << BEAST_HTTP_VERSION << " [" << BOOST_BEAST_VERSION_STRING << ']' << ' '
        << timeLocal.date().year() << '/' << timeLocal.date().day() << '/' << timeLocal.date().month() << ' '
        << timeLocal.time_of_day().hours() << ':' << timeLocal.time_of_day().minutes() << ':' << timeLocal.time_of_day().seconds() << ')' << ' '
        << info  << " : " << ec.message() << std::endl;
