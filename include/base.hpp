@@ -29,7 +29,7 @@
 #include <functional>
 #include <memory>
 
-#define BEAST_HTTP_VERSION 104
+#define BEAST_HTTP_VERSION 105
 
 namespace http {
 
