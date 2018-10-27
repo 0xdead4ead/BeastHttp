@@ -31,9 +31,9 @@ int main()
 
     //##################################################################
     // Before start this app, run an ex5_json_rpc_server!
-    http::client my_http_client;
+    http::client instance;
 
-    my_http_client.on_connect = [](auto & session){
+    instance.on_connect = [](auto & session){
         http::base::out("Success connect!");
 
             int a = 20, b = 10;
@@ -72,18 +72,21 @@ int main()
         session.do_write(std::move(req));
     };
 
-    my_http_client.on_message = [](auto & res, auto & session){
+    instance.on_message = [](auto & res, auto & session){
         std::cout << res << std::endl;
         session.do_close();
         http::base::processor::get().stop();
     };
 
-    if(!my_http_client.invoke("127.0.0.1", 80, [](auto & error){
-        cout << "Connection failed with code " << error << endl;
+    instance.on_error = [](auto & error, auto & info){
+        http::base::fail(error, info);
+        cout << "Error of connect session!" << endl;
         http::base::processor::get().stop();
-    })){
+    };
+
+    if(!instance.invoke("127.0.0.1", 80)){
         cout << "Failed to resolve address!" << endl;
-        return -1;
+        http::base::processor::get().stop();
     }
 
     uint32_t pool_size = boost::thread::hardware_concurrency();

@@ -86,14 +86,14 @@ int main()
     ctx.add_certificate_authority(
         boost::asio::buffer(cert.data(), cert.size()));
 
-    http::ssl::client my_https_client{ctx};
+    http::ssl::client instance{ctx};
 
-    my_https_client.on_connect = [](auto & session){
+    instance.on_connect = [](auto & session){
         http::base::out(session.getConnection()->stream().next_layer().remote_endpoint().address().to_string() + " successful connected!");
         session.do_handshake();
     };
 
-    my_https_client.on_handshake = [](auto & session){
+    instance.on_handshake = [](auto & session){
         http::base::out(session.getConnection()->stream().next_layer().remote_endpoint().address().to_string() + " successful handshake!");
 
         boost::beast::http::request<boost::beast::http::string_body> req;
@@ -104,20 +104,22 @@ int main()
         session.do_write(std::move(req));
     };
 
-    my_https_client.on_message = [](auto & res, auto & session){
+    instance.on_message = [](auto & res, auto & session){
         cout << res << endl;
         session.do_close();
         http::base::processor::get().stop();
     };
 
-    if(!my_https_client.invoke("www.google.com", 443, [](auto & error){
-        cout << "Connection failed with code " << error << endl;
+    instance.on_error = [](auto & error, auto & info){
+        http::base::fail(error, info);
+        cout << "Error of connect session!" << endl;
         http::base::processor::get().stop();
-    })){
-        cout << "Failed to resolve address!" << endl;
-        return -1;
-    }
+    };
 
+    if(!instance.invoke("127.0.0.1", 80)){
+        cout << "Failed to resolve address!" << endl;
+        http::base::processor::get().stop();
+    }
 
     uint32_t pool_size = boost::thread::hardware_concurrency();
     http::base::processor::get().start(pool_size == 0 ? 4 : pool_size << 1);

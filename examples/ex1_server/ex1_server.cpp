@@ -39,13 +39,13 @@ int main()
 //    root@x0x0:~# curl localhost --request 'POST' --request-target '/book/24'
 //    root@x0x0:~# curl localhost --request 'PUT' --request-target '/book/12'
 
-    http::server my_http_server;
+    http::server instance;
 
     using http::literal::operator""_get;
     using http::literal::operator""_all;
 
     "/user/date[?]y=(\\d+)&d=(\\d+)&m=(\\d+)"_get
-            .assign(my_http_server.param<int, int, int>()).with(
+            .assign(instance.param<int, int, int>()).with(
        [](auto & req, auto &, auto & next, auto &){
         // process '/user'
         cout << req << endl;
@@ -58,22 +58,22 @@ int main()
         session.do_write(make_response(req, os.str()));
     });
 
-    "/1"_get.assign(my_http_server, [](auto & req, auto & session){
+    "/1"_get.assign(instance, [](auto & req, auto & session){
         cout << req << endl; // '/1'
         session.do_write(make_response(req, "GET 1\n"));
     });
 
-    "/2"_get.assign(my_http_server, [](auto & req, auto & session){
+    "/2"_get.assign(instance, [](auto & req, auto & session){
         cout << req << endl; // '/2'
         session.do_write(make_response(req, "GET 2\n"));
     });
 
-    ".*"_all.assign(my_http_server, [](auto & req, auto & session){
+    ".*"_all.assign(instance, [](auto & req, auto & session){
         cout << req << endl; // 'any'
         session.do_write(make_response(req, "error\n"));
     });
 
-    "/a/b/c/d"_get.assign(my_http_server,
+    "/a/b/c/d"_get.assign(instance,
        [](auto & req, auto & session, auto & next){
 
         cout << req << endl; // '/a'
@@ -99,10 +99,10 @@ int main()
     const auto & address = "127.0.0.1";
     uint32_t port = 80;
 
-    my_http_server.listen(address, port, [&my_http_server](auto & session){
+    instance.listen(address, port, [&instance](auto & session){
         http::base::out(session.getConnection()->stream().remote_endpoint().address().to_string() + " connected");
 
-        auto books_router = my_http_server.ChainRouter();
+        auto books_router = instance.ChainRouter();
 
         books_router.param<int>().route("/book/(\\d+)")
           .get([](auto & req, auto & session, auto & args){
@@ -122,7 +122,7 @@ int main()
 
         });
 
-        my_http_server.use(books_router);
+        instance.use(books_router);
 
         session.do_read();
     });

@@ -48,11 +48,11 @@ int main()
 //    root@x0x0:~# curl localhost --request 'PUT' --request-target '/books/book'
 // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-    http::server my_http_server;
+    http::server instance;
 
-    auto animals_router = my_http_server.BasicRouter();
-    auto cars_router = my_http_server.BasicRouter();
-    auto books_router = my_http_server.ChainRouter();
+    auto animals_router = instance.BasicRouter();
+    auto cars_router = instance.BasicRouter();
+    auto books_router = instance.ChainRouter();
 
     animals_router.get("/cat[/]??", [](auto & req, auto & session){
         cout << req << endl; // '/animals/cat' or '/animals/cat/'
@@ -94,8 +94,8 @@ int main()
         session.do_write(make_response(req, "cars home page\n"));
     });
 
-    my_http_server.use("/animals", animals_router);
-    my_http_server.use("/cars", cars_router);
+    instance.use("/animals", animals_router);
+    instance.use("/cars", cars_router);
 
     books_router.route("/book[/]??")
       .get([](auto & req, auto & session){
@@ -115,19 +115,19 @@ int main()
 
     });
 
-    my_http_server.use("/books", books_router);
+    instance.use("/books", books_router);
 
-    my_http_server.get("/about[/]??", [](auto & req, auto & session){
+    instance.get("/about[/]??", [](auto & req, auto & session){
         cout << req << endl; // /about
         session.do_write(make_response(req, "about\n"));
     });
 
-    my_http_server.get("/", [](auto & req, auto & session){
+    instance.get("/", [](auto & req, auto & session){
         cout << req << endl; // /
         session.do_write(make_response(req, "main home page\n"));
     });
 
-    my_http_server.all(".*", [](auto & req, auto & session){
+    instance.all(".*", [](auto & req, auto & session){
         cout << req << endl; // /any
         session.do_write(make_response(req, "error\n"));
     });
@@ -135,7 +135,7 @@ int main()
     const auto & address = "127.0.0.1";
     uint32_t port = 80;
 
-    my_http_server.listen(address, port, [](auto & session){
+    instance.listen(address, port, [](auto & session){
         http::base::out(session.getConnection()->stream().remote_endpoint().address().to_string() + " connected");
         session.do_read();
     });

@@ -9,9 +9,9 @@ int main()
 {
 //g++ -c -std=gnu++14 -I../../include -o ex2_client.o ./ex2_client.cpp
 //g++ -o ex2_client ex2_client.o -lboost_system -lboost_thread -lpthread -lboost_regex -licui18n
-    http::client my_http_client;
+    http::client instance;
 
-    my_http_client.on_connect = [](auto & session){
+    instance.on_connect = [](auto & session){
         http::base::out(session.getConnection()->stream().remote_endpoint().address().to_string() + " successful connected!");
 
         boost::beast::http::request<boost::beast::http::string_body> req;
@@ -22,19 +22,22 @@ int main()
         session.do_write(std::move(req));
     };
 
-    my_http_client.on_message = [](auto & res, auto & session){
+    instance.on_message = [](auto & res, auto & session){
         cout << res << endl;
 
         session.do_close();
         http::base::processor::get().stop();
     };
 
-    if(!my_http_client.invoke("www.google.com", 80, [](auto & error){
-        cout << "Connection failed with code " << error << endl;
+    instance.on_error = [](auto & error, auto & info){
+        http::base::fail(error, info);
+        cout << "Error of connect session!" << endl;
         http::base::processor::get().stop();
-    })){
+    };
+
+    if(!instance.invoke("www.google.com", 80)){
         cout << "Failed to resolve address!" << endl;
-        return -1;
+        http::base::processor::get().stop();
     }
 
 

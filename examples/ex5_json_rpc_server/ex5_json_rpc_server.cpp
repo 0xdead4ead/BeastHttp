@@ -424,9 +424,9 @@ int main()
        -H 'Content-Type:application/json' -H 'Accept:application/json'
     */
     //##################################################################
-    http::server my_http_server;
+    http::server instance;
 
-    my_http_server.post("/rpc", [](auto & req, auto & session){
+    instance.post("/rpc", [](auto & req, auto & session){
 
         // Check fields of header
 
@@ -488,14 +488,14 @@ int main()
         return session.do_write(make_204(req));
     });
 
-    my_http_server.all(".*", [](auto & req, auto & session){
+    instance.all(".*", [](auto & req, auto & session){
         return session.do_write(make_405(req));
     });
 
     const auto & address = "127.0.0.1";
     uint32_t port = 80;
 
-    my_http_server.listen(address, port, [](auto & session){
+    instance.listen(address, port, [](auto & session){
         http::base::out(session.getConnection()->stream().remote_endpoint().address().to_string() + " connected");
         session.do_read();
     });

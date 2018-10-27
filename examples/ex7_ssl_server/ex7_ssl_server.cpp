@@ -115,22 +115,22 @@ int main()
 
 //###############################################################################
 
-    http::ssl::server my_https_server{ctx};
+    http::ssl::server instance{ctx};
 
     using http::ssl::literal::operator""_get;
     using http::ssl::literal::operator""_all;
 
-    R"(/1)"_get.assign(my_https_server, [](auto & req, auto & session){
+    R"(/1)"_get.assign(instance, [](auto & req, auto & session){
         cout << req << endl; // '/1'
         session.do_write(make_response(req, "GET 1\n"));
      });
 
-    R"(/2)"_get.assign(my_https_server, [](auto & req, auto & session){
+    R"(/2)"_get.assign(instance, [](auto & req, auto & session){
         cout << req << endl; // '/2'
         session.do_write(make_response(req, "GET 2\n"));
      });
 
-    R"(.*)"_all.assign(my_https_server, [](auto & req, auto & session){
+    R"(.*)"_all.assign(instance, [](auto & req, auto & session){
         cout << req << endl; // 'any'
         session.do_write(make_response(req, "error\n"));
      });
@@ -138,7 +138,7 @@ int main()
     const auto & address = "127.0.0.1";
     uint32_t port = 443;
 
-    my_https_server.listen(address, port, [](auto & session){
+    instance.listen(address, port, [](auto & session){
         http::base::out(session.getConnection()->stream().lowest_layer().remote_endpoint().address().to_string() + " connected");
         session.do_handshake();
     });

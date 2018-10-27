@@ -166,11 +166,11 @@ int main(int argc, char* argv[])
         get_doc_root_path() = doc_root_arg.data();
 
     //##################################################################
-    http::server my_http_server;
+    http::server instance;
 
     //##################################################################
     // Respond to HEAD request ('/' => 'index.html')
-    my_http_server.head("/", [](auto & req, auto & session){
+    instance.head("/", [](auto & req, auto & session){
         // make final path to resource
         path path_to_target;
         if(req.target().back() == '/')
@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
 
     //##################################################################
     // Respond to GET request ('/' => 'index.html')
-    my_http_server.get("/", [](auto & req, auto & session){
+    instance.get("/", [](auto & req, auto & session){
         // make final path to resource
         path path_to_target;
         if(req.target().back() == '/')
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
         }
     });
 
-    my_http_server.all(".*", [](auto & req, auto & session){
+    instance.all(".*", [](auto & req, auto & session){
         // Make sure we can handle the method
         if(req.method() != boost::beast::http::verb::get &&
                 req.method() != boost::beast::http::verb::head)
@@ -241,7 +241,7 @@ int main(int argc, char* argv[])
         return session.do_write(not_found(req));
     });
 
-    my_http_server.listen(address.data(), boost::lexical_cast<uint32_t>(port), [](auto & session){
+    instance.listen(address.data(), boost::lexical_cast<uint32_t>(port), [](auto & session){
         http::base::out(session.getConnection()->stream().remote_endpoint().address().to_string() + " connected");
         session.do_read();
     });
