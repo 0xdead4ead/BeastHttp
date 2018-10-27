@@ -76,8 +76,7 @@ public:
 template<class Derived>
 class connection_base : private boost::noncopyable {
 
-    Derived& derived()
-    {
+    Derived& derived(){
         return static_cast<Derived&>(*this);
     }
 
@@ -92,16 +91,14 @@ public:
     {}
 
     template <class F, class R>
-    void async_write(/*const*/ R& msg, F&& f)
-    {
+    void async_write(/*const*/ R& msg, F&& f){
         boost::beast::http::async_write(derived().stream(), msg,
             boost::asio::bind_executor(
                 strand_, std::forward<F>(f)));
     }
 
     template <class F, class B, class R>
-    void async_read(B& buf, R& msg, F&& f)
-    {
+    void async_read(B& buf, R& msg, F&& f){
         boost::beast::http::async_read(derived().stream(), buf, msg,
             boost::asio::bind_executor(
                 strand_, std::forward<F>(f)));
@@ -276,7 +273,7 @@ public:
             return;
         }
 
-        out(std::string("TCP listener up on ") + address + ":" + port);
+        out(std::string("Listener up on ") + address + ":" + port);
 
     }
 
@@ -289,15 +286,13 @@ public:
     }
 
     // Start accepting incoming connections
-    void run()
-    {
+    void run(){
         if(!acceptor_.is_open())
             return;
         do_accept();
     }
 
-    void do_accept()
-    {
+    void do_accept(){
         acceptor_.async_accept(
             socket_,
             std::bind(
@@ -306,8 +301,7 @@ public:
                 std::placeholders::_1));
     }
 
-    void on_accept(boost::system::error_code error)
-    {
+    void on_accept(boost::system::error_code error){
         if(error){
             fail(error, "accept");
         }
@@ -452,8 +446,7 @@ public:
     // Must be called before all the `start()` calls
     // Function can be called only once
     template <class F>
-    void register_signals_handler(F&& f, const std::vector<int>& signals_to_wait)
-    {
+    void register_signals_handler(F&& f, const std::vector<int>& signals_to_wait){
         // Making shure that this is the first call
         assert(!signal_handlers_);
 
@@ -517,8 +510,7 @@ public:
                                      std::forward<Completion>(completion), std::forward<Callback>(callback));
     }
 
-    boost::asio::io_service & io_service()
-    {
+    boost::asio::io_service & io_service(){
         return ios_;
     }
 
@@ -552,8 +544,7 @@ private:
 #endif
     {}
 
-    void handle_signals(const boost::system::error_code& error,int signal_number)
-    {
+    void handle_signals(const boost::system::error_code& error,int signal_number){
         if (error)
             fail(error, "handle_signals");
         else
@@ -582,28 +573,24 @@ inline void read_up_to_enter(std::string & value){
     }, boost::ref(value), _1));
 }
 
-inline void out(const boost::beast::string_view & info){
+std::string prefix_line(){
     boost::posix_time::ptime timeLocal = boost::posix_time::second_clock::local_time();
 
     std::ostringstream os;
     os << '(' << "BeastHttp/" << BEAST_HTTP_VERSION << " [" << BOOST_BEAST_VERSION_STRING << ']' << ' '
        << timeLocal.date().year() << '/' << timeLocal.date().day() << '/' << timeLocal.date().month() << ' '
-       << timeLocal.time_of_day().hours() << ':' << timeLocal.time_of_day().minutes() << ':' << timeLocal.time_of_day().seconds() << ')' << ' '
-       << info << std::endl;
-    const std::string & info_ = os.str();
-    processor::get().write_to_stream(info_, boost::asio::transfer_exactly(info_.size()));
+       << timeLocal.time_of_day().hours() << ':' << timeLocal.time_of_day().minutes() << ':' << timeLocal.time_of_day().seconds() << ')' << ' ';
+    return os.str();
+}
+
+inline void out(const boost::beast::string_view & info){
+    const std::string & out_line = prefix_line() + info.to_string() + "\n";
+    processor::get().write_to_stream(out_line, boost::asio::transfer_exactly(out_line.size()));
 }
 
 inline void fail(const boost::system::error_code & ec, const boost::beast::string_view & info){
-    boost::posix_time::ptime timeLocal = boost::posix_time::second_clock::local_time();
-
-    std::ostringstream os;
-    os << '(' << "BeastHttp/" << BEAST_HTTP_VERSION << " [" << BOOST_BEAST_VERSION_STRING << ']' << ' '
-       << timeLocal.date().year() << '/' << timeLocal.date().day() << '/' << timeLocal.date().month() << ' '
-       << timeLocal.time_of_day().hours() << ':' << timeLocal.time_of_day().minutes() << ':' << timeLocal.time_of_day().seconds() << ')' << ' '
-       << info  << " : " << ec.message() << std::endl;
-    const std::string & info_ = os.str();
-    processor::get().write_to_stream(info_, boost::asio::transfer_exactly(info_.size()));
+    const std::string & out_line = prefix_line() + info.to_string() + " : " + ec.message() + "\n";
+    processor::get().write_to_stream(out_line, boost::asio::transfer_exactly(out_line.size()));
 }
 
 } // namespace base
