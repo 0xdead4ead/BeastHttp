@@ -30,16 +30,16 @@ Add new route for GET request with "/" resource:
 
 ```cpp
 
-    http::server my_http_server;
+    http::server instance;
 
-    my_http_server.get("/", 
+    instance.get("/", 
        [](auto & req, auto & /*session*/){
         cout << req << endl;
     });
 
     // or
 
-    my_http_server.get("/a/b", 
+    instance.get("/a/b", 
        [](auto & /*req*/, auto & /*session*/, auto & next){
         // process '/a'
         next();
@@ -53,14 +53,14 @@ Add a route using a literal operator (as above)
 
 ```cpp
 
-    "/"_get.assign(my_http_server, 
+    "/"_get.assign(instance, 
        [](auto & req, auto & /*session*/){
         cout << req << endl;
     });
     
     // or
     
-    "/a/b"_get.assign(my_http_server, 
+    "/a/b"_get.assign(instance, 
        [](auto & /*req*/, auto & /*session*/, auto & next){
         // process '/a'
         next();
@@ -74,14 +74,14 @@ Getting a parameter from a URI `/user/1992` :
 
 ```cpp
 
-    my_http_server.param<int>().get("/user/(\\d+)",
+    instance.param<int>().get("/user/(\\d+)",
        [](auto & /*req*/, auto & /*session*/, auto & args){
         assert(args._1 == 1992);
     });
 
     // or
 
-    my_http_server.param<int>().get("/user/(\\d+)",
+    instance.param<int>().get("/user/(\\d+)",
        [](auto & /*req*/, auto & /*session*/, auto & next, auto & /*args*/){
         // process '/user'
         next();
@@ -96,14 +96,14 @@ Getting a parameter using a string literal (as above) :
 
 ```cpp
 
-    "/user/(\\d+)"_get.assign(my_http_server.param<int>())
+    "/user/(\\d+)"_get.assign(instance.param<int>())
        .with([](auto & /*req*/, auto & /*session*/, auto & args){
         assert(args._1 == 1992);
     });
 
     // or
 
-    "/user/(\\d+)"_get.assign(my_http_server.param<int>())
+    "/user/(\\d+)"_get.assign(instance.param<int>())
        .with([](auto & /*req*/, auto & /*session*/, auto & next, auto & /*args*/){
         // process '/user'
         next();
@@ -118,7 +118,7 @@ Create modular, mounted route handlers:
 
 ```cpp
 
-    auto animals_router = my_http_server.BasicRouter();
+    auto animals_router = instance.BasicRouter();
 
     animals_router.get("/cat", [](auto & req, auto & session){ // '/animals/cat'
         session.do_write(make_response(req, "me-ow\n"));
@@ -136,7 +136,7 @@ Create modular, mounted route handlers:
         session.do_write(make_response(req, "animals home page\n"));
     });
 
-    my_http_server.use("/animals", animals_router);
+    instance.use("/animals", animals_router);
 
 ```
 
@@ -144,7 +144,7 @@ Create handlers routes, forming a chain, for the route path:
 
 ```cpp
 
-    auto books_router = my_http_server.ChainRouter();
+    auto books_router = instance.ChainRouter();
 
     books_router.route("/book") // 'books/book'
       .get([](auto & req, auto & session){
@@ -155,7 +155,7 @@ Create handlers routes, forming a chain, for the route path:
         session.do_write(make_response(req, "update the book\n"));
     });
 
-    my_http_server.use("/books", books_router);
+    instance.use("/books", books_router);
 
 ```
 
@@ -163,7 +163,7 @@ Start listening on localhost:80
 
 ```cpp
 
-    my_http_server.listen("127.0.0.1", 80, [](auto & session){
+    instance.listen("127.0.0.1", 80, [](auto & session){
         http::base::out("New client!!!");
         session.do_read();
     });
@@ -184,14 +184,14 @@ Request content from the server (Async):
 
 ```cpp
 
-    http::client my_http_client;
+    http::client instance;
 
-    my_http_client.on_connect = [](auto & session){
+    instance.on_connect = [](auto & session){
         http::base::out("Successful connected!");
         session.do_write(make_request());
     };
 
-    my_http_client.on_message = [](auto & res, auto & session){
+    instance.on_message = [](auto & res, auto & session){
         cout << res << endl;
         
         // The answer is received, stop!
@@ -199,12 +199,15 @@ Request content from the server (Async):
         http::base::processor::get().stop();
     };
 
-    if(!my_http_client.invoke("www.example.com", 80, [](auto & error){
-        cout << "Connection failed with code " << error << endl;
+    instance.on_error = [](auto & error, auto & info){
+        http::base::fail(error, info);
+        cout << "Error of connect session!" << endl;
         http::base::processor::get().stop();
-    })){
+    };
+
+    if(!instance.invoke("www.google.com", 80)){
         cout << "Failed to resolve address!" << endl;
-        return -1;
+        http::base::processor::get().stop();
     }
 
 ```
