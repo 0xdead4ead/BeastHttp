@@ -62,15 +62,13 @@ class session  : private cb_invoker, private boost::noncopyable,
         }
 
         // Returns `true` if we have reached the queue limit
-        bool is_full() const
-        {
+        bool is_full() const{
             return items_.size() >= limit;
         }
 
         // Called when a message finishes sending
         // Returns `true` if the caller should initiate a read
-        bool on_write()
-        {
+        bool on_write(){
             assert(! items_.empty());
             auto const was_full = is_full();
             items_.erase(items_.begin());
@@ -81,8 +79,7 @@ class session  : private cb_invoker, private boost::noncopyable,
 
         // Called by the HTTP handler to send a response.
         template<class Responce>
-        void operator()(Responce && msg)
-        {
+        void operator()(Responce && msg){
             // This holds a work item
             struct work_impl : work
             {
@@ -94,8 +91,7 @@ class session  : private cb_invoker, private boost::noncopyable,
                     , msg_(std::forward<Responce>(msg))
                 {}
 
-                void operator()()
-                {
+                void operator()(){
                     self_.connection_p_->async_write(msg_,
                                              std::bind(&session<true, Body>::on_write, self_.shared_from_this(),
                                                          std::placeholders::_1,
@@ -131,15 +127,13 @@ public:
     static void on_accept(boost::asio::ip::tcp::socket&& socket,
                           const std::shared_ptr<resource_map_t> & resource_map_cb_p,
                           const std::shared_ptr<method_map_t> & method_map_cb_p,
-                          const std::function<void(session<true, ReqBody>&)> & on_accept_cb)
-    {
+                          const std::function<void(session<true, ReqBody>&)> & on_accept_cb){
         auto new_session_p = std::make_shared<session<true, Body> >(std::move(socket), resource_map_cb_p, method_map_cb_p);
         if(on_accept_cb)
             on_accept_cb(*new_session_p);
     }
 
-    auto & getConnection() const
-    {
+    auto & getConnection() const{
         return connection_p_;
     }
 
@@ -159,13 +153,11 @@ public:
     }
 
     template<class Responce>
-    void do_write(Responce && msg)
-    {
+    void do_write(Responce && msg){
         queue_(std::forward<Responce>(msg));
     }
 
-    void do_close()
-    {
+    void do_close(){
         // Is this connection alive?
         if(!connection_p_->stream().is_open())
             return;
@@ -175,8 +167,7 @@ public:
         connection_p_->close();
     }
 
-    void launch_timer()
-    {
+    void launch_timer(){
         timer_p_->async_wait(
                     std::bind(
                         &session<true, Body>::on_timer,
@@ -198,8 +189,7 @@ public:
 
 protected:
 
-    void on_timer(boost::system::error_code ec)
-    {
+    void on_timer(boost::system::error_code ec){
         if(ec && ec != boost::asio::error::operation_aborted)
             return base::fail(ec, "timer");
 
@@ -221,8 +211,7 @@ protected:
         launch_timer();
     }
 
-    void on_read(const boost::system::error_code & ec, std::size_t bytes_transferred)
-    {
+    void on_read(const boost::system::error_code & ec, std::size_t bytes_transferred){
 
         boost::ignore_unused(bytes_transferred);
 
@@ -236,8 +225,7 @@ protected:
 
     }
 
-    void on_write(const boost::system::error_code & ec, std::size_t bytes_transferred, bool close)
-    {
+    void on_write(const boost::system::error_code & ec, std::size_t bytes_transferred, bool close){
         boost::ignore_unused(bytes_transferred);
 
         if(ec)
@@ -258,9 +246,7 @@ protected:
         }
     }
 
-    void process_request()
-    {
-
+    void process_request(){
         resource_t target = req_.target();
         method_t method = req_.method();
 
@@ -299,7 +285,6 @@ protected:
         // If we aren't at the queue limit, try to pipeline another request
         if(! queue_.is_full() && connection_p_->stream().is_open())
             do_read();
-
     }
 
     base::timer::ptr timer_p_;
@@ -322,27 +307,27 @@ class session<false, Body>  : private cb_invoker, private boost::noncopyable,
 public:
 
     explicit session(base::connection::ptr & connection_p,
-                     const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb)
+                     const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb,
+                     const std::function<void (boost::beast::error_code const &, boost::beast::string_view const &)> & on_error_cb)
         : connection_p_{connection_p},
-          on_message_cb_{on_message_cb}
+          on_message_cb_{on_message_cb},
+          on_error_cb_{on_error_cb}
     {}
 
     static void on_connect(base::connection::ptr & connection_p,
                            const std::function<void (session<false, Body>&)> & on_connect_cb,
-                           const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb)
-    {
-        auto new_session_p = std::make_shared<session<false, Body>>(connection_p, on_message_cb);
+                           const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb,
+                           const std::function<void (boost::beast::error_code const &, boost::beast::string_view const &)> & on_error_cb){
+        auto new_session_p = std::make_shared<session<false, Body>>(connection_p, on_message_cb, on_error_cb);
         if(on_connect_cb)
             on_connect_cb(*new_session_p);
     }
 
-    auto & getConnection() const
-    {
+    auto & getConnection() const{
         return connection_p_;
     }
 
-    void do_read()
-    {
+    void do_read(){
         res_ = {};
 
         connection_p_->async_read(
@@ -354,8 +339,7 @@ public:
     }
 
     template<class Request>
-    void do_write(Request && msg, bool next_read = true)
-    {
+    void do_write(Request && msg, bool next_read = true){
         auto sp = std::make_shared<std::decay_t<Request>>(std::forward<Request>(msg));
         msg_p_ = sp;
 
@@ -367,28 +351,27 @@ public:
                                            ));
     }
 
-    void do_close()
-    {
+    void do_close(){
         boost::beast::error_code ec;
         connection_p_->stream().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
 
-        if(ec && ec != boost::system::errc::not_connected)
-            base::fail(ec, "shutdown");
+        if(ec && on_error_cb_
+                && ec != boost::system::errc::not_connected)
+            on_error_cb_(ec, "shutdown");
 
         connection_p_->stream().close(ec);
 
-        if(ec)
-            base::fail(ec, "close");
+        if(ec && on_error_cb_)
+            on_error_cb_(ec, "close");
     }
 
 protected:
 
-    void on_read(const boost::system::error_code & ec, std::size_t bytes_transferred)
-    {
+    void on_read(const boost::system::error_code & ec, std::size_t bytes_transferred){
         boost::ignore_unused(bytes_transferred);
 
-        if(ec)
-            return base::fail(ec, "read");
+        if(ec && on_error_cb_)
+            return on_error_cb_(ec, "read");
 
         if(on_message_cb_)
             on_message_cb_(res_, *this);
@@ -396,12 +379,11 @@ protected:
         // If we get here then the connection is closed gracefully
     }
 
-    void on_write(const boost::system::error_code & ec, std::size_t bytes_transferred, bool next_read)
-    {
+    void on_write(const boost::system::error_code & ec, std::size_t bytes_transferred, bool next_read){
         boost::ignore_unused(bytes_transferred);
 
-        if(ec)
-            return base::fail(ec, "write");
+        if(ec && on_error_cb_)
+            return on_error_cb_(ec, "write");
 
         if(next_read)
             do_read();
@@ -409,6 +391,7 @@ protected:
 
     base::connection::ptr & connection_p_;
     const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb_;
+    const std::function<void (boost::beast::error_code const &, boost::beast::string_view const &)> & on_error_cb_;
     boost::beast::http::response<Body> res_;
     std::shared_ptr<void> msg_p_;
     boost::beast::flat_buffer buffer_;

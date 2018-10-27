@@ -202,15 +202,13 @@ class session  : private cb_invoker, private boost::noncopyable,
         }
 
         // Returns `true` if we have reached the queue limit
-        bool is_full() const
-        {
+        bool is_full() const{
             return items_.size() >= limit;
         }
 
         // Called when a message finishes sending
         // Returns `true` if the caller should initiate a read
-        bool on_write()
-        {
+        bool on_write(){
             assert(! items_.empty());
             auto const was_full = is_full();
             items_.erase(items_.begin());
@@ -221,8 +219,7 @@ class session  : private cb_invoker, private boost::noncopyable,
 
         // Called by the HTTP handler to send a response.
         template<class Responce>
-        void operator()(Responce && msg)
-        {
+        void operator()(Responce && msg){
             // This holds a work item
             struct work_impl : work
             {
@@ -234,8 +231,7 @@ class session  : private cb_invoker, private boost::noncopyable,
                     , msg_(std::forward<Responce>(msg))
                 {}
 
-                void operator()()
-                {
+                void operator()(){
                     self_.connection_p_->async_write(msg_,
                                              std::bind(&session<true, Body>::on_write, self_.shared_from_this(),
                                                          std::placeholders::_1,
@@ -273,15 +269,13 @@ public:
                           boost::asio::ip::tcp::socket&& socket,
                           const std::shared_ptr<resource_map_t> & resource_map_cb_p,
                           const std::shared_ptr<method_map_t> & method_map_cb_p,
-                          const std::function<void(session<true, Body>&)> & on_accept_cb)
-    {
+                          const std::function<void(session<true, Body>&)> & on_accept_cb){
         auto new_session_p = std::make_shared<session<true, Body> >(ctx, std::move(socket), resource_map_cb_p, method_map_cb_p);
         if(on_accept_cb)
             on_accept_cb(*new_session_p);
     }
 
-    auto & getConnection() const
-    {
+    auto & getConnection() const{
         return connection_p_;
     }
 
@@ -361,8 +355,7 @@ public:
 
 protected:
 
-    void on_timer(boost::system::error_code ec)
-    {
+    void on_timer(boost::system::error_code ec){
         if(ec && ec != boost::asio::error::operation_aborted)
             return http::base::fail(ec, "timer");
 
@@ -390,8 +383,7 @@ protected:
         launch_timer();
     }
 
-    void on_handshake(const boost::system::error_code & ec, std::size_t bytes_used)
-    {
+    void on_handshake(const boost::system::error_code & ec, std::size_t bytes_used){
         if(ec)
             return http::base::fail(ec, "handshake");
 
@@ -403,8 +395,7 @@ protected:
         do_read();
     }
 
-    void on_shutdown(const boost::system::error_code & ec)
-    {
+    void on_shutdown(const boost::system::error_code & ec){
         // Happens when the shutdown times out
         if(ec == boost::asio::error::operation_aborted)
             return;
@@ -426,8 +417,7 @@ protected:
         process_request();
     }
 
-    void on_write(const boost::system::error_code & ec, std::size_t bytes_transferred, bool close)
-    {
+    void on_write(const boost::system::error_code & ec, std::size_t bytes_transferred, bool close){
         boost::ignore_unused(bytes_transferred);
 
         if(ec)
@@ -448,9 +438,7 @@ protected:
         }
     }
 
-    void process_request()
-    {
-
+    void process_request(){
         resource_t target = req_.target();
         method_t method = req_.method();
 
@@ -489,7 +477,6 @@ protected:
         // If we aren't at the queue limit, try to pipeline another request
         if(! queue_.is_full() && connection_p_->stream().lowest_layer().is_open())
             do_read();
-
     }
 
     http::base::timer::ptr timer_p_;
@@ -512,25 +499,26 @@ public:
 
     explicit session(base::connection::ptr & connection_p,
                      const std::function<void (session<false, Body>&)> & on_handshake_cb,
-                     const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb)
+                     const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb,
+                     const std::function<void (boost::beast::error_code const &, boost::beast::string_view const &)> & on_error_cb)
         : connection_p_{connection_p},
           on_handshake_cb_{on_handshake_cb},
-          on_message_cb_{on_message_cb}
-
+          on_message_cb_{on_message_cb},
+          on_error_cb_{on_error_cb}
     {}
 
     static void on_connect(base::connection::ptr & connection_p,
                            const std::function<void (session<false, Body>&)> & on_connect_cb,
                            const std::function<void (session<false, Body> &)> & on_handshake_cb,
-                           const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb){
-        auto new_session_p = std::make_shared<session<false, Body>>(connection_p, on_handshake_cb, on_message_cb);
+                           const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb,
+                           const std::function<void (boost::beast::error_code const &, boost::beast::string_view const &)> & on_error_cb){
+        auto new_session_p = std::make_shared<session<false, Body>>(connection_p, on_handshake_cb, on_message_cb, on_error_cb);
         if(on_connect_cb)
             on_connect_cb(*new_session_p);
 
     }
 
-    auto & getConnection() const
-    {
+    auto & getConnection() const{
         return connection_p_;
     }
 
@@ -585,10 +573,9 @@ public:
 
 protected:
 
-    void on_handshake(boost::system::error_code ec)
-    {
-        if(ec)
-            return http::base::fail(ec, "handshake");
+    void on_handshake(boost::system::error_code ec){
+        if(ec && on_error_cb_)
+            return on_error_cb_(ec, "handshake");
 
         handshake = true;
 
@@ -596,26 +583,24 @@ protected:
             on_handshake_cb_(*this);
     }
 
-    void on_shutdown(boost::system::error_code ec)
-    {
+    void on_shutdown(boost::system::error_code ec){
         if(ec == boost::asio::error::eof)
         {
             // Rationale:
             // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
             ec.assign(0, ec.category());
         }
-        if(ec)
-            return http::base::fail(ec, "shutdown");
+        if(ec && on_error_cb_)
+            return on_error_cb_(ec, "shutdown");
 
         // If we get here then the connection is closed gracefully
     }
 
-    void on_read(const boost::system::error_code & ec, std::size_t bytes_transferred)
-    {
+    void on_read(const boost::system::error_code & ec, std::size_t bytes_transferred){
         boost::ignore_unused(bytes_transferred);
 
-        if(ec)
-            return http::base::fail(ec, "read");
+        if(ec && on_error_cb_)
+            return on_error_cb_(ec, "read");
 
         if(on_message_cb_)
             on_message_cb_(res_, *this);
@@ -623,12 +608,11 @@ protected:
         // If we get here then the connection is closed gracefully
     }
 
-    void on_write(const boost::system::error_code & ec, std::size_t bytes_transferred, bool next_read)
-    {
+    void on_write(const boost::system::error_code & ec, std::size_t bytes_transferred, bool next_read){
         boost::ignore_unused(bytes_transferred);
 
-        if(ec)
-            return http::base::fail(ec, "write");
+        if(ec && on_error_cb_)
+            return on_error_cb_(ec, "write");
 
         if(next_read)
             do_read();
@@ -638,6 +622,7 @@ protected:
     base::connection::ptr & connection_p_;
     const std::function<void (session<false, Body> &)> & on_handshake_cb_;
     const std::function<void (boost::beast::http::response<Body>&, session<false, Body>&)> & on_message_cb_;
+    const std::function<void (boost::beast::error_code const &, boost::beast::string_view const &)> on_error_cb_;
     boost::beast::http::response<Body> res_;
     std::shared_ptr<void> msg_p_;
     boost::beast::flat_buffer buffer_;
@@ -1676,173 +1661,139 @@ struct wrap_param{ // Wrapped class for param implementation
 /// \param s - pointer to resource regex
 /// \param n - length of string
 
-inline auto operator "" _get(const char* s, std::size_t n)
-{
+inline auto operator "" _get(const char* s, std::size_t n){
     return wrap_get{s, n};
 }
 
-inline auto operator "" _post(const char* s, std::size_t n)
-{
+inline auto operator "" _post(const char* s, std::size_t n){
     return wrap_post{s, n};
 }
 
-inline auto operator "" _put(const char* s, std::size_t n)
-{
+inline auto operator "" _put(const char* s, std::size_t n){
     return wrap_put{s, n};
 }
 
-inline auto operator "" _head(const char* s, std::size_t n)
-{
+inline auto operator "" _head(const char* s, std::size_t n){
     return wrap_put{s, n};
 }
 
-inline auto operator "" _delete_(const char* s, std::size_t n)
-{
+inline auto operator "" _delete_(const char* s, std::size_t n){
     return wrap_delete_{s, n};
 }
 
-inline auto operator "" _options(const char* s, std::size_t n)
-{
+inline auto operator "" _options(const char* s, std::size_t n){
     return wrap_options{s, n};
 }
 
-inline auto operator "" _connect(const char* s, std::size_t n)
-{
+inline auto operator "" _connect(const char* s, std::size_t n){
     return wrap_connect{s, n};
 }
 
-inline auto operator "" _trace(const char* s, std::size_t n)
-{
+inline auto operator "" _trace(const char* s, std::size_t n){
     return wrap_trace{s, n};
 }
 
-inline auto operator "" _copy(const char* s, std::size_t n)
-{
+inline auto operator "" _copy(const char* s, std::size_t n){
     return wrap_copy{s, n};
 }
 
-inline auto operator "" _lock(const char* s, std::size_t n)
-{
+inline auto operator "" _lock(const char* s, std::size_t n){
     return wrap_lock{s, n};
 }
 
-inline auto operator "" _mkcol(const char* s, std::size_t n)
-{
+inline auto operator "" _mkcol(const char* s, std::size_t n){
     return wrap_mkcol{s, n};
 }
 
-inline auto operator "" _move(const char* s, std::size_t n)
-{
+inline auto operator "" _move(const char* s, std::size_t n){
     return wrap_move{s, n};
 }
 
-inline auto operator "" _propfind(const char* s, std::size_t n)
-{
+inline auto operator "" _propfind(const char* s, std::size_t n){
     return wrap_propfind{s, n};
 }
 
-inline auto operator "" _proppatch(const char* s, std::size_t n)
-{
+inline auto operator "" _proppatch(const char* s, std::size_t n){
     return wrap_proppatch{s, n};
 }
 
-inline auto operator "" _search(const char* s, std::size_t n)
-{
+inline auto operator "" _search(const char* s, std::size_t n){
     return wrap_search{s, n};
 }
 
-inline auto operator "" _unlock(const char* s, std::size_t n)
-{
+inline auto operator "" _unlock(const char* s, std::size_t n){
     return wrap_unlock{s, n};
 }
 
-inline auto operator "" _bind(const char* s, std::size_t n)
-{
+inline auto operator "" _bind(const char* s, std::size_t n){
     return wrap_bind{s, n};
 }
 
-inline auto operator "" _rebind(const char* s, std::size_t n)
-{
+inline auto operator "" _rebind(const char* s, std::size_t n){
     return wrap_rebind{s, n};
 }
 
-inline auto operator "" _unbind(const char* s, std::size_t n)
-{
+inline auto operator "" _unbind(const char* s, std::size_t n){
     return wrap_unbind{s, n};
 }
 
-inline auto operator "" _acl(const char* s, std::size_t n)
-{
+inline auto operator "" _acl(const char* s, std::size_t n){
     return wrap_acl{s, n};
 }
 
-inline auto operator "" _report(const char* s, std::size_t n)
-{
+inline auto operator "" _report(const char* s, std::size_t n){
     return wrap_report{s, n};
 }
 
-inline auto operator "" _mkactivity(const char* s, std::size_t n)
-{
+inline auto operator "" _mkactivity(const char* s, std::size_t n){
     return wrap_mkactivity{s, n};
 }
 
-inline auto operator "" _checkout(const char* s, std::size_t n)
-{
+inline auto operator "" _checkout(const char* s, std::size_t n){
     return wrap_checkout{s, n};
 }
 
-inline auto operator "" _merge(const char* s, std::size_t n)
-{
+inline auto operator "" _merge(const char* s, std::size_t n){
     return wrap_merge{s, n};
 }
 
-inline auto operator "" _msearch(const char* s, std::size_t n)
-{
+inline auto operator "" _msearch(const char* s, std::size_t n){
     return wrap_msearch{s, n};
 }
 
-inline auto operator "" _notify(const char* s, std::size_t n)
-{
+inline auto operator "" _notify(const char* s, std::size_t n){
     return wrap_notify{s, n};
 }
 
-inline auto operator "" _subscribe(const char* s, std::size_t n)
-{
+inline auto operator "" _subscribe(const char* s, std::size_t n){
     return wrap_subscribe{s, n};
 }
 
-inline auto operator "" _unsubscribe(const char* s, std::size_t n)
-{
+inline auto operator "" _unsubscribe(const char* s, std::size_t n){
     return wrap_unsubscribe{s, n};
 }
 
-inline auto operator "" _patch(const char* s, std::size_t n)
-{
+inline auto operator "" _patch(const char* s, std::size_t n){
     return wrap_patch{s, n};
 }
 
-inline auto operator "" _purge(const char* s, std::size_t n)
-{
+inline auto operator "" _purge(const char* s, std::size_t n){
     return wrap_purge{s, n};
 }
 
-inline auto operator "" _mkcalendar(const char* s, std::size_t n)
-{
+inline auto operator "" _mkcalendar(const char* s, std::size_t n){
     return wrap_mkcalendar{s, n};
 }
 
-inline auto operator "" _link(const char* s, std::size_t n)
-{
+inline auto operator "" _link(const char* s, std::size_t n){
     return wrap_link{s, n};
 }
 
-inline auto operator "" _unlink(const char* s, std::size_t n)
-{
+inline auto operator "" _unlink(const char* s, std::size_t n){
     return wrap_unlink{s, n};
 }
 
-inline auto operator "" _all(const char* s, std::size_t n)
-{
+inline auto operator "" _all(const char* s, std::size_t n){
     return wrap_all{s, n};
 }
 
@@ -1857,19 +1808,19 @@ inline auto operator "" _all(const char* s, std::size_t n)
 template<class ResBody>
 class client_impl : private http::client_impl<ResBody>{
 
-    template<class Callback0>
-    bool process(std::string const & host, uint32_t port, Callback0 && on_error_handler){
+    bool process(std::string const & host, uint32_t port){
         connection_p_ = http::base::processor::get()
                 .create_connection<base::connection>(ctx_, host,
                                                      port,
-                                                     [this, on_error = std::forward<Callback0>(on_error_handler)](const boost::system::error_code & ec){
+                                                     [this](const boost::system::error_code & ec){
             if(ec){
-                http::base::fail(ec, "connect");
-                on_error(ec);
-                return;
+                if(on_error){
+                    on_error(ec, "connect");
+                    return;
+                }
             }
 
-            session<false, ResBody>::on_connect(connection_p_, on_connect, on_handshake, on_message);
+            session<false, ResBody>::on_connect(connection_p_, on_connect, on_handshake, on_message, on_error);
         });
 
         if(!connection_p_)
@@ -1886,15 +1837,15 @@ public:
     std::function<void (session<false, ResBody>&)> on_connect;
     std::function<void (session<false, ResBody>&)> on_handshake;
     std::function<void (boost::beast::http::response<ResBody>&, session<false, ResBody>&)> on_message;
+    std::function<void (boost::beast::error_code const &, boost::beast::string_view const &)> on_error;
 
     explicit client_impl(boost::asio::ssl::context & ctx)
         :ctx_{ctx},
         connection_p_{nullptr}
     {}
 
-    template<class Callback0>
-    bool invoke(std::string const & host, uint32_t port, Callback0 && on_error_handler){
-        return process(host, port, std::forward<Callback0>(on_error_handler));
+    bool invoke(std::string const & host, uint32_t port){
+        return process(host, port);
     }
 
 }; // client_impl class

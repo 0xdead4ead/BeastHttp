@@ -11,19 +11,19 @@ namespace http{
 template<class ResBody>
 class client_impl{
 
-    template<class Callback0>
-    bool process(std::string const & host, uint32_t port, Callback0 && on_error_handler){
+    bool process(std::string const & host, uint32_t port){
         connection_p_ = base::processor::get()
                 .create_connection<base::connection>(host,
                                                      port,
-                                                     [this, on_error = std::forward<Callback0>(on_error_handler)](const boost::system::error_code & ec){
+                                                     [this](const boost::system::error_code & ec){
             if(ec){
-                base::fail(ec, "connect");
-                on_error(ec);
-                return;
+                if(on_error){
+                    on_error(ec, "connect");
+                    return;
+                }
             }
 
-            session<false, ResBody>::on_connect(connection_p_, on_connect, on_message);
+            session<false, ResBody>::on_connect(connection_p_, on_connect, on_message, on_error);
         });
 
         if(!connection_p_)
@@ -38,14 +38,14 @@ public:
 
     std::function<void (session<false, ResBody>&)> on_connect;
     std::function<void (boost::beast::http::response<ResBody>&, session<false, ResBody>&)> on_message;
+    std::function<void (boost::beast::error_code const &, boost::beast::string_view const &)> on_error;
 
     explicit client_impl()
         :  connection_p_{nullptr}
     {}
 
-    template<class Callback0>
-    bool invoke(std::string const & host, uint32_t port, Callback0 && on_error_handler){
-        return process(host, port, std::forward<Callback0>(on_error_handler));
+    bool invoke(std::string const & host, uint32_t port){
+        return process(host, port);
     }
 
 }; // client_impl class

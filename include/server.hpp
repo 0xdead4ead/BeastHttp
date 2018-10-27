@@ -1032,173 +1032,139 @@ struct wrap_param{ // Wrapped class for param implementation
 /// \param s - pointer to resource regex
 /// \param n - length of string
 
-inline auto operator "" _get(const char* s, std::size_t n)
-{
+inline auto operator "" _get(const char* s, std::size_t n){
     return wrap_get{s, n};
 }
 
-inline auto operator "" _post(const char* s, std::size_t n)
-{
+inline auto operator "" _post(const char* s, std::size_t n){
     return wrap_post{s, n};
 }
 
-inline auto operator "" _put(const char* s, std::size_t n)
-{
+inline auto operator "" _put(const char* s, std::size_t n){
     return wrap_put{s, n};
 }
 
-inline auto operator "" _head(const char* s, std::size_t n)
-{
+inline auto operator "" _head(const char* s, std::size_t n){
     return wrap_put{s, n};
 }
 
-inline auto operator "" _delete_(const char* s, std::size_t n)
-{
+inline auto operator "" _delete_(const char* s, std::size_t n){
     return wrap_delete_{s, n};
 }
 
-inline auto operator "" _options(const char* s, std::size_t n)
-{
+inline auto operator "" _options(const char* s, std::size_t n){
     return wrap_options{s, n};
 }
 
-inline auto operator "" _connect(const char* s, std::size_t n)
-{
+inline auto operator "" _connect(const char* s, std::size_t n){
     return wrap_connect{s, n};
 }
 
-inline auto operator "" _trace(const char* s, std::size_t n)
-{
+inline auto operator "" _trace(const char* s, std::size_t n){
     return wrap_trace{s, n};
 }
 
-inline auto operator "" _copy(const char* s, std::size_t n)
-{
+inline auto operator "" _copy(const char* s, std::size_t n){
     return wrap_copy{s, n};
 }
 
-inline auto operator "" _lock(const char* s, std::size_t n)
-{
+inline auto operator "" _lock(const char* s, std::size_t n){
     return wrap_lock{s, n};
 }
 
-inline auto operator "" _mkcol(const char* s, std::size_t n)
-{
+inline auto operator "" _mkcol(const char* s, std::size_t n){
     return wrap_mkcol{s, n};
 }
 
-inline auto operator "" _move(const char* s, std::size_t n)
-{
+inline auto operator "" _move(const char* s, std::size_t n){
     return wrap_move{s, n};
 }
 
-inline auto operator "" _propfind(const char* s, std::size_t n)
-{
+inline auto operator "" _propfind(const char* s, std::size_t n){
     return wrap_propfind{s, n};
 }
 
-inline auto operator "" _proppatch(const char* s, std::size_t n)
-{
+inline auto operator "" _proppatch(const char* s, std::size_t n){
     return wrap_proppatch{s, n};
 }
 
-inline auto operator "" _search(const char* s, std::size_t n)
-{
+inline auto operator "" _search(const char* s, std::size_t n){
     return wrap_search{s, n};
 }
 
-inline auto operator "" _unlock(const char* s, std::size_t n)
-{
+inline auto operator "" _unlock(const char* s, std::size_t n){
     return wrap_unlock{s, n};
 }
 
-inline auto operator "" _bind(const char* s, std::size_t n)
-{
+inline auto operator "" _bind(const char* s, std::size_t n){
     return wrap_bind{s, n};
 }
 
-inline auto operator "" _rebind(const char* s, std::size_t n)
-{
+inline auto operator "" _rebind(const char* s, std::size_t n){
     return wrap_rebind{s, n};
 }
 
-inline auto operator "" _unbind(const char* s, std::size_t n)
-{
+inline auto operator "" _unbind(const char* s, std::size_t n){
     return wrap_unbind{s, n};
 }
 
-inline auto operator "" _acl(const char* s, std::size_t n)
-{
+inline auto operator "" _acl(const char* s, std::size_t n){
     return wrap_acl{s, n};
 }
 
-inline auto operator "" _report(const char* s, std::size_t n)
-{
+inline auto operator "" _report(const char* s, std::size_t n){
     return wrap_report{s, n};
 }
 
-inline auto operator "" _mkactivity(const char* s, std::size_t n)
-{
+inline auto operator "" _mkactivity(const char* s, std::size_t n){
     return wrap_mkactivity{s, n};
 }
 
-inline auto operator "" _checkout(const char* s, std::size_t n)
-{
+inline auto operator "" _checkout(const char* s, std::size_t n){
     return wrap_checkout{s, n};
 }
 
-inline auto operator "" _merge(const char* s, std::size_t n)
-{
+inline auto operator "" _merge(const char* s, std::size_t n){
     return wrap_merge{s, n};
 }
 
-inline auto operator "" _msearch(const char* s, std::size_t n)
-{
+inline auto operator "" _msearch(const char* s, std::size_t n){
     return wrap_msearch{s, n};
 }
 
-inline auto operator "" _notify(const char* s, std::size_t n)
-{
+inline auto operator "" _notify(const char* s, std::size_t n){
     return wrap_notify{s, n};
 }
 
-inline auto operator "" _subscribe(const char* s, std::size_t n)
-{
+inline auto operator "" _subscribe(const char* s, std::size_t n){
     return wrap_subscribe{s, n};
 }
 
-inline auto operator "" _unsubscribe(const char* s, std::size_t n)
-{
+inline auto operator "" _unsubscribe(const char* s, std::size_t n){
     return wrap_unsubscribe{s, n};
 }
 
-inline auto operator "" _patch(const char* s, std::size_t n)
-{
+inline auto operator "" _patch(const char* s, std::size_t n){
     return wrap_patch{s, n};
 }
 
-inline auto operator "" _purge(const char* s, std::size_t n)
-{
+inline auto operator "" _purge(const char* s, std::size_t n){
     return wrap_purge{s, n};
 }
 
-inline auto operator "" _mkcalendar(const char* s, std::size_t n)
-{
+inline auto operator "" _mkcalendar(const char* s, std::size_t n){
     return wrap_mkcalendar{s, n};
 }
 
-inline auto operator "" _link(const char* s, std::size_t n)
-{
+inline auto operator "" _link(const char* s, std::size_t n){
     return wrap_link{s, n};
 }
 
-inline auto operator "" _unlink(const char* s, std::size_t n)
-{
+inline auto operator "" _unlink(const char* s, std::size_t n){
     return wrap_unlink{s, n};
 }
 
-inline auto operator "" _all(const char* s, std::size_t n)
-{
+inline auto operator "" _all(const char* s, std::size_t n){
     return wrap_all{s, n};
 }
 
