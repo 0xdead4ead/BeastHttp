@@ -1,6 +1,6 @@
 # SYNOPSIS [![Build Status](https://travis-ci.org/0xdead4ead/BeastHttp.svg?branch=master)](https://travis-ci.org/0xdead4ead/BeastHttp)
 
-Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the Boost.Beast when constructing queries and answers. The implementations websocket is [`here...`](https://github.com/0xdead4ead/beast_ws_server)
+Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the Boost.Beast when constructing queries and answers. The implementations websocket is [`here...`](https://github.com/0xdead4ead/BeastWebsocket)
 
 # FEATURES
 
@@ -52,6 +52,9 @@ Add new route for GET request with "/" resource:
 Add a route using a literal operator (as above)
 
 ```cpp
+
+    using http::literal::operator""_get;
+    using http::literal::operator""_all;
 
     "/"_get.assign(instance, 
        [](auto & req, auto & /*session*/){
