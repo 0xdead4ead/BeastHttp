@@ -83,6 +83,7 @@ class server_impl{
         listener_p_ = processor_.add_listener(std::move(listener)).shared_from_this();
         listener_p_->run(std::bind(&self_type::on_accept_, this, std::placeholders::_1));
 
+        is_started = true;
         return true;
     }
 
