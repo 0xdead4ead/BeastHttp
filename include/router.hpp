@@ -4,7 +4,7 @@
 #include "session.hpp"
 #include "list_cb.hpp"
 #include "param.hpp"
-#include <iostream>
+
 namespace http {
 
 /// \brief Routing module class
@@ -76,16 +76,18 @@ protected:
 
         auto tuple_cb = std::tie(handlers...);
 
-        constexpr auto tuple_size = std::tuple_size<decltype (tuple_cb) >::value;
+        constexpr auto tuple_size
+                = std::tuple_size<decltype (tuple_cb) >::value;
+
         BOOST_STATIC_ASSERT(tuple_size != 0);
 
         const auto & f1 = [&cb_l](const auto& value){
             cb_l.push_back(
                         typename list_cb_t::F(
-                            boost::bind<void>(
+                            std::bind<void>(
                                 value,
-                                boost::placeholders::_1,
-                                boost::placeholders::_2
+                                std::placeholders::_1,
+                                std::placeholders::_2
                                 )
                             )
                         );
@@ -94,11 +96,11 @@ protected:
         const auto & f2 = [&cb_l](const auto& value){
             cb_l.push_back(
                         typename list_cb_t::F(
-                            boost::bind<void>(
+                            std::bind<void>(
                                 value,
-                                boost::placeholders::_1,
-                                boost::placeholders::_2,
-                                boost::placeholders::_3
+                                std::placeholders::_1,
+                                std::placeholders::_2,
+                                std::placeholders::_3
                                 )
                             )
                         );
