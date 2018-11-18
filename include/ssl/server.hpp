@@ -1,16 +1,18 @@
-#ifndef BEAST_HTTP_SERVER_HPP
-#define BEAST_HTTP_SERVER_HPP
+#ifndef BEAST_HTTP_SSL_SERVER_HPP
+#define BEAST_HTTP_SSL_SERVER_HPP
 
 #include "base.hpp"
 #include "session.hpp"
-#include "router.hpp"
+#include "../router.hpp"
 
 
 namespace http {
 
-/// \brief HTTP server class
+namespace ssl {
+
+/// \brief HTTPS server class
 /// \tparam Body type for request message
-template<class ReqBody>
+template <class ReqBody>
 class server_impl{
 
     using self_type = server_impl<ReqBody>;
@@ -22,6 +24,9 @@ class server_impl{
     using method_map_t = std::map<method_t, resource_map_t>;
 
     using on_accept_fn
+            = std::function<void (session_type&)>;
+
+    using on_handshake_fn
             = std::function<void (session_type&)>;
 
     using on_error_fn
@@ -48,13 +53,14 @@ class server_impl{
 
     void on_accept_(const boost::system::error_code& ec){
         if(ec){
-            base::fail(ec, "accept");
+            http::base::fail(ec, "accept");
             if(on_error)
                 on_error(ec);
         }
         else
-            session<true, ReqBody>::on_accept
-                    (listener_p_->get_socket(), resource_map_cb_p_, method_map_cb_p_, on_accept, on_error);
+            session_type::on_accept(
+                        ctx_, listener_p_->get_socket(),
+                        resource_map_cb_p_, method_map_cb_p_, on_accept, on_handshake, on_error);
 
         // Accept another connection
         listener_p_->do_accept(std::bind(&self_type::on_accept_, this, std::placeholders::_1));
@@ -71,7 +77,7 @@ class server_impl{
             return false;
         }
 
-        auto listener = base::listener{processor_.io_service()};
+        auto listener = http::base::listener{processor_.io_service()};
 
         if(auto ec = listener.init(resolved)){
             if(on_error)
@@ -88,8 +94,10 @@ class server_impl{
 
 protected:
 
-    base::listener::ptr listener_p_;
-    base::processor& processor_;
+    http::base::listener::ptr listener_p_;
+
+    boost::asio::ssl::context & ctx_;
+    http::base::processor& processor_;
 
     std::shared_ptr<resource_map_t> resource_map_cb_p_;
     std::shared_ptr<method_map_t> method_map_cb_p_;
@@ -97,10 +105,12 @@ protected:
 public:
 
     on_accept_fn on_accept;
+    on_handshake_fn on_handshake;
     on_error_fn on_error;
 
-    explicit server_impl()
-        : processor_{base::processor::get()},
+    explicit server_impl(boost::asio::ssl::context & ctx)
+        : ctx_{ctx},
+          processor_{http::base::processor::get()},
           basic_router_{nullptr},
           chain_router_{nullptr},
           resource_map_cb_p_{nullptr},
@@ -301,14 +311,15 @@ public:
         return process(address, port);
     }
 
-    template<class Callback1, class Callback2>
+    template<class Callback1, class Callback2, class Callback3>
     bool listen(const std::string & address, uint32_t port,
-                Callback1 && on_accept_handler, Callback2 && on_error_handler){
+                Callback1 && on_accept_handler, Callback2 && on_handshake_handler, Callback3 && on_error_handler){
         if(is_started)
             return true;
 
         on_accept = std::forward<Callback1>(on_accept_handler);
-        on_error = std::forward<Callback2>(on_error_handler);
+        on_handshake = std::forward<Callback2>(on_handshake_handler);
+        on_error = std::forward<Callback3>(on_error_handler);
         return process(address, port);
     }
 
@@ -336,11 +347,12 @@ public:
         get_chain_router()->use("", other);
     }
 
-}; // server_impl class
+};
 
-// default server implementation used std::string as body message
 using server = server_impl<boost::beast::http::string_body>;
+
+} // namespace ssl
 
 } // namespace http
 
-#endif // BEAST_HTTP_SERVER_HPP
+#endif // BEAST_HTTP_SSL_SERVER_HPP

@@ -1,8 +1,8 @@
-#ifndef BEAST_HTTP_SESSION_HPP
-#define BEAST_HTTP_SESSION_HPP
+#ifndef BEAST_HTTP_SSL_SESSION_HPP
+#define BEAST_HTTP_SSL_SESSION_HPP
 
 #include "base.hpp"
-#include "list_cb.hpp"
+#include "../list_cb.hpp"
 #include <boost/unordered_map.hpp>
 #include <boost/regex.hpp>
 
@@ -25,6 +25,8 @@ public:
 
 #endif // BEAST_HTTP_INVOKER_CALLBACK_IS_DEFINE
 
+namespace ssl {
+
 using resource_regex_t = std::string;
 using resource_t = boost::beast::string_view;
 using method_t = boost::beast::http::verb;
@@ -32,8 +34,8 @@ using s_method_t = boost::beast::string_view;
 
 //###########################################################################
 
-/// \brief session class. Handles an HTTP server connection
-/// \tparam Type of body request message
+/// @brief session class. Handles an HTTPS server connection
+/// @tparam Type of body request message
 template<bool isServer, class Body>
 class session : private cb_invoker,
         public std::enable_shared_from_this<session<true, Body> >
@@ -50,11 +52,18 @@ class session : private cb_invoker,
     using on_accept_fn
             = std::function<void(self_type&)>;
 
+    using on_handshake_fn
+            = std::function<void (self_type&)>;
+
     using on_error_fn
             = std::function<void (boost::beast::error_code const &)>;
 
     on_timer_fn on_timer_;
+    const on_handshake_fn& on_handshake_;
     const on_error_fn& on_error_;
+
+    bool handshake_ = false;
+    bool close_ = false;
 
     //https://www.boost.org/doc/libs/1_68_0/libs/beast/example/advanced/server/advanced_server.cpp
     class queue{
@@ -109,7 +118,7 @@ class session : private cb_invoker,
 
                 void operator()(){
                     self_.connection_.async_write(msg_,
-                                             std::bind(&self_type::on_write, self_.shared_from_this(),
+                                             std::bind(&session<true, Body>::on_write, self_.shared_from_this(),
                                                          std::placeholders::_1,
                                                          std::placeholders::_2,
                                                          msg_.need_eof()));
@@ -129,26 +138,31 @@ public:
 
     using ReqBody = Body;
 
-    explicit session(boost::asio::ip::tcp::socket&& socket,
+    explicit session(boost::asio::ssl::context& ctx,
+                     boost::asio::ip::tcp::socket&& socket,
                      const std::shared_ptr<resource_map_t> & resource_map_cb_p,
                      const std::shared_ptr<method_map_t> & method_map_cb_p,
+                     const on_handshake_fn & on_handshake,
                      const on_error_fn & on_error)
-        : on_error_{on_error},
+        : on_handshake_{on_handshake},
+          on_error_{on_error},
           timer_{socket.get_executor(),
                  (std::chrono::steady_clock::time_point::max)()},
-          connection_{std::move(socket)},
+          connection_{ctx, std::move(socket)},
           resource_map_cb_p_{resource_map_cb_p},
           method_map_cb_p_{method_map_cb_p},
           queue_{*this}
     {}
 
-    static void on_accept(boost::asio::ip::tcp::socket&& socket,
+    static void on_accept(boost::asio::ssl::context& ctx,
+                          boost::asio::ip::tcp::socket&& socket,
                           const std::shared_ptr<resource_map_t> & resource_map_cb_p,
                           const std::shared_ptr<method_map_t> & method_map_cb_p,
                           const on_accept_fn & on_accept,
+                          const on_handshake_fn & on_handshake,
                           const on_error_fn & on_error){
         auto new_session_p = std::make_shared<self_type>(
-                    std::move(socket), resource_map_cb_p, method_map_cb_p, on_error);
+                    ctx, std::move(socket), resource_map_cb_p, method_map_cb_p, on_handshake, on_error);
         if(on_accept)
             on_accept(*new_session_p);
     }
@@ -157,7 +171,22 @@ public:
         return connection_;
     }
 
+    void do_handshake(){
+        if(handshake_)
+            return;
+
+        timer_.stream().expires_after(std::chrono::seconds(10));
+
+        connection_.async_handshake_server(buffer_,
+                                       std::bind(&session<true, Body>::on_handshake,
+                                                 this->shared_from_this(),
+                                                 std::placeholders::_1,
+                                                 std::placeholders::_2));
+    }
+
     void do_read(){
+        if(!handshake_)
+            return;
 
         timer_.stream().expires_after(std::chrono::seconds(10));
 
@@ -166,34 +195,40 @@ public:
         connection_.async_read(
                     buffer_,
                     req_,
-                    std::bind(&self_type::on_read, this->shared_from_this(),
+                    std::bind(&session<true, Body>::on_read, this->shared_from_this(),
                               std::placeholders::_1,
                               std::placeholders::_2));
-
     }
 
     template<class Responce>
     void do_write(Responce && msg){
+        if(!handshake_)
+            return;
+
         queue_(std::forward<Responce>(msg));
     }
 
     void do_close(){
+        close_ = true;
+
         // Is this connection alive?
-        if(!connection_.stream().is_open())
+        if(!connection_.stream().lowest_layer().is_open())
             return;
 
+        // Set the timer
+        timer_.stream().expires_after(std::chrono::seconds(10));
 
-        if(auto ec = connection_.shutdown(boost::asio::ip::tcp::socket::shutdown_both))
-            on_error_(ec);
-
-        if(auto ec = connection_.close())
-            on_error_(ec);
+        // Perform the SSL shutdown
+        connection_.async_shutdown(std::bind(
+                                          &session<true, Body>::on_shutdown,
+                                          this->shared_from_this(),
+                                          std::placeholders::_1));
     }
 
     void launch_timer(){
         timer_.async_wait(
                     std::bind(
-                        &self_type::on_timer,
+                        &session<true, Body>::on_timer,
                         this->shared_from_this(),
                         std::placeholders::_1));
     }
@@ -205,7 +240,7 @@ public:
 
         timer_.async_wait(
                     std::bind(
-                        &self_type::on_timer,
+                        &session<true, Body>::on_timer,
                         this->shared_from_this(),
                         std::placeholders::_1));
     }
@@ -214,7 +249,7 @@ protected:
 
     void on_timer(boost::system::error_code ec){
         if(ec && ec != boost::asio::error::operation_aborted){
-            base::fail(ec, "timer");
+            http::base::fail(ec, "timer");
             on_error_(ec);
             return;
         }
@@ -222,19 +257,55 @@ protected:
         // Verify that the timer really expired since the deadline may have moved.
         if(timer_.stream().expiry() <= std::chrono::steady_clock::now())
         {
+            // If this is true it means we timed out performing the shutdown
+            if(close_)
+                return;
 
-            if(on_timer_ && connection_.stream().is_open())
+            if(on_timer_)
             {
                 on_timer_(*this);
                 return;
             }
 
-            // Closing the socket cancels all outstanding operations. They
-            // will complete with boost::asio::error::operation_aborted
-            return do_close();
+            // Start the timer again
+            timer_.stream().expires_at(
+                (std::chrono::steady_clock::time_point::max)());
+            launch_timer();
+            do_close();
+            return;
         }
 
         launch_timer();
+    }
+
+    void on_handshake(const boost::system::error_code & ec, std::size_t bytes_used){
+        if(ec){
+            http::base::fail(ec, "handshake");
+            on_error_(ec);
+            return;
+        }
+
+        handshake_ = true;
+
+        if(on_handshake_)
+            on_handshake_(*this);
+
+        // Consume the portion of the buffer used by the handshake
+        buffer_.consume(bytes_used);
+
+        do_read();
+    }
+
+    void on_shutdown(const boost::system::error_code & ec){
+        // Happens when the shutdown times out
+        if(ec == boost::asio::error::operation_aborted)
+            return;
+
+        if(ec){
+            http::base::fail(ec, "shutdown");
+            on_error_(ec);
+            return;
+        }
     }
 
     void on_read(const boost::system::error_code & ec, std::size_t bytes_transferred){
@@ -245,20 +316,19 @@ protected:
             return do_close();
 
         if(ec){
-            base::fail(ec, "read");
+            http::base::fail(ec, "read");
             on_error_(ec);
             return;
         }
 
         process_request();
-
     }
 
     void on_write(const boost::system::error_code & ec, std::size_t bytes_transferred, bool close){
         boost::ignore_unused(bytes_transferred);
 
         if(ec){
-            base::fail(ec, "write");
+            http::base::fail(ec, "write");
             on_error_(ec);
             return;
         }
@@ -315,30 +385,32 @@ protected:
             }
 
         // If we aren't at the queue limit, try to pipeline another request
-        if(! queue_.is_full() && connection_.stream().is_open())
+        if(! queue_.is_full() && connection_.stream().lowest_layer().is_open())
             do_read();
     }
 
-    base::timer timer_;
+    http::base::timer timer_;
     base::connection connection_;
+    boost::beast::flat_buffer buffer_;
     const std::shared_ptr<resource_map_t> & resource_map_cb_p_;
     const std::shared_ptr<method_map_t> & method_map_cb_p_;
     boost::beast::http::request<Body> req_;
-    boost::beast::flat_buffer buffer_;
     queue queue_;
 
-}; // class session
+};
 
-
-/// \brief session class. Handles an HTTP client connection
+/// \brief session class. Handles an HTTPS client connection
 /// \tparam Type of body response message
 template<class Body>
-class session<false, Body>  : private cb_invoker,
-        public std::enable_shared_from_this<session<false, Body>>{
+class session<false, Body> : private cb_invoker,
+        public std::enable_shared_from_this<session<false, Body> >{
 
     using self_type = session<false, Body>;
 
     using on_connection_fn
+            = std::function<void (self_type&)>;
+
+    using on_handshake_fn
             = std::function<void (self_type&)>;
 
     using on_message_fn
@@ -348,51 +420,72 @@ class session<false, Body>  : private cb_invoker,
     using on_error_fn
             = std::function<void (boost::beast::error_code const &)>;
 
+    const on_handshake_fn& on_handshake_;
     const on_message_fn& on_message_;
     const on_error_fn& on_error_;
 
 public:
 
     explicit session(base::connection & connection,
+                     const on_handshake_fn & on_handshake,
                      const on_message_fn & on_message,
                      const on_error_fn & on_error)
         : connection_{connection},
+          on_handshake_{on_handshake},
           on_message_{on_message},
           on_error_{on_error}
     {}
 
     static void on_connect(base::connection & connection,
                            const on_connection_fn & on_connect,
+                           const on_handshake_fn & on_handshake,
                            const on_message_fn & on_message,
                            const on_error_fn & on_error){
-        auto new_session_p = std::make_shared<self_type>(
-                    connection, on_message, on_error);
+        auto new_session_p = std::make_shared<session<false, Body>>(
+                    connection, on_handshake, on_message, on_error);
         if(on_connect)
             on_connect(*new_session_p);
+
     }
 
     auto & getConnection(){
         return connection_;
     }
 
+    void do_handshake(){
+        if(handshake_)
+            return;
+
+        connection_.async_handshake_client(std::bind(
+                                                  &session::on_handshake,
+                                                  this->shared_from_this(),
+                                                  std::placeholders::_1));
+    }
+
     void do_read(){
+        if(!handshake_)
+            return;
+
         res_ = {};
 
         connection_.async_read(
                     buffer_,
                     res_,
-                    std::bind(&self_type::on_read, this->shared_from_this(),
-                              std::placeholders::_1,
-                              std::placeholders::_2));
+                    std::bind(&session<false, Body>::on_read, this->shared_from_this(),
+                                std::placeholders::_1,
+                                std::placeholders::_2));
     }
 
     template<class Request>
     void do_write(Request && msg, bool next_read = true){
+        if(!handshake_)
+            return;
+
         auto sp = std::make_shared<std::decay_t<Request>>(std::forward<Request>(msg));
         msg_p_ = sp;
 
         connection_.async_write(*sp,
-                                 std::bind(&self_type::on_write, this->shared_from_this(),
+                                 std::bind(&session<false, Body>::on_write, this->shared_from_this(),
                                            std::placeholders::_1,
                                            std::placeholders::_2,
                                            next_read
@@ -400,30 +493,55 @@ public:
     }
 
     void do_close(){
-        boost::beast::error_code ec;
-        connection_.stream().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+        // Gracefully close the socket
+        connection_.async_shutdown(std::bind(
+                                          &session::on_shutdown,
+                                          this->shared_from_this(),
+                                          std::placeholders::_1));
 
-        if(ec && ec != boost::system::errc::not_connected){
-            base::fail(ec, "shutdown");
-            if(on_error_)
-                on_error_(ec);
-        }
-
-        connection_.stream().close(ec);
-
-        if(ec){
-            base::fail(ec, "close");
-            on_error_(ec);
-        }
     }
 
 protected:
+
+    void on_handshake(boost::system::error_code ec){
+        if(ec){
+            http::base::fail(ec, "handshake");
+            if(on_error_)
+                on_error_(ec);
+
+            return;
+        }
+
+        handshake_ = true;
+
+        if(on_handshake_)
+            on_handshake_(*this);
+    }
+
+    void on_shutdown(boost::system::error_code ec){
+        if(ec == boost::asio::error::eof)
+        {
+            // Rationale:
+            // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
+            ec.assign(0, ec.category());
+        }
+
+        if(ec){
+            http::base::fail(ec, "shutdown");
+            if(on_error_)
+                on_error_(ec);
+
+            return;
+        }
+
+        // If we get here then the connection is closed gracefully
+    }
 
     void on_read(const boost::system::error_code & ec, std::size_t bytes_transferred){
         boost::ignore_unused(bytes_transferred);
 
         if(ec){
-            base::fail(ec, "read");
+            http::base::fail(ec, "read");
             if(on_error_)
                 on_error_(ec);
 
@@ -440,7 +558,7 @@ protected:
         boost::ignore_unused(bytes_transferred);
 
         if(ec){
-            base::fail(ec, "write");
+            http::base::fail(ec, "write");
             if(on_error_)
                 on_error_(ec);
 
@@ -451,6 +569,7 @@ protected:
             do_read();
     }
 
+    bool handshake_ = false;
     base::connection & connection_;
     boost::beast::http::response<Body> res_;
     std::shared_ptr<void> msg_p_;
@@ -458,7 +577,8 @@ protected:
 
 }; // class session
 
+} // namespace ssl
 
 } // namespace http
 
-#endif // BEAST_HTTP_SESSION_HPP
+#endif // BEAST_HTTP_SSL_SESSION_HPP
