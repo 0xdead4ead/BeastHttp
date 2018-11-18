@@ -6,9 +6,9 @@
 // http://www.ietf.org/rfc/rfc2616.txt
 
 #include <iostream>
-#include <client.hpp>
 #include <array>
 
+#include <client.hpp>
 // Copyright (c) 2018 0xdead4ead
 
 // This is an example uses 'JSON for Modern C++'
@@ -78,9 +78,8 @@ int main()
         http::base::processor::get().stop();
     };
 
-    instance.on_error = [](auto & error, auto & info){
-        http::base::fail(error, info);
-        cout << "Error of connect session!" << endl;
+    instance.on_error = [](auto & /*error*/){
+        //std::cout << "Process an error is " << error.value() << endl;
         http::base::processor::get().stop();
     };
 

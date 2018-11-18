@@ -1,7 +1,6 @@
 #include <iostream>
 
-#include <client.hpp>
-#include <ssl.hpp>
+#include <ssl/client.hpp>
 
 using namespace std;
 
@@ -89,12 +88,12 @@ int main()
     http::ssl::client instance{ctx};
 
     instance.on_connect = [](auto & session){
-        http::base::out(session.getConnection()->stream().next_layer().remote_endpoint().address().to_string() + " successful connected!");
+        http::base::out(session.getConnection().stream().next_layer().remote_endpoint().address().to_string() + " connected!");
         session.do_handshake();
     };
 
     instance.on_handshake = [](auto & session){
-        http::base::out(session.getConnection()->stream().next_layer().remote_endpoint().address().to_string() + " successful handshake!");
+        http::base::out(session.getConnection().stream().next_layer().remote_endpoint().address().to_string() + " handshaked!");
 
         boost::beast::http::request<boost::beast::http::string_body> req;
         req.version(11); // HTTP 1.1
@@ -110,13 +109,12 @@ int main()
         http::base::processor::get().stop();
     };
 
-    instance.on_error = [](auto & error, auto & info){
-        http::base::fail(error, info);
-        cout << "Error of connect session!" << endl;
+    instance.on_error = [](auto & /*error*/){
+        //cout << "Process an error is " << error.value() << endl;
         http::base::processor::get().stop();
     };
 
-    if(!instance.invoke("127.0.0.1", 80)){
+    if(!instance.invoke("www.google.com", 443)){
         cout << "Failed to resolve address!" << endl;
         http::base::processor::get().stop();
     }

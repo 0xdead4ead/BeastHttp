@@ -1,7 +1,6 @@
 #include <iostream>
 
-#include <client.hpp>
-#include <ssl.hpp>
+#include <ssl/client.hpp>
 
 using namespace std;
 
@@ -83,21 +82,22 @@ int main()
     ctx.add_certificate_authority(
         boost::asio::buffer(cert.data(), cert.size()));
 
-    boost::system::error_code ec;
-    auto connection_p = http::base::processor::get()
-            .create_connection<http::ssl::base::connection>(ctx, "www.google.com", 443, ec);
+    auto ec = boost::system::error_code{};
+    auto endpoint = http::base::processor::get().resolve("www.google.com", 443, ec);
 
-    if(!connection_p){
+    if(ec){
         cout << "Failed to resolve address!" << endl;
         return -1;
     }
 
-    if(ec){
+    http::ssl::RAIIConnection connection{endpoint, ctx};
+
+    if(!connection){
         cout << "Connection invalid!" << endl;
         return -1;
     }
 
-    if(http::ssl::handshake_client(connection_p)){
+    if(http::ssl::handshake_client(connection)){
         cout << "http::ssl::handshake_client fail" << endl;
         return -1;
     }
@@ -108,14 +108,14 @@ int main()
     req.target("/");
     req.set(boost::beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
-    if(http::ssl::send_request(connection_p, req)){
-        cout << "http::ssl::send_request fail" << endl;
+    if(http::send(connection, req)){
+        cout << "http::send fail" << endl;
         return -1;
     }
 
     boost::beast::http::response<boost::beast::http::string_body> res;
-    if(http::ssl::recv_responce(connection_p, res)){
-        cout << "http::ssl::recv_response fail" << endl;
+    if(http::recv(connection, res)){
+        cout << "http::recv fail" << endl;
         return -1;
     }
 

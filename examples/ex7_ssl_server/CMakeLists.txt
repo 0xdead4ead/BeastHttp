@@ -11,14 +11,13 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 set(SOURCES
     ex7_ssl_server.cpp)
 set(HEADERS
-    ${PROJECT_SOURCE_DIR}/include/server.hpp
-    ${PROJECT_SOURCE_DIR}/include/client.hpp
-    ${PROJECT_SOURCE_DIR}/include/base.hpp
     ${PROJECT_SOURCE_DIR}/include/list_cb.hpp
     ${PROJECT_SOURCE_DIR}/include/router.hpp
-    ${PROJECT_SOURCE_DIR}/include/session.hpp
     ${PROJECT_SOURCE_DIR}/include/param.hpp
-    ${PROJECT_SOURCE_DIR}/include/ssl.hpp)
+    ${PROJECT_SOURCE_DIR}/include/literal.hpp
+    ${PROJECT_SOURCE_DIR}/include/ssl/base.hpp
+    ${PROJECT_SOURCE_DIR}/include/ssl/server.hpp
+    ${PROJECT_SOURCE_DIR}/include/ssl/session.hpp)
 
 add_executable(${OUTPUT_NAME} ${SOURCES} ${HEADERS})
 target_link_libraries(${OUTPUT_NAME} Boost::system Boost::thread Boost::regex  pthread icui18n)

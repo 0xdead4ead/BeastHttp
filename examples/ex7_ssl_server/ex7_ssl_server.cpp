@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include <server.hpp>
-#include <ssl.hpp>
+#include <ssl/server.hpp>
+#include <literal.hpp>
 
 using namespace std;
 
@@ -117,8 +117,8 @@ int main()
 
     http::ssl::server instance{ctx};
 
-    using http::ssl::literal::operator""_get;
-    using http::ssl::literal::operator""_all;
+    using http::literal::operator""_get;
+    using http::literal::operator""_all;
 
     R"(/1)"_get.assign(instance, [](auto & req, auto & session){
         cout << req << endl; // '/1'
@@ -135,13 +135,28 @@ int main()
         session.do_write(make_response(req, "error\n"));
      });
 
-    const auto & address = "127.0.0.1";
-    uint32_t port = 443;
+    const auto & on_accept = [](auto & session){
+        http::base::out(session.getConnection().stream()
+                        .lowest_layer().remote_endpoint().address().to_string() + " connected");
 
-    instance.listen(address, port, [](auto & session){
-        http::base::out(session.getConnection()->stream().lowest_layer().remote_endpoint().address().to_string() + " connected");
         session.do_handshake();
-    });
+    };
+
+    const auto & on_handshake = [](auto & session){
+        http::base::out(session.getConnection().stream()
+                        .lowest_layer().remote_endpoint().address().to_string() + " handshaked");
+
+        session.do_read();
+    };
+
+    const auto & on_error = [](auto & /*error*/){
+        //cout << "Process an error is " << error.value() << endl;
+    };
+
+    if(!instance.listen("127.0.0.1", 443, on_accept, on_handshake, on_error)){
+        cout << "Failed to resolve address or can't open listener!" << endl;
+        http::base::processor::get().stop();
+    }
 
     http::base::processor::get().register_signals_handler([](int signal){
         if(signal == SIGINT)

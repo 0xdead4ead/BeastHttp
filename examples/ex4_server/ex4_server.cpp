@@ -143,7 +143,6 @@ int main(int argc, char* argv[])
 //g++ -o ex4_server ex4_server.o -lboost_system -lboost_thread -lpthread -lboost_regex -licui18n -lboost_filesystem
 
     //##################################################################
-
     if (argc != 5)
     {
       std::cerr << "Usage: ex4_server <address> <port> <threads> <doc_root>\n";
@@ -241,13 +240,21 @@ int main(int argc, char* argv[])
         return session.do_write(not_found(req));
     });
 
-    instance.listen(address.data(), boost::lexical_cast<uint32_t>(port), [](auto & session){
-        http::base::out(session.getConnection()->stream().remote_endpoint().address().to_string() + " connected");
+    const auto & on_accept = [](auto & session){
+        http::base::out(session.getConnection().stream().remote_endpoint().address().to_string() + " connected");
         session.do_read();
-    });
+    };
+
+    const auto & on_error = [](auto & /*error*/){
+        //std::cout << "Process an error is " << error.value() << endl;
+    };
+
+    if(!instance.listen(address.data(), boost::lexical_cast<uint32_t>(port), on_accept, on_error)){
+        std::cout << "Failed to resolve address or can't open listener!" << std::endl;
+        http::base::processor::get().stop();
+    };
 
     //##################################################################
-
     http::base::processor::get().register_signals_handler([](int signal){
         if(signal == SIGINT)
             http::base::out("Interactive attention signal");

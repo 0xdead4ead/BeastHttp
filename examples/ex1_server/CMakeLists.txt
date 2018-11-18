@@ -10,12 +10,12 @@ set(SOURCES
     ex1_server.cpp)
 set(HEADERS
     ${PROJECT_SOURCE_DIR}/include/server.hpp
-    ${PROJECT_SOURCE_DIR}/include/client.hpp
     ${PROJECT_SOURCE_DIR}/include/base.hpp
     ${PROJECT_SOURCE_DIR}/include/list_cb.hpp
     ${PROJECT_SOURCE_DIR}/include/router.hpp
     ${PROJECT_SOURCE_DIR}/include/session.hpp
-    ${PROJECT_SOURCE_DIR}/include/param.hpp)
+    ${PROJECT_SOURCE_DIR}/include/param.hpp
+    ${PROJECT_SOURCE_DIR}/include/literal.hpp)
 
 add_executable(${OUTPUT_NAME} ${SOURCES} ${HEADERS})
 

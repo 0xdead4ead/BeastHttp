@@ -12,7 +12,7 @@ int main()
     http::client instance;
 
     instance.on_connect = [](auto & session){
-        http::base::out(session.getConnection()->stream().remote_endpoint().address().to_string() + " successful connected!");
+        http::base::out(session.getConnection().stream().remote_endpoint().address().to_string() + " successful connected!");
 
         boost::beast::http::request<boost::beast::http::string_body> req;
         req.version(11); // HTTP 1.1
@@ -29,17 +29,15 @@ int main()
         http::base::processor::get().stop();
     };
 
-    instance.on_error = [](auto & error, auto & info){
-        http::base::fail(error, info);
-        cout << "Error of connect session!" << endl;
+    instance.on_error = [](auto & /*error*/){
+        //cout << "Process an error is " << error.value() << endl;
         http::base::processor::get().stop();
     };
 
-    if(!instance.invoke("www.google.com", 80)){
+    if(!instance.invoke("www.google.ru", 80)){
         cout << "Failed to resolve address!" << endl;
         http::base::processor::get().stop();
     }
-
 
     uint32_t pool_size = boost::thread::hardware_concurrency();
     http::base::processor::get().start(pool_size == 0 ? 4 : pool_size << 1);

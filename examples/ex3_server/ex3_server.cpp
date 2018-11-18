@@ -4,8 +4,6 @@
 
 using namespace std;
 
-
-
 template<class Request>
 auto make_response(const Request & req, const string & user_body){
 
@@ -132,13 +130,19 @@ int main()
         session.do_write(make_response(req, "error\n"));
     });
 
-    const auto & address = "127.0.0.1";
-    uint32_t port = 80;
-
-    instance.listen(address, port, [](auto & session){
-        http::base::out(session.getConnection()->stream().remote_endpoint().address().to_string() + " connected");
+    const auto & on_accept = [](auto & session){
+        http::base::out(session.getConnection().stream().remote_endpoint().address().to_string() + " connected");
         session.do_read();
-    });
+    };
+
+    const auto & on_error = [](auto & /*error*/){
+        //cout << "Process an error is " << error.value() << endl;
+    };
+
+    if(!instance.listen("127.0.0.1", 80, on_accept, on_error)){
+        cout << "Failed to resolve address or can't open listener!" << endl;
+        http::base::processor::get().stop();
+    }
 
     http::base::processor::get().register_signals_handler([](int signal){
         if(signal == SIGINT)
