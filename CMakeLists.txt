@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 
-project(BeastHttp VERSION 105)
+project(BeastHttp VERSION 106)
 
 if(NOT CMAKE_CXX_FLAGS)
     set(CMAKE_CXX_FLAGS -std=c++14)
