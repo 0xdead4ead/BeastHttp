@@ -54,7 +54,6 @@ Add a route using a literal operator (as above)
 ```cpp
 
     using http::literal::operator""_get;
-    using http::literal::operator""_all;
 
     "/"_get.assign(instance, 
        [](auto & req, auto & /*session*/){
@@ -166,10 +165,16 @@ Start listening on localhost:80
 
 ```cpp
 
-    instance.listen("127.0.0.1", 80, [](auto & session){
+    const auto & on_accept = [&instance](auto & session){
         http::base::out("New client!!!");
         session.do_read();
-    });
+    };
+
+    const auto & on_error = [](auto & /*error*/){
+        //cout << "Process an error is " << error.value() << endl;
+    };
+
+    instance.listen("127.0.0.1", 80, on_accept, on_error);
 
 ```
 
@@ -203,8 +208,7 @@ Request content from the server (Async):
     };
 
     instance.on_error = [](auto & error, auto & info){
-        http::base::fail(error, info);
-        cout << "Error of connect session!" << endl;
+        //cout << "Process an error is " << error.value() << endl;
         http::base::processor::get().stop();
     };
 
@@ -219,30 +223,31 @@ Request content from the server (Sync):
 
 ```cpp
 
-    boost::system::error_code ec;
-    auto connection_p = http::base::processor::get().create_connection
-                                         <http::base::connection>("www.example.com", 80, ec);
+    auto ec = boost::system::error_code{};
+    auto endpoint = http::base::processor::get().resolve("www.google.com", 80, ec);
 
-    if(!connection_p){
+    if(ec){
         cout << "Failed to resolve address!" << endl;
         return -1;
     }
 
-    if(ec){
+    http::RAIIConnection connection{endpoint};
+
+    if(!connection){
         cout << "Connection invalid!" << endl;
         return -1;
     }
-    
-    // Send to host
-    if(http::send_request(connection_p, make_request())){
-        cout << "http::send_request fail!" << endl;
+
+        // Send to host
+    if(http::send(connection, make_request())){
+        cout << "http::send fail!" << endl;
         return -1;
     }
 
     auto res = make_response();
-    // Receive from host
-    if(http::recv_responce(connection_p, res)){
-        cout << "http::recv_responce fail!" << endl;
+        // Receive from host
+    if(http::recv(connection, res)){
+        cout << "http::recv fail!" << endl;
         return -1;
     }
 
