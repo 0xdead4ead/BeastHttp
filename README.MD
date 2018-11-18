@@ -165,7 +165,7 @@ Start listening on localhost:80
 
 ```cpp
 
-    const auto & on_accept = [&instance](auto & session){
+    const auto & on_accept = [](auto & session){
         http::base::out("New client!!!");
         session.do_read();
     };
@@ -207,12 +207,12 @@ Request content from the server (Async):
         http::base::processor::get().stop();
     };
 
-    instance.on_error = [](auto & error, auto & info){
+    instance.on_error = [](auto & error){
         //cout << "Process an error is " << error.value() << endl;
         http::base::processor::get().stop();
     };
 
-    if(!instance.invoke("www.google.com", 80)){
+    if(!instance.invoke("www.example.com", 80)){
         cout << "Failed to resolve address!" << endl;
         http::base::processor::get().stop();
     }
@@ -224,7 +224,7 @@ Request content from the server (Sync):
 ```cpp
 
     auto ec = boost::system::error_code{};
-    auto endpoint = http::base::processor::get().resolve("www.google.com", 80, ec);
+    auto endpoint = http::base::processor::get().resolve("www.example.com", 80, ec);
 
     if(ec){
         cout << "Failed to resolve address!" << endl;
