@@ -23,8 +23,6 @@ public:
 
     using ptr = std::shared_ptr<connection>;
 
-    connection(connection&&) = default;
-    auto operator=(connection&&) -> connection& = default;
     ~connection() = default;
 
     // Constructor for server to client connection
@@ -78,7 +76,8 @@ public:
     template<class B>
     auto handshake_server(const B& buf){
         auto ec = boost::beast::error_code{};
-        stream_.handshake(boost::asio::ssl::stream_base::server, buf.data(), ec);
+        stream_.handshake(
+                    boost::asio::ssl::stream_base::server, buf.data(), ec);
 
         if(ec)
             http::base::fail(ec, "handshake");
@@ -143,7 +142,8 @@ class RAIIConnection : public RAII,
 
 public:
 
-    RAIIConnection(const boost::asio::ip::tcp::endpoint& endpoint, boost::asio::ssl::context & ctx)
+    RAIIConnection(const boost::asio::ip::tcp::endpoint& endpoint,
+                   boost::asio::ssl::context & ctx)
         : base::connection{ctx, http::base::processor::get().io_service()}
     {
         auto ec = connect(endpoint);
