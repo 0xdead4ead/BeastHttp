@@ -6,7 +6,6 @@
 #include <boost/beast/version.hpp>
 #include <boost/asio/bind_executor.hpp>
 #include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ip/udp.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/asio/posix/stream_descriptor.hpp>
 #include <boost/asio/windows/stream_handle.hpp>
@@ -417,14 +416,13 @@ public:
         std::for_each(
             signals_to_wait.begin(),
             signals_to_wait.end(),
-            boost::bind(
-                &boost::asio::signal_set::add, &signals_, _1
-            )
-        );
+            std::bind(static_cast<void (boost::asio::signal_set::*)(int)>
+                        (&boost::asio::signal_set::add),
+                      &signals_, std::placeholders::_1));
 
-        signals_.async_wait(boost::bind(
-            &processor::handle_signals, this, _1, _2
-        ));
+        signals_.async_wait(std::bind(
+            &processor::handle_signals, this, std::placeholders::_1,
+                                std::placeholders::_2));
     }
 
 #if defined(BOOST_ASIO_HAS_POSIX_STREAM_DESCRIPTOR)
@@ -526,7 +524,8 @@ private:
 
 
         signals_.async_wait
-                (boost::bind(&processor::handle_signals, this, _1, _2));
+                (std::bind(&processor::handle_signals,
+                           this, std::placeholders::_1, std::placeholders::_2));
     }
 
 }; // class processor
@@ -539,7 +538,7 @@ inline void read_all(std::string & value){
 inline void read_up_to_enter(std::string & value){
     http::base::processor::get()
             .read_from_stream(value,
-                              boost::bind<size_t>([](auto & value, auto & err)
+                              std::bind<size_t>([](auto & value, auto & err)
                                                   -> size_t{
         if ( err)
             return 0;
@@ -548,7 +547,7 @@ inline void read_up_to_enter(std::string & value){
             return 0;
 
         return 1;
-    }, boost::ref(value), _1));
+    }, std::ref(value), std::placeholders::_1));
 }
 
 std::string prefix_line(){
@@ -586,24 +585,36 @@ class RAII;
 
 // synchronous calls
 template<class Connection, class Body,
-         class = std::enable_if_t<std::is_base_of<base::connection_base<Connection>, Connection>::value
-                                  || std::is_base_of<RAII, Connection>::value>>
+         class = std::enable_if_t<
+             std::is_base_of<
+                 base::connection_base<Connection>, Connection>::value
+                                  || std::is_base_of<RAII, Connection>::value
+             >
+         >
 auto send(Connection & connection,
                   /*const*/ boost::beast::http::request<Body> & msg){
     return connection.write(msg);
 }
 
 template<class Connection, class Body,
-         class = std::enable_if_t<std::is_base_of<base::connection_base<Connection>, Connection>::value
-                                  || std::is_base_of<RAII, Connection>::value>>
+         class = std::enable_if_t<
+             std::is_base_of<
+                 base::connection_base<Connection>, Connection>::value
+                                  || std::is_base_of<RAII, Connection>::value
+             >
+         >
 auto send(Connection & connection,
                    /*const*/ boost::beast::http::response<Body> & msg){
     return connection.write(msg);
 }
 
 template<class Connection, class Body,
-         class = std::enable_if_t<std::is_base_of<base::connection_base<Connection>, Connection>::value
-                                  || std::is_base_of<RAII, Connection>::value>>
+         class = std::enable_if_t<
+             std::is_base_of<
+                 base::connection_base<Connection>, Connection>::value
+                                  || std::is_base_of<RAII, Connection>::value
+             >
+         >
 auto recv(Connection & connection,
                   boost::beast::http::request<Body> & msg){
     boost::beast::flat_buffer buffer;
@@ -611,8 +622,12 @@ auto recv(Connection & connection,
 }
 
 template<class Connection, class Body,
-         class = std::enable_if_t<std::is_base_of<base::connection_base<Connection>, Connection>::value
-                                  || std::is_base_of<RAII, Connection>::value>>
+         class = std::enable_if_t<
+             std::is_base_of<
+                 base::connection_base<Connection>, Connection>::value
+                                  || std::is_base_of<RAII, Connection>::value
+             >
+         >
 auto recv(Connection & connection,
                    boost::beast::http::response<Body> & msg){
     boost::beast::flat_buffer buffer;
