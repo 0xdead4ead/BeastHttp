@@ -29,7 +29,9 @@
 #include <functional>
 #include <memory>
 
-#define BEAST_HTTP_VERSION 106
+#include "version.hpp"
+#define BEAST_HTTP_VERSION_VALUE ((BEAST_HTTP_VERSION_MAJOR * 100) \
+                                                     + BEAST_HTTP_VERSION_MINOR)
 
 namespace http {
 
@@ -556,7 +558,7 @@ std::string prefix_line(){
 
     std::ostringstream os;
     os << '(' << "BeastHttp/"
-       << BEAST_HTTP_VERSION << " [" << BOOST_BEAST_VERSION_STRING << ']' << ' '
+       << BEAST_HTTP_VERSION_VALUE << " [" << BOOST_BEAST_VERSION_STRING << ']' << ' '
        << timeLocal.date().year() << '/' << timeLocal.date().day() << '/'
        << timeLocal.date().month() << ' '
        << timeLocal.time_of_day().hours()

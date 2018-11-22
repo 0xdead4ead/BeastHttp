@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.11)
 
-project(BeastHttp VERSION 106)
+set (BEAST_HTTP_VERSION_MAJOR 1)
+set (BEAST_HTTP_VERSION_MINOR 7)
+
+project(BeastHttp)
+
+configure_file (
+  "${PROJECT_SOURCE_DIR}/conf/version.h.in"
+  "${PROJECT_SOURCE_DIR}/include/version.hpp"
+)
 
 if(NOT CMAKE_CXX_FLAGS)
     set(CMAKE_CXX_FLAGS -std=c++14)
