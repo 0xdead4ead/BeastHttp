@@ -97,31 +97,31 @@ int main()
         session.do_write(make_response(req, "ABCD\n"));
     });
 
-    const auto & on_accept = [&instance](auto & session){
+    auto books_router = instance.ChainRouter();
+
+    books_router.param<int>().route("/book/(\\d+)")
+      .get([](auto & req, auto & session, auto & args){
+
+        cout << req << endl;
+        session.do_write(make_response(req, std::to_string(args._1) + " get\n"));
+
+    }).post([](auto & req, auto & session, auto & args){
+
+        cout << req << endl;
+        session.do_write(make_response(req, std::to_string(args._1) + " post\n"));
+
+    }).put([](auto & req, auto & session, auto & args){
+
+        cout << req << endl;
+        session.do_write(make_response(req, std::to_string(args._1) + " put\n"));
+
+    });
+
+    instance.use(books_router);
+
+    const auto & on_accept = [](auto & session){
         http::base::out(session.getConnection().stream()
                         .remote_endpoint().address().to_string() + " connected");
-
-        auto books_router = instance.ChainRouter();
-
-        books_router.param<int>().route("/book/(\\d+)")
-          .get([](auto & req, auto & session, auto & args){
-
-            cout << req << endl;
-            session.do_write(make_response(req, std::to_string(args._1) + " get\n"));
-
-        }).post([](auto & req, auto & session, auto & args){
-
-            cout << req << endl;
-            session.do_write(make_response(req, std::to_string(args._1) + " post\n"));
-
-        }).put([](auto & req, auto & session, auto & args){
-
-            cout << req << endl;
-            session.do_write(make_response(req, std::to_string(args._1) + " put\n"));
-
-        });
-
-        instance.use(books_router);
 
         session.do_read();
     };
