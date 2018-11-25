@@ -57,6 +57,7 @@ class session : private cb_invoker,
     on_timer_fn on_timer_;
     const on_error_fn& on_error_;
 
+    base::timer::duration default_duration_ = std::chrono::milliseconds(500);
     //https://www.boost.org/doc/libs/1_68_0/libs/beast/example/advanced/server/advanced_server.cpp
     class queue{
         constexpr static size_t limit = 8;
@@ -158,10 +159,9 @@ public:
         return connection_;
     }
 
-    template<class Time = std::chrono::seconds>
-    void do_read(const Time& duration_or_time = std::chrono::seconds(500)){
+    void do_read(){
 
-        timer_.stream().expires_after(duration_or_time);
+        timer_.stream().expires_after(default_duration_);
 
         req_ = {};
 
@@ -190,6 +190,11 @@ public:
 
         if(auto ec = connection_.close())
             on_error_(ec, "close");
+    }
+
+    void set_expires_after(base::timer::duration duration
+                                              = std::chrono::milliseconds(500)){
+        default_duration_ = duration;
     }
 
     void launch_timer(){

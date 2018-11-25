@@ -65,6 +65,7 @@ class session : private cb_invoker,
 
     bool handshake_ = false;
     bool close_ = false;
+    http::base::timer::duration default_duration_ = std::chrono::milliseconds(500);
 
     //https://www.boost.org/doc/libs/1_68_0/libs/beast/example/advanced/server/advanced_server.cpp
     class queue{
@@ -176,7 +177,7 @@ public:
         if(handshake_)
             return;
 
-        timer_.stream().expires_after(std::chrono::seconds(10));
+        timer_.stream().expires_after(default_duration_);
 
         connection_.async_handshake_server(buffer_,
                                        std::bind(&session<true, Body>::on_handshake,
@@ -185,12 +186,11 @@ public:
                                                  std::placeholders::_2));
     }
 
-    template<class Time = std::chrono::seconds>
-    void do_read(const Time& duration_or_time = std::chrono::seconds(500)){
+    void do_read(){
         if(!handshake_)
             return;
 
-        timer_.stream().expires_after(duration_or_time);
+        timer_.stream().expires_after(default_duration_);
 
         req_ = {};
 
@@ -225,6 +225,11 @@ public:
                                           &session<true, Body>::on_shutdown,
                                           this->shared_from_this(),
                                           std::placeholders::_1));
+    }
+
+    void set_expires_after(http::base::timer::duration duration
+                                              = std::chrono::milliseconds(500)){
+        default_duration_ = duration;
     }
 
     void launch_timer(){
