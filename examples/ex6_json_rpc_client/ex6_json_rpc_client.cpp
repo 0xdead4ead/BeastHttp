@@ -78,8 +78,9 @@ int main()
         http::base::processor::get().stop();
     };
 
-    instance.on_error = [](auto & /*error*/){
-        //std::cout << "Process an error is " << error.value() << endl;
+    instance.on_error = [](auto & error, auto & info){
+        cout << "Error code: " << error.value() << ", "
+             << "Info: " << info << endl;
         http::base::processor::get().stop();
     };
 

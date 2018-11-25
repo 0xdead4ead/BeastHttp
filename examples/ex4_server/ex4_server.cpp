@@ -245,8 +245,9 @@ int main(int argc, char* argv[])
         session.do_read();
     };
 
-    const auto & on_error = [](auto & /*error*/){
-        //std::cout << "Process an error is " << error.value() << endl;
+    const auto & on_error = [](auto & error, auto & info){
+        std::cout << "Error code: " << error.value() << ", "
+             << "Info: " << info << std::endl;
     };
 
     if(!instance.listen(address.data(), boost::lexical_cast<uint32_t>(port), on_accept, on_error)){

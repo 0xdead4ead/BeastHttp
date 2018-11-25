@@ -497,8 +497,9 @@ int main()
         session.do_read();
     };
 
-    const auto & on_error = [](auto & /*error*/){
-        //std::cout << "Process an error is " << error.value() << endl;
+    const auto & on_error = [](auto & error, auto & info){
+        std::cout << "Error code: " << error.value() << ", "
+             << "Info: " << info << std::endl;
     };
 
     if(!instance.listen("127.0.0.1", 80, on_accept, on_error)){
