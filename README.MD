@@ -10,9 +10,9 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 * Pipeline
 * Asynchronous/Synchronous request, response handling
 * Thread pool support
-* Timer manage (default timeout: 10 seconds, default action: Closing connection)
+* Timer manage (default timeout: 500 milliseconds, default action: Closing connection)
 * Platform independent
-* Simple way to add REST resources using regex for path, and anonymous functions
+* Simple way to dynamic add REST resources using regex for path, and anonymous functions
 
 # DEPENDENCIES
 
@@ -24,7 +24,7 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 
 # USAGE
 
-More examples, an also JSON-RPC 2.0 server is [`here...`](https://github.com/0xdead4ead/beast_http_server/tree/dev/examples)
+More examples, an also JSON-RPC 2.0 server is [`here...`](https://github.com/0xdead4ead/BeastHttp/tree/dev/examples)
 
 Add new route for GET request with "/" resource: 
 
@@ -177,6 +177,31 @@ Start listening on localhost:80
 
     instance.listen("127.0.0.1", 80, on_accept, on_error);
 
+```
+
+Timer setting for incoming connection, closing after 5000 milliseconds:
+
+```cpp
+
+    const auto & on_accept = [](auto & session){
+        http::base::out("New connection!!!");
+        
+        session.do_read(std::chrono::milliseconds(5000));
+        session.launch_timer();
+    };
+    
+    // or
+
+    const auto & on_accept = [](auto & session){
+        http::base::out("New connection!!!");
+        
+        session.do_read(std::chrono::milliseconds(5000));
+        session.launch_timer([](auto & session){
+            http::base::out("Timer expired!!!");
+            session.do_close();
+        });
+    };
+    
 ```
 
 Run the I/O service on the requested number of threads:
