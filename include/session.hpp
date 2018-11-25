@@ -158,9 +158,10 @@ public:
         return connection_;
     }
 
-    void do_read(){
+    template<class Time = std::chrono::seconds>
+    void do_read(const Time& duration_or_time = std::chrono::seconds(500)){
 
-        timer_.stream().expires_after(std::chrono::seconds(10));
+        timer_.stream().expires_after(duration_or_time);
 
         req_ = {};
 
