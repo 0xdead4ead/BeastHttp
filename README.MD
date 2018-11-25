@@ -170,8 +170,9 @@ Start listening on localhost:80
         session.do_read();
     };
 
-    const auto & on_error = [](auto & /*error*/){
-        //cout << "Process an error is " << error.value() << endl;
+    const auto & on_error = [](auto & error, auto & info){
+        cout << "Error code: " << error.value() << ", "
+             << "Info: " << info << endl;
     };
 
     instance.listen("127.0.0.1", 80, on_accept, on_error);
@@ -207,8 +208,9 @@ Request content from the server (Async):
         http::base::processor::get().stop();
     };
 
-    instance.on_error = [](auto & error){
-        //cout << "Process an error is " << error.value() << endl;
+    instance.on_error = [](auto & error, auto & info){
+        cout << "Error code: " << error.value() << ", "
+             << "Info: " << info << endl;
         http::base::processor::get().stop();
     };
 
