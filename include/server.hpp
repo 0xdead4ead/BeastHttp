@@ -17,31 +17,39 @@ class server_impl{
     using session_type = session<true, ReqBody>;
     using basic_r = basic_router<session_type>;
     using chain_r = chain_router<session_type>;
-    using list_cb_t = list_cb<boost::beast::http::request<ReqBody>, session_type>;
-    using resource_map_t = boost::unordered_map<resource_regex_t, typename list_cb_t::ptr>;
+
+    using list_cb_t
+            = list_cb<boost::beast::http::request<ReqBody>, session_type>;
+
+    using resource_map_t
+            = boost::unordered_map<resource_regex_t, typename list_cb_t::ptr>;
+
     using method_map_t = std::map<method_t, resource_map_t>;
 
     using on_accept_fn
             = std::function<void (session_type&)>;
 
     using on_error_fn
-            = std::function<void (boost::beast::error_code const &)>;
+            = std::function<void (boost::beast::error_code const&,
+                                  boost::beast::string_view const&)>;
 
     bool is_started = false;
 
     std::shared_ptr<basic_r> basic_router_;
     std::shared_ptr<chain_r> chain_router_;
 
-    const std::shared_ptr<basic_r> & get_basic_router(){
+    const std::shared_ptr<basic_r>& get_basic_router(){
         if(!basic_router_)
-            basic_router_ = std::make_shared<basic_r>(resource_map_cb_p_, method_map_cb_p_);
+            basic_router_ = std::make_shared<basic_r>(
+                        resource_map_cb_p_, method_map_cb_p_);
 
         return basic_router_;
     }
 
-    const std::shared_ptr<chain_r> & get_chain_router(){
+    const std::shared_ptr<chain_r>& get_chain_router(){
         if(!chain_router_)
-            chain_router_ = std::make_shared<chain_r>(resource_map_cb_p_, method_map_cb_p_);
+            chain_router_ = std::make_shared<chain_r>(
+                        resource_map_cb_p_, method_map_cb_p_);
 
         return chain_router_;
     }
@@ -50,32 +58,36 @@ class server_impl{
         if(ec){
             base::fail(ec, "accept");
             if(on_error)
-                on_error(ec);
+                on_error(ec, "accept");
         }
         else
-            session<true, ReqBody>::on_accept
-                    (listener_p_->get_socket(), resource_map_cb_p_, method_map_cb_p_, on_accept, on_error);
+            session_type::on_accept
+                    (listener_p_->get_socket(),
+                     resource_map_cb_p_, method_map_cb_p_, on_accept, on_error);
 
         // Accept another connection
-        listener_p_->do_accept(std::bind(&self_type::on_accept_, this, std::placeholders::_1));
+        listener_p_->do_accept(
+                    std::bind(&self_type::on_accept_,
+                              this, std::placeholders::_1));
     }
 
-    bool process(const std::string & address, uint32_t port){
+    bool process(const std::string& address, uint32_t port){
         auto ec = boost::system::error_code{};
         auto resolved = processor_.resolve(address, port, ec);
 
         if(ec){
             if(on_error)
-                on_error(ec);
+                on_error(ec, "resolve");
 
             return false;
         }
 
         auto listener = base::listener{processor_.io_service()};
 
-        if(auto ec = listener.init(resolved)){
+        boost::beast::string_view info;
+        if(auto ec = listener.init(resolved, info)){
             if(on_error)
-                on_error(ec);
+                on_error(ec, info);
 
             return false;
         }

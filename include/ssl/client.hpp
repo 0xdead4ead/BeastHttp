@@ -26,13 +26,15 @@ class client_impl{
             = std::function<void (boost::beast::http::response<ResBody>&,
                                   session_type&)>;
     using on_error_fn
-            = std::function<void (boost::beast::error_code const &)>;
+            = std::function<void (boost::beast::error_code const&,
+                                  boost::beast::string_view const&)>;
 
     void on_connect_(const boost::system::error_code & ec){
         if(ec){
             http::base::fail(ec, "connect");
+
             if(on_error)
-                on_error(ec);
+                on_error(ec, "connect");
 
             return;
         }
@@ -47,7 +49,7 @@ class client_impl{
 
         if(ec){
             if(on_error)
-                on_error(ec);
+                on_error(ec, "resolve");
 
             return false;
         }

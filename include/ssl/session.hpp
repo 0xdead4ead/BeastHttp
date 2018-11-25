@@ -56,7 +56,8 @@ class session : private cb_invoker,
             = std::function<void (self_type&)>;
 
     using on_error_fn
-            = std::function<void (boost::beast::error_code const &)>;
+            = std::function<void (boost::beast::error_code const&,
+                                  boost::beast::string_view const&)>;
 
     on_timer_fn on_timer_;
     const on_handshake_fn& on_handshake_;
@@ -250,7 +251,10 @@ protected:
     void on_timer(boost::system::error_code ec){
         if(ec && ec != boost::asio::error::operation_aborted){
             http::base::fail(ec, "timer");
-            on_error_(ec);
+
+            if(on_error_)
+                on_error_(ec, "timer");
+
             return;
         }
 
@@ -261,9 +265,10 @@ protected:
             if(close_)
                 return;
 
-            if(on_timer_)
+            if(on_timer_ && connection_.stream().next_layer().is_open())
             {
                 on_timer_(*this);
+
                 return;
             }
 
@@ -281,7 +286,10 @@ protected:
     void on_handshake(const boost::system::error_code & ec, std::size_t bytes_used){
         if(ec){
             http::base::fail(ec, "handshake");
-            on_error_(ec);
+
+            if(on_error_)
+                on_error_(ec, "handshake");
+
             return;
         }
 
@@ -303,7 +311,10 @@ protected:
 
         if(ec){
             http::base::fail(ec, "shutdown");
-            on_error_(ec);
+
+            if(on_error_)
+                on_error_(ec, "shutdown");
+
             return;
         }
     }
@@ -317,7 +328,10 @@ protected:
 
         if(ec){
             http::base::fail(ec, "read");
-            on_error_(ec);
+
+            if(on_error_)
+                on_error_(ec, "read");
+
             return;
         }
 
@@ -329,7 +343,10 @@ protected:
 
         if(ec){
             http::base::fail(ec, "write");
-            on_error_(ec);
+
+            if(on_error_)
+                on_error_(ec, "write");
+
             return;
         }
 
@@ -418,7 +435,8 @@ class session<false, Body> : private cb_invoker,
                                   self_type&)>;
 
     using on_error_fn
-            = std::function<void (boost::beast::error_code const &)>;
+            = std::function<void (boost::beast::error_code const&,
+                                  boost::beast::string_view const&)>;
 
     const on_handshake_fn& on_handshake_;
     const on_message_fn& on_message_;
@@ -506,8 +524,9 @@ protected:
     void on_handshake(boost::system::error_code ec){
         if(ec){
             http::base::fail(ec, "handshake");
+
             if(on_error_)
-                on_error_(ec);
+                on_error_(ec, "handshake");
 
             return;
         }
@@ -528,8 +547,9 @@ protected:
 
         if(ec){
             http::base::fail(ec, "shutdown");
+
             if(on_error_)
-                on_error_(ec);
+                on_error_(ec, "shutdown");
 
             return;
         }
@@ -542,8 +562,9 @@ protected:
 
         if(ec){
             http::base::fail(ec, "read");
+
             if(on_error_)
-                on_error_(ec);
+                on_error_(ec, "read");
 
             return;
         }
@@ -559,8 +580,9 @@ protected:
 
         if(ec){
             http::base::fail(ec, "write");
+
             if(on_error_)
-                on_error_(ec);
+                on_error_(ec, "write");
 
             return;
         }

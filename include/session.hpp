@@ -51,7 +51,8 @@ class session : private cb_invoker,
             = std::function<void(self_type&)>;
 
     using on_error_fn
-            = std::function<void (boost::beast::error_code const &)>;
+            = std::function<void (boost::beast::error_code const&,
+                                  boost::beast::string_view const&)>;
 
     on_timer_fn on_timer_;
     const on_error_fn& on_error_;
@@ -184,10 +185,10 @@ public:
 
 
         if(auto ec = connection_.shutdown(boost::asio::ip::tcp::socket::shutdown_both))
-            on_error_(ec);
+            on_error_(ec, "shutdown");
 
         if(auto ec = connection_.close())
-            on_error_(ec);
+            on_error_(ec, "close");
     }
 
     void launch_timer(){
@@ -215,7 +216,10 @@ protected:
     void on_timer(boost::system::error_code ec){
         if(ec && ec != boost::asio::error::operation_aborted){
             base::fail(ec, "timer");
-            on_error_(ec);
+
+            if(on_error_)
+                on_error_(ec, "timer");
+
             return;
         }
 
@@ -226,6 +230,7 @@ protected:
             if(on_timer_ && connection_.stream().is_open())
             {
                 on_timer_(*this);
+
                 return;
             }
 
@@ -246,7 +251,10 @@ protected:
 
         if(ec){
             base::fail(ec, "read");
-            on_error_(ec);
+
+            if(on_error_)
+                on_error_(ec, "read");
+
             return;
         }
 
@@ -259,7 +267,10 @@ protected:
 
         if(ec){
             base::fail(ec, "write");
-            on_error_(ec);
+
+            if(on_error_)
+                on_error_(ec, "write");
+
             return;
         }
 
@@ -321,8 +332,8 @@ protected:
 
     base::timer timer_;
     base::connection connection_;
-    const std::shared_ptr<resource_map_t> & resource_map_cb_p_;
-    const std::shared_ptr<method_map_t> & method_map_cb_p_;
+    const std::shared_ptr<resource_map_t>& resource_map_cb_p_;
+    const std::shared_ptr<method_map_t>& method_map_cb_p_;
     boost::beast::http::request<Body> req_;
     boost::beast::flat_buffer buffer_;
     queue queue_;
@@ -346,25 +357,26 @@ class session<false, Body>  : private cb_invoker,
                                   self_type&)>;
 
     using on_error_fn
-            = std::function<void (boost::beast::error_code const &)>;
+            = std::function<void (boost::beast::error_code const&,
+                                  boost::beast::string_view const&)>;
 
     const on_message_fn& on_message_;
     const on_error_fn& on_error_;
 
 public:
 
-    explicit session(base::connection & connection,
-                     const on_message_fn & on_message,
-                     const on_error_fn & on_error)
+    explicit session(base::connection& connection,
+                     const on_message_fn& on_message,
+                     const on_error_fn& on_error)
         : connection_{connection},
           on_message_{on_message},
           on_error_{on_error}
     {}
 
-    static void on_connect(base::connection & connection,
-                           const on_connection_fn & on_connect,
-                           const on_message_fn & on_message,
-                           const on_error_fn & on_error){
+    static void on_connect(base::connection& connection,
+                           const on_connection_fn& on_connect,
+                           const on_message_fn& on_message,
+                           const on_error_fn& on_error){
         auto new_session_p = std::make_shared<self_type>(
                     connection, on_message, on_error);
         if(on_connect)
@@ -405,15 +417,18 @@ public:
 
         if(ec && ec != boost::system::errc::not_connected){
             base::fail(ec, "shutdown");
+
             if(on_error_)
-                on_error_(ec);
+                on_error_(ec, "shutdown");
         }
 
         connection_.stream().close(ec);
 
         if(ec){
             base::fail(ec, "close");
-            on_error_(ec);
+
+            if(on_error_)
+                on_error_(ec, "close");
         }
     }
 
@@ -424,8 +439,9 @@ protected:
 
         if(ec){
             base::fail(ec, "read");
+
             if(on_error_)
-                on_error_(ec);
+                on_error_(ec, "read");
 
             return;
         }
@@ -441,8 +457,9 @@ protected:
 
         if(ec){
             base::fail(ec, "write");
+
             if(on_error_)
-                on_error_(ec);
+                on_error_(ec, "write");
 
             return;
         }

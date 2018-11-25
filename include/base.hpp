@@ -39,9 +39,9 @@ namespace base {
 
 class processor;
 
-void out(const boost::beast::string_view & info);
-void fail(const boost::system::error_code & ec,
-          const boost::beast::string_view & info);
+void out(const boost::beast::string_view& info);
+void fail(const boost::system::error_code& ec,
+          const boost::beast::string_view& info);
 
 class timer{
 
@@ -61,7 +61,7 @@ public:
           timer_{executor.context(), duration_or_time}
     {}
 
-    auto & stream(){
+    auto& stream(){
         return timer_;
     }
 
@@ -197,7 +197,7 @@ public:
         return ec;
     }
 
-    auto & stream(){
+    auto& stream(){
         return socket_;
     }
 
@@ -228,14 +228,16 @@ public:
           socket_{io_service}
     {}
 
-    auto init(const boost::asio::ip::tcp::endpoint& endpoint){
+    auto init(const boost::asio::ip::tcp::endpoint& endpoint,
+              boost::beast::string_view& fail_info){
 
         auto ec = boost::system::error_code{};
         // Open the acceptor
         acceptor_.open(endpoint.protocol(), ec);
         if(ec)
         {
-            fail(ec, "open");
+            fail_info = "open";
+            fail(ec, fail_info);
             return ec;
         }
 
@@ -243,7 +245,8 @@ public:
         acceptor_.set_option(boost::asio::socket_base::reuse_address(false));
         if(ec)
         {
-            fail(ec, "set_option");
+            fail_info = "set_option";
+            fail(ec, fail_info);
             return ec;
         }
 
@@ -251,7 +254,8 @@ public:
         acceptor_.bind(endpoint, ec);
         if(ec)
         {
-            fail(ec, "bind");
+            fail_info = "bind";
+            fail(ec, fail_info);
             return ec;
         }
 
@@ -260,7 +264,8 @@ public:
             boost::asio::socket_base::max_listen_connections, ec);
         if(ec)
         {
-            fail(ec, "listen");
+            fail_info = "listen";
+            fail(ec, fail_info);
             return ec;
         }
 
@@ -300,7 +305,7 @@ public:
         do_accept(std::forward<F>(on_accept));
     }
 
-    auto & endpoint() const{
+    auto& endpoint() const{
         return endpoint_;
     }
 
@@ -438,16 +443,16 @@ public:
     " nor BOOST_ASIO_HAS_WINDOWS_STREAM_HANDLE is defined"
 #endif
 
-    void assign_in(const native_handle_type & handle){
+    void assign_in(const native_handle_type& handle){
         in_.assign(handle);
     }
 
-    void assign_out(const native_handle_type & handle){
+    void assign_out(const native_handle_type& handle){
         out_.assign(handle);
     }
 
     template<class Completion>
-    std::size_t read_from_stream(std::string & value, Completion && completion){
+    std::size_t read_from_stream(std::string& value, Completion&& completion){
         if(in_.is_open())
             return boost::asio::read(in_, boost::asio::buffer(value),
                                      std::forward<Completion>(completion));
@@ -456,8 +461,8 @@ public:
     }
 
     template<class Completion, class Callback>
-    void async_read_from_stream(std::string & value, Completion && completion,
-                                Callback && callback){
+    void async_read_from_stream(std::string& value, Completion&& completion,
+                                Callback&& callback){
         if(in_.is_open())
             boost::asio::async_read(in_, boost::asio::buffer(value),
                                     std::forward<Completion>(completion),
@@ -465,8 +470,8 @@ public:
     }
 
     template<class Completion>
-    std::size_t write_to_stream(const std::string & value,
-                                Completion && completion){
+    std::size_t write_to_stream(const std::string& value,
+                                Completion&& completion){
         if(out_.is_open())
             return boost::asio::write(out_, boost::asio::buffer(value),
                                       std::forward<Completion>(completion));
@@ -475,8 +480,8 @@ public:
     }
 
     template<class Completion, class Callback>
-    void async_write_to_stream(const std::string & value,
-                               Completion && completion, Callback && callback){
+    void async_write_to_stream(const std::string& value,
+                               Completion&& completion, Callback&& callback){
         if(out_.is_open())
             boost::asio::async_write(out_, boost::asio::buffer(value),
                                      std::forward<Completion>(completion),
@@ -532,12 +537,12 @@ private:
 
 }; // class processor
 
-inline void read_all(std::string & value){
+inline void read_all(std::string& value){
     http::base::processor::get()
             .read_from_stream(value, boost::asio::transfer_all());
 }
 
-inline void read_up_to_enter(std::string & value){
+inline void read_up_to_enter(std::string& value){
     http::base::processor::get()
             .read_from_stream(value,
                               std::bind<size_t>([](auto & value, auto & err)
@@ -557,8 +562,8 @@ std::string prefix_line(){
                                 = boost::posix_time::second_clock::local_time();
 
     std::ostringstream os;
-    os << '(' << "BeastHttp/"
-       << BEAST_HTTP_VERSION_VALUE << " [" << BOOST_BEAST_VERSION_STRING << ']' << ' '
+    os << '(' << "BeastHttp/" << BEAST_HTTP_VERSION_VALUE
+       << " [" << BOOST_BEAST_VERSION_STRING << ']' << ' '
        << timeLocal.date().year() << '/' << timeLocal.date().day() << '/'
        << timeLocal.date().month() << ' '
        << timeLocal.time_of_day().hours()
@@ -567,15 +572,15 @@ std::string prefix_line(){
     return os.str();
 }
 
-inline void out(const boost::beast::string_view & info){
-    const std::string & out_line = prefix_line() + info.to_string() + "\n";
+inline void out(const boost::beast::string_view& info){
+    const std::string& out_line = prefix_line() + info.to_string() + "\n";
     processor::get().write_to_stream(out_line,
                                 boost::asio::transfer_exactly(out_line.size()));
 }
 
-inline void fail(const boost::system::error_code & ec,
-                 const boost::beast::string_view & info){
-    const std::string & out_line = prefix_line()
+inline void fail(const boost::system::error_code& ec,
+                 const boost::beast::string_view& info){
+    const std::string& out_line = prefix_line()
             + info.to_string() + " : " + ec.message() + "\n";
     processor::get().write_to_stream(out_line,
                                 boost::asio::transfer_exactly(out_line.size()));
@@ -593,8 +598,8 @@ template<class Connection, class Body,
                                   || std::is_base_of<RAII, Connection>::value
              >
          >
-auto send(Connection & connection,
-                  /*const*/ boost::beast::http::request<Body> & msg){
+auto send(Connection& connection,
+                  /*const*/ boost::beast::http::request<Body>& msg){
     return connection.write(msg);
 }
 
@@ -605,8 +610,8 @@ template<class Connection, class Body,
                                   || std::is_base_of<RAII, Connection>::value
              >
          >
-auto send(Connection & connection,
-                   /*const*/ boost::beast::http::response<Body> & msg){
+auto send(Connection& connection,
+                   /*const*/ boost::beast::http::response<Body>& msg){
     return connection.write(msg);
 }
 
@@ -617,8 +622,8 @@ template<class Connection, class Body,
                                   || std::is_base_of<RAII, Connection>::value
              >
          >
-auto recv(Connection & connection,
-                  boost::beast::http::request<Body> & msg){
+auto recv(Connection& connection,
+                  boost::beast::http::request<Body>& msg){
     boost::beast::flat_buffer buffer;
     return connection.read(buffer, msg);
 }
@@ -630,8 +635,8 @@ template<class Connection, class Body,
                                   || std::is_base_of<RAII, Connection>::value
              >
          >
-auto recv(Connection & connection,
-                   boost::beast::http::response<Body> & msg){
+auto recv(Connection& connection,
+                   boost::beast::http::response<Body>& msg){
     boost::beast::flat_buffer buffer;
     return connection.read(buffer, msg);
 }

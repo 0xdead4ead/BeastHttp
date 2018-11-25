@@ -30,7 +30,8 @@ class server_impl{
             = std::function<void (session_type&)>;
 
     using on_error_fn
-            = std::function<void (boost::beast::error_code const &)>;
+            = std::function<void (boost::beast::error_code const&,
+                                  boost::beast::string_view const&)>;
 
     bool is_started = false;
 
@@ -54,8 +55,9 @@ class server_impl{
     void on_accept_(const boost::system::error_code& ec){
         if(ec){
             http::base::fail(ec, "accept");
+
             if(on_error)
-                on_error(ec);
+                on_error(ec, "accept");
         }
         else
             session_type::on_accept(
@@ -72,16 +74,17 @@ class server_impl{
 
         if(ec){
             if(on_error)
-                on_error(ec);
+                on_error(ec, "resolve");
 
             return false;
         }
 
         auto listener = http::base::listener{processor_.io_service()};
 
-        if(auto ec = listener.init(resolved)){
+        boost::beast::string_view info;
+        if(auto ec = listener.init(resolved, info)){
             if(on_error)
-                on_error(ec);
+                on_error(ec, info);
 
             return false;
         }
