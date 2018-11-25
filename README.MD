@@ -186,7 +186,8 @@ Timer setting for incoming connection, closing after 5000 milliseconds:
     const auto & on_accept = [](auto & session){
         http::base::out("New connection!!!");
         
-        session.do_read(std::chrono::milliseconds(5000));
+        session.set_expires_after(std::chrono::milliseconds(5000));
+        session.do_read();
         session.launch_timer();
     };
     
@@ -195,7 +196,8 @@ Timer setting for incoming connection, closing after 5000 milliseconds:
     const auto & on_accept = [](auto & session){
         http::base::out("New connection!!!");
         
-        session.do_read(std::chrono::milliseconds(5000));
+        session.set_expires_after(std::chrono::milliseconds(5000));
+        session.do_read();
         session.launch_timer([](auto & session){
             http::base::out("Timer expired!!!");
             session.do_close();
