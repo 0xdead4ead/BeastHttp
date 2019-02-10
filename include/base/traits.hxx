@@ -311,6 +311,14 @@ static inline constexpr auto hasResourceType
 static inline constexpr auto hasMethodType
     = isValid([](auto&& x)
               -> typename std::decay_t<decltype (x)>::method_type {});
+
+static inline constexpr auto hasCbExecutorType
+    = isValid([](auto&& x)
+              -> typename std::decay_t<decltype (x)>::cbexecutor_type {});
+
+static inline constexpr auto hasRegexType
+    = isValid([](auto&& x)
+              -> typename std::decay_t<decltype (x)>::regex_type {});
 #endif // not defined __cpp_inline_variables
 
 template<class F, class... Args>

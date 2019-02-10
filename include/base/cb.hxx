@@ -55,13 +55,13 @@ struct for_each_1<Begin, End, size_type<std::tuple_size<std::tuple<Elements...>>
 
 }; // struct for_each_1
 
-template<class Begin, class End, class... Elements, std::size_t Index = 0>
+template<std::size_t Index, class Begin, class End, class... Elements>
 void for_each(const std::tuple<Elements...>& tpl, const Begin& begin, const End& end)
 {
     for_each_1<Begin, End, size_type<Index>, Elements...>{}(tpl, begin, end);
 }
 #else
-template <class Begin, class End, class... Elements, std::size_t Index = 0>
+template <std::size_t Index, class Begin, class End, class... Elements>
 void for_each(const std::tuple<Elements...>& tpl, const Begin& begin, const End& end)
 {
     const auto& value = std::get<Index>(tpl);
@@ -69,7 +69,7 @@ void for_each(const std::tuple<Elements...>& tpl, const Begin& begin, const End&
         end(value);
     else {
         begin(value);
-        for_each(tpl, begin, end);
+        for_each<Index + 1, Begin, End, Elements...>(tpl, begin, end);
     }
 }
 #endif
@@ -226,8 +226,8 @@ private:
         static_assert(std::tuple_size<std::decay_t<decltype (tuple_cb) >>::value != 0,
                       "Oops...! tuple is empty.");
 
-        helpers::for_each(tuple_cb,
-                          [&_l](const auto& value){
+        helpers::for_each<0>(tuple_cb,
+                             [&_l](const auto& value){
             _l.push_back(
                         entry_type(
                             std::bind<void>(
