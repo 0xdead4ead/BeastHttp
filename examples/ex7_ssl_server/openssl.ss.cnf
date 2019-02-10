@@ -1,4 +1,0 @@
-basicConstraints = CA:FALSE
-subjectAltName =DNS:localhost
-extendedKeyUsage =serverAuth
-authorityInfoAccess = OCSP;URI:http://ocsp.localhost:80/

@@ -10,7 +10,7 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 * Pipeline
 * Asynchronous/Synchronous request, response handling
 * Thread pool support
-* Timer manage (default timeout: 500 milliseconds, default action: Closing connection)
+* Timer manage (default action: Closing connection)
 * Platform independent
 * Simple way to dynamic add REST resources using regex for path, and anonymous functions
 
@@ -18,33 +18,41 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 
 * Boost Libraries >= 1.66.0v
 * [`Boost.Regex`](https://github.com/boostorg/regex), [`Boost.Asio`](https://github.com/boostorg/asio), [`Boost.Beast`](https://github.com/boostorg/beast/tree/develop) & [`Boost.LexicalCast`](https://github.com/boostorg/lexical_cast) library
-* [`JSON for Modern C++`](https://github.com/nlohmann/json) (optional)
 * [`OpenSSL`](https://github.com/openssl/openssl) (optional)
 * Minimal C++ 14 compatible compilator (for generic lambda)
 
 # USAGE
 
-More examples, an also JSON-RPC 2.0 server is [`here...`](https://github.com/0xdead4ead/BeastHttp/tree/dev/examples)
+More examples is [`here...`](https://github.com/0xdead4ead/BeastHttp/tree/dev/examples)
+The following notes show the standard syntax for setting up routes and starting a server!
 
-Add new route for GET request with "/" resource: 
+Alias's represent instances of default classes for reactive design.
 
 ```cpp
 
-    http::server instance;
+    using session_type = http::reactor::_default::session_type;
+    using listener_type = http::reactor::_default::listener_type;
 
-    instance.get("/", 
-       [](auto & req, auto & /*session*/){
-        cout << req << endl;
+```
+
+Add new route for GET request with "/" and "/a/b" resource: 
+
+```cpp
+
+    http::basic_router<session_type> router;
+
+    router.get("/", [](auto request, auto context) {
+        context.get().send(make_response(request, "MAIN PAGE\n"));
     });
+    
+    // and
 
-    // or
-
-    instance.get("/a/b", 
-       [](auto & /*req*/, auto & /*session*/, auto & next){
-        // process '/a'
-        next();
-    }, [](auto & /*req*/, auto & /*session*/){
-        // process '/b'
+    router.get("/a/b",
+       [](auto /*request*/, auto /*context*/, auto _1x){
+        // process /a
+        std::next(_1x)();
+    }, [](auto /*request*/, auto /*context*/){
+        // process /b
     });
 
 ```
@@ -53,43 +61,43 @@ Add a route using a literal operator (as above)
 
 ```cpp
 
-    using http::literal::operator""_get;
+    using http::literals::operator""_get;
 
-    "/"_get.assign(instance, 
-       [](auto & req, auto & /*session*/){
-        cout << req << endl;
+    "/"_get.advance(router, [](auto request, auto context) {
+        context.get().send(make_response(request, "MAIN PAGE\n"));
     });
     
-    // or
+    // and
     
-    "/a/b"_get.assign(instance, 
-       [](auto & /*req*/, auto & /*session*/, auto & next){
-        // process '/a'
-        next();
-    }, [](auto & /*req*/, auto & /*session*/){
-        // process '/b'
-    })
+    "/a/b"_get.advance(router, 
+       [](auto /*request*/, auto /*context*/, auto _1x){
+        // process /a
+        std::next(_1x)();
+    }, [](auto /*request*/, auto /*context*/){
+        // process /b
+    });
 
 ```
 
-Getting a parameter from a URI `/user/1992` :
+Getting a parameter from a URI `/user/param?y=1992` :
 
 ```cpp
 
-    instance.param<int>().get("/user/(\\d+)",
-       [](auto & /*req*/, auto & /*session*/, auto & args){
-        assert(args._1 == 1992);
+    router.param<http::param::pack<int>>(boost::regex::ECMAScript)
+            .get("/user/param[?]y=(\\d+)", [](auto /*request*/, auto /*context*/, auto args){
+        assert(std::get<0>(args) == 1992);
     });
 
     // or
 
-    instance.param<int>().get("/user/(\\d+)",
-       [](auto & /*req*/, auto & /*session*/, auto & next, auto & /*args*/){
-        // process '/user'
-        next();
-    }, [](auto & /*req*/, auto & /*session*/, auto & args){
-        // process '/id'
-        assert(args._1 == 1992);
+    router.param<http::param::pack<int>>(boost::regex::ECMAScript)
+            .get("/user/param[?]y=(\\d+)",
+       [](auto /*request*/, auto /*context*/, auto _1x, auto /*args*/){
+        // process /user
+        std::next(_1x)();
+    }, [](auto /*request*/, auto /*context*/, auto args){
+        // process /param
+        assert(std::get<0>(args) == 1992);
     });
 
 ```
@@ -98,20 +106,25 @@ Getting a parameter using a string literal (as above) :
 
 ```cpp
 
-    "/user/(\\d+)"_get.assign(instance.param<int>())
-       .with([](auto & /*req*/, auto & /*session*/, auto & args){
-        assert(args._1 == 1992);
+    using http::literals::value;
+    using http::literals::operator""_c;
+
+    auto param = router.param<http::param::pack<int>>(boost::regex::ECMAScript);
+    
+    "/user/param[?]y=(\\d+)"_get.advance(std::move(param), 
+       [](auto /*request*/, auto /*context*/, auto args){
+        assert(value(args, 0_c) == 1992);
     });
 
     // or
 
-    "/user/(\\d+)"_get.assign(instance.param<int>())
-       .with([](auto & /*req*/, auto & /*session*/, auto & next, auto & /*args*/){
-        // process '/user'
-        next();
-    }, [](auto & /*req*/, auto & /*session*/, auto & args){
-        // process '/id'
-        assert(args._1 == 1992);
+    "/user/param[?]y=(\\d+)"_get.advance(std::move(param), 
+       [](auto /*request*/, auto /*context*/, auto _1x, auto /*args*/){
+        // process /user
+        std::next(_1x)();
+    }, [](auto /*request*/, auto /*context*/, auto args){
+        // process /param
+        assert(value(args, 0_c) == 1992);
     });
 
 ```
@@ -120,25 +133,25 @@ Create modular, mounted route handlers:
 
 ```cpp
 
-    auto animals_router = instance.BasicRouter();
+    http::basic_router<session_type> animals;
 
-    animals_router.get("/cat", [](auto & req, auto & session){ // '/animals/cat'
-        session.do_write(make_response(req, "me-ow\n"));
+    animals.get("/cat", [](auto request, auto context){ // '/animals/cat'
+        context.get().send(make_response(request, "me-ow\n"));
     });
 
-    animals_router.get("/dog", [](auto & req, auto & session){ // '/animals/dog'
-        session.do_write(make_response(req, "aw! aw! Rrrrr\n"));
+    animals.get("/dog", [](auto request, auto context){ // '/animals/dog'
+        context.get().send(make_response(request, "aw! aw! Rrrrr\n"));
     });
 
-    animals_router.get("/mouse", [](auto & req, auto & session){ // '/animals/mouse'
-        session.do_write(make_response(req, "...\n"));
+    animals.get("/mouse", [](auto request, auto context){ // '/animals/mouse'
+        context.get().send(make_response(request, "...\n"));
     });
 
-    animals_router.get("[/]??", [](auto & req, auto & session){ // '/animals' or '/animals/'
-        session.do_write(make_response(req, "animals home page\n"));
+    animals.get("[/]??", [](auto request, auto context){ // '/animals' or '/animals/'
+        context.get().send(make_response(request, "animals home page\n"));
     });
 
-    instance.use("/animals", animals_router);
+    router.use("/animals", animals);
 
 ```
 
@@ -146,141 +159,61 @@ Create handlers routes, forming a chain, for the route path:
 
 ```cpp
 
-    auto books_router = instance.ChainRouter();
+    http::chain_router<session_type> books;
 
-    books_router.route("/book") // 'books/book'
-      .get([](auto & req, auto & session){
-        session.do_write(make_response(req, "get a random book\n"));
-    }).post([](auto & req, auto & session){
-        session.do_write(make_response(req, "add a book\n"));
-    }).put([](auto & req, auto & session){
-        session.do_write(make_response(req, "update the book\n"));
+    books_router.route("/book")
+            .get([](auto request, auto context) {
+        context.get().send(make_response(request, "get a random book\n"));
+    })
+            .post([](auto request, auto context) {
+        context.get().send(make_response(request, "add a book\n"));
+    })
+            .put([](auto request, auto context) {
+        context.get().send(make_response(request, "update the book\n"));
     });
 
-    instance.use("/books", books_router);
+    router.use("/books", books);
 
 ```
 
-Start listening on localhost:80
+Start listening on 127.0.0.1:80
 
 ```cpp
 
-    const auto & on_accept = [](auto & session){
-        http::base::out("New client!!!");
-        session.do_read();
+    // global namespace
+    static boost::asio::io_context ioc;
+    static boost::asio::posix::stream_descriptor out{ioc, ::dup(STDOUT_FILENO)};
+    //
+    
+    const auto& onError = [](auto code, auto from){
+        http::out::pushn<std::ostream>(
+                    out, "From:", from, "Info:", code.message());
     };
 
-    const auto & on_error = [](auto & error, auto & info){
-        cout << "Error code: " << error.value() << ", "
-             << "Info: " << info << endl;
-    };
+    const auto& onAccept = [&](auto socket){
+        http::out::pushn<std::ostream>(
+                    out, socket.remote_endpoint().address().to_string(), "connected!");
 
-    instance.listen("127.0.0.1", 80, on_accept, on_error);
-
-```
-
-Timer setting for incoming connection, closing after 5000 milliseconds:
-
-```cpp
-
-    const auto & on_accept = [](auto & session){
-        http::base::out("New connection!!!");
-        
-        session.set_expires_after(std::chrono::milliseconds(5000));
-        session.do_read();
-        session.launch_timer();
+        session_type::recv(std::move(socket), router.resource_map(),
+                           router.method_map(), boost::regex::ECMAScript, onError);
     };
     
-    // or
+    auto const address = boost::asio::ip::make_address("127.0.0.1");
+    auto const port = static_cast<unsigned short>(80);
 
-    const auto & on_accept = [](auto & session){
-        http::base::out("New connection!!!");
-        
-        session.set_expires_after(std::chrono::milliseconds(5000));
-        session.do_read();
-        session.launch_timer([](auto & session){
-            http::base::out("Timer expired!!!");
-            session.do_close();
-        });
-    };
-    
+    listener_type::loop(ioc, {address, port}, onAccept, onError);
+
 ```
 
 Run the I/O service on the requested number of threads:
 
 ```cpp
 
-    uint32_t pool_size = boost::thread::hardware_concurrency() * 2;
-    http::base::processor::get().start( pool_size > 0 ? pool_size :  4 );
-    http::base::processor::get().wait();
-
-```
-
-Request content from the server (Async):
-
-```cpp
-
-    http::client instance;
-
-    instance.on_connect = [](auto & session){
-        http::base::out("Successful connected!");
-        session.do_write(make_request());
-    };
-
-    instance.on_message = [](auto & res, auto & session){
-        cout << res << endl;
-        
-        // The answer is received, stop!
-        session.do_close();
-        http::base::processor::get().stop();
-    };
-
-    instance.on_error = [](auto & error, auto & info){
-        cout << "Error code: " << error.value() << ", "
-             << "Info: " << info << endl;
-        http::base::processor::get().stop();
-    };
-
-    if(!instance.invoke("www.example.com", 80)){
-        cout << "Failed to resolve address!" << endl;
-        http::base::processor::get().stop();
-    }
-
-```
-
-Request content from the server (Sync):
-
-```cpp
-
-    auto ec = boost::system::error_code{};
-    auto endpoint = http::base::processor::get().resolve("www.example.com", 80, ec);
-
-    if(ec){
-        cout << "Failed to resolve address!" << endl;
-        return -1;
-    }
-
-    http::RAIIConnection connection{endpoint};
-
-    if(!connection){
-        cout << "Connection invalid!" << endl;
-        return -1;
-    }
-
-        // Send to host
-    if(http::send(connection, make_request())){
-        cout << "http::send fail!" << endl;
-        return -1;
-    }
-
-    auto res = make_response();
-        // Receive from host
-    if(http::recv(connection, res)){
-        cout << "http::recv fail!" << endl;
-        return -1;
-    }
-
-    cout << res << endl;
+    std::thread t{[](){
+        ioc.run();
+    }};
+    
+    t.join();
 
 ```
 

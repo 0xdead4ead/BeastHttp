@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 3.11)
+
+find_package(Boost 1.66 COMPONENTS system thread regex)
+
+set(BEASTHTTP_EXAMPLE_NAME reactor_ssl)
+
+include_directories(${BEASTHTTP_INCLUDE_PATH})
+include_directories(${Boost_INCLUDE_DIRS})
+
+set(SRCS reactor_ssl.cxx)
+
+add_executable(${BEASTHTTP_EXAMPLE_NAME} ${SRCS} ${BEASTHTTP_BASE_HEADS} ${BEASTHTTP_REACTOR_HEADS})
+
+target_link_libraries(${BEASTHTTP_EXAMPLE_NAME} Boost::system Boost::thread Boost::regex pthread icui18n crypto ssl)

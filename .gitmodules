@@ -1,8 +1,0 @@
-[submodule "extern/nlohmann/json"]
-	path = extern/nlohmann/json
-	url = https://github.com/nlohmann/json
-	branch = master
-[submodule "extern/nlohmann/fifo_map"]
-	path = extern/nlohmann/fifo_map
-	url = https://github.com/nlohmann/fifo_map
-	branch = master
