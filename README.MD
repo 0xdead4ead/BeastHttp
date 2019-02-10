@@ -1,6 +1,6 @@
 # SYNOPSIS [![Build Status](https://travis-ci.org/0xdead4ead/BeastHttp.svg?branch=master)](https://travis-ci.org/0xdead4ead/BeastHttp)
 
-Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the Boost.Beast when constructing queries and answers. The implementations websocket is [`here...`](https://github.com/0xdead4ead/BeastWebsocket)
+Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the Boost.Beast when constructing queries and answers.
 
 # FEATURES
 
@@ -19,7 +19,7 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 * Boost Libraries >= 1.66.0v
 * [`Boost.Regex`](https://github.com/boostorg/regex), [`Boost.Asio`](https://github.com/boostorg/asio), [`Boost.Beast`](https://github.com/boostorg/beast/tree/develop) & [`Boost.LexicalCast`](https://github.com/boostorg/lexical_cast) library
 * [`OpenSSL`](https://github.com/openssl/openssl) (optional)
-* Minimal C++ 14 compatible compilator (for generic lambda)
+* Minimal C++ 14 compatible compilator
 
 # USAGE
 
