@@ -16,9 +16,14 @@ public:
 
     using self_type = test_session;
 
+    template<class>
     class context;
 
-    using reference_wrapper = std::reference_wrapper<context const>;
+    class flesh;
+
+    using context_type = context<flesh>;
+
+    using reference_wrapper = std::reference_wrapper<context_type const>;
 
     using resource_regex_type = std::string;
 
@@ -45,11 +50,12 @@ public:
     class flesh
     {};
 
+    template<class Flesh>
     class context
     {
     public:
 
-        context(flesh&)
+        context(Flesh&)
         {}
     };
 

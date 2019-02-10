@@ -58,9 +58,14 @@ class session
 
 public:
 
+    template<class>
     class context;
 
-    using reference_wrapper = std::reference_wrapper<context const>;
+    class flesh;
+
+    using context_type = context<flesh>;
+
+    using reference_wrapper = std::reference_wrapper<context_type const>;
 
     using resource_regex_type = std::string;
 
@@ -391,7 +396,7 @@ public:
         void
         on_timer(boost::system::error_code ec)
         {
-            context _self{*this};
+            context_type _self{*this};
 
             if (ec and ec != boost::asio::error::operation_aborted
                     and on_error_)
@@ -416,7 +421,7 @@ public:
         on_handshake(boost::system::error_code ec,
                      std::size_t bytes_used)
         {
-            context _self{*this};
+            context_type _self{*this};
 
             if (ec and on_error_)
                 return on_error_(ec, "async_handshake/on_handshake");
@@ -572,26 +577,27 @@ public:
 
     }; // class flesh
 
+    template<class Flesh>
     class context
     {
-        flesh& impl_;
+        Flesh& flesh_;
 
     public:
 
-        context(flesh& impl)
-            : impl_{impl}
+        context(Flesh& flesh)
+            : flesh_{flesh}
         {}
 
         connection_type&
         getConnection() const &
         {
-            return impl_.getConnection();
+            return flesh_.getConnection();
         }
 
         context&
         recv() const &
         {
-            impl_.recv();
+            flesh_.recv();
             return const_cast<typename std::add_lvalue_reference<context>::type>(*this);
         }
 
@@ -599,7 +605,7 @@ public:
         context&
         recv(TimeOrDuration const& time_or_duration) const &
         {
-            impl_.recv(time_or_duration);
+            flesh_.recv(time_or_duration);
             return const_cast<typename std::add_lvalue_reference<context>::type>(*this);
         }
 
@@ -607,7 +613,7 @@ public:
         context&
         send(Response&& response) const &
         {
-            impl_.send(std::forward<Response>(response));
+            flesh_.send(std::forward<Response>(response));
             return const_cast<typename std::add_lvalue_reference<context>::type>(*this);
         }
 
@@ -615,14 +621,14 @@ public:
         context&
         send(Response&& response, TimeOrDuration const& time_or_duration) const &
         {
-            impl_.send(std::forward<Response>(response), time_or_duration);
+            flesh_.send(std::forward<Response>(response), time_or_duration);
             return const_cast<typename std::add_lvalue_reference<context>::type>(*this);
         }
 
         context&
         eof() const &
         {
-            impl_.eof();
+            flesh_.eof();
             return const_cast<typename std::add_lvalue_reference<context>::type>(*this);
         }
 
@@ -630,14 +636,14 @@ public:
         context&
         eof(TimeOrDuration const& time_or_duration) const &
         {
-            impl_.eof(time_or_duration);
+            flesh_.eof(time_or_duration);
             return const_cast<typename std::add_lvalue_reference<context>::type>(*this);
         }
 
         context&
         launch_timer() const &
         {
-            impl_.launch_timer();
+            flesh_.launch_timer();
             return const_cast<typename std::add_lvalue_reference<context>::type>(*this);
         }
 

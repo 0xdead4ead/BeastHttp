@@ -121,9 +121,9 @@ constexpr auto tryStream(X&& x)
 }
 
 template<class X>
-constexpr auto hasContext(X&& x)
+constexpr auto hasContextType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::context {})
+    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::context_type {})
             (std::forward<X>(x));
 }
 
@@ -261,9 +261,9 @@ static inline constexpr auto tryBind
 static inline constexpr auto tryStream
     = isValid([](auto&& x) -> decltype (x.stream()) {});
 
-static inline constexpr auto hasContext
+static inline constexpr auto hasContextType
     = isValid([](auto&& x)
-              -> typename std::decay_t<decltype (x)>::context {});
+              -> typename std::decay_t<decltype (x)>::context_type {});
 
 static inline constexpr auto hasRequestType
     = isValid([](auto&& x)
@@ -349,7 +349,7 @@ template<typename X>
 using TryStream = decltype (tryStream(std::declval<X>()));
 
 template<typename X>
-using HasContext = decltype (hasContext(std::declval<X>()));
+using HasContextType = decltype (hasContextType(std::declval<X>()));
 
 template<typename X>
 using HasRequestType = decltype (hasRequestType(std::declval<X>()));

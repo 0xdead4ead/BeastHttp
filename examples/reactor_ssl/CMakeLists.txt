@@ -9,6 +9,6 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 set(SRCS reactor_ssl.cxx)
 
-add_executable(${BEASTHTTP_EXAMPLE_NAME} ${SRCS} ${BEASTHTTP_BASE_HEADS} ${BEASTHTTP_REACTOR_HEADS})
+add_executable(${BEASTHTTP_EXAMPLE_NAME} ${SRCS} ${BEASTHTTP_REACTOR_HEADS})
 
 target_link_libraries(${BEASTHTTP_EXAMPLE_NAME} Boost::system Boost::thread Boost::regex pthread icui18n crypto ssl)

@@ -169,7 +169,7 @@ public:
 
     using session_flesh = typename session_type::flesh;
 
-    using session_context = typename session_type::context;
+    using session_context = typename session_type::context_type;
 
     using session_wrapper = std::reference_wrapper<session_context const>;
 
@@ -190,7 +190,7 @@ public:
                    "Invalid a cb container!");
 
     static_assert (traits::HasRequestType<session_type>::value
-                   and traits::HasContext<session_type>::value
+                   and traits::HasContextType<session_type>::value
                    and traits::HasFlesh<session_type>::value,
                    "Invalid session type");
 
