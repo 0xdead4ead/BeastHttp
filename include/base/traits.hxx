@@ -2,7 +2,7 @@
 #define BEASTHTTP_BASE_TRAITS_HXX
 
 #include <type_traits>
-#include <bits/move.h>
+#include <utility>
 
 namespace std {
 

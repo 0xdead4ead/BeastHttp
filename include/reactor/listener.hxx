@@ -58,9 +58,6 @@ public:
     static_assert (base::traits::TryInvoke<on_error_type, boost::system::error_code, const char*>::value,
                    "Invalid OnError handler!");
 
-    template<class>
-    friend class __gnu_cxx::new_allocator;
-
     listener(self_type&&) = default;
     auto operator=(self_type&&) -> self_type& = default;
 
@@ -98,8 +95,6 @@ public:
         return std::move(socket_);
     }
 
-private:
-
     template<class _OnAccept>
     explicit
     listener(io_context& ioc,
@@ -119,6 +114,8 @@ private:
           on_accept_{std::forward<_OnAccept>(on_accept)},
           on_error_{std::forward<_OnError>(on_error)}
     {}
+
+private:
 
     self_type&
     loop(endpoint_type const& endpoint)

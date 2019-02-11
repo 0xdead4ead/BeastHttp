@@ -3,8 +3,6 @@
 
 #include "traits.hxx"
 
-#include <bits/shared_ptr.h>
-
 #include <boost/beast/http/message.hpp>
 
 namespace http {

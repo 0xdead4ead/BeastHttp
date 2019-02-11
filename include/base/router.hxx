@@ -4,7 +4,7 @@
 #include "base/traits.hxx"
 #include "base/cb.hxx"
 
-#include <bits/shared_ptr.h>
+#include <memory>
 
 namespace http {
 namespace base {

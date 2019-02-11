@@ -205,9 +205,6 @@ public:
 
     public:
 
-        template<class>
-        friend class __gnu_cxx::new_allocator;
-
         connection_type&
         getConnection()
         {
@@ -316,6 +313,14 @@ public:
         }
 
         flesh&
+        force_eof()
+        {
+            do_force_eof();
+
+            return *this;
+        }
+
+        flesh&
         launch_timer()
         {
             timer_.async_wait(
@@ -326,8 +331,6 @@ public:
 
             return *this;
         }
-
-    private:
 
         template<class _OnHandshake>
         explicit
@@ -385,13 +388,7 @@ public:
               queue_{*this}
         {}
 
-        flesh&
-        force_eof()
-        {
-            do_force_eof();
-
-            return *this;
-        }
+    private:
 
         void
         on_timer(boost::system::error_code ec)

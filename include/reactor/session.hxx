@@ -197,9 +197,6 @@ public:
 
     public:
 
-        template<class>
-        friend class __gnu_cxx::new_allocator;
-
         connection_type&
         getConnection()
         {
@@ -279,8 +276,6 @@ public:
             return *this;
         }
 
-    private:
-
         explicit
         flesh(connection_type&& connection,
               std::shared_ptr<resource_map_type> const& resource_map,
@@ -326,6 +321,8 @@ public:
               buffer_{std::move(buffer)},
               queue_{*this}
         {}
+
+    private:
 
         void
         on_timer(boost::system::error_code ec)
