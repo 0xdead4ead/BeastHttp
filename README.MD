@@ -9,9 +9,7 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 * TLS/SSL
 * Pipeline
 * Asynchronous/Synchronous request, response handling
-* Thread pool support
 * Timer manage (default action: Closing connection)
-* Platform independent
 * Simple way to dynamic add REST resources using regex for path, and anonymous functions
 
 # DEPENDENCIES
@@ -41,13 +39,13 @@ Add new route for GET request with "/" and "/a/b" resource:
 
     http::basic_router<session_type> router;
 
-    router.get("/", [](auto request, auto context) {
+    router.get("^/$", [](auto request, auto context) {
         context.get().send(make_response(request, "MAIN PAGE\n"));
     });
     
     // and
 
-    router.get("/a/b",
+    router.get("^/a/b$",
        [](auto /*request*/, auto /*context*/, auto _1x){
         // process /a
         std::next(_1x)();
@@ -63,13 +61,13 @@ Add a route using a literal operator (as above)
 
     using http::literals::operator""_get;
 
-    "/"_get.advance(router, [](auto request, auto context) {
+    "^/$"_get.advance(router, [](auto request, auto context) {
         context.get().send(make_response(request, "MAIN PAGE\n"));
     });
     
     // and
     
-    "/a/b"_get.advance(router, 
+    "^/a/b$"_get.advance(router, 
        [](auto /*request*/, auto /*context*/, auto _1x){
         // process /a
         std::next(_1x)();
@@ -84,14 +82,15 @@ Getting a parameter from a URI `/user/param?y=1992` :
 ```cpp
 
     router.param<http::param::pack<int>>(boost::regex::ECMAScript)
-            .get("/user/param[?]y=(\\d+)", [](auto /*request*/, auto /*context*/, auto args){
+            .get("^/user/param[?]y=(\\d+)$", 
+       [](auto /*request*/, auto /*context*/, auto args){
         assert(std::get<0>(args) == 1992);
     });
 
     // or
 
     router.param<http::param::pack<int>>(boost::regex::ECMAScript)
-            .get("/user/param[?]y=(\\d+)",
+            .get(^"/user/param[?]y=(\\d+)$",
        [](auto /*request*/, auto /*context*/, auto _1x, auto /*args*/){
         // process /user
         std::next(_1x)();
@@ -111,14 +110,14 @@ Getting a parameter using a string literal (as above) :
 
     auto param = router.param<http::param::pack<int>>(boost::regex::ECMAScript);
     
-    "/user/param[?]y=(\\d+)"_get.advance(std::move(param), 
+    "^/user/param[?]y=(\\d+)$"_get.advance(std::move(param), 
        [](auto /*request*/, auto /*context*/, auto args){
         assert(value(args, 0_c) == 1992);
     });
 
     // or
 
-    "/user/param[?]y=(\\d+)"_get.advance(std::move(param), 
+    "^/user/param[?]y=(\\d+)$"_get.advance(std::move(param), 
        [](auto /*request*/, auto /*context*/, auto _1x, auto /*args*/){
         // process /user
         std::next(_1x)();
@@ -135,23 +134,23 @@ Create modular, mounted route handlers:
 
     http::basic_router<session_type> animals;
 
-    animals.get("/cat", [](auto request, auto context){ // '/animals/cat'
+    animals.get("^/cat$", [](auto request, auto context){ // '/animals/cat'
         context.get().send(make_response(request, "me-ow\n"));
     });
 
-    animals.get("/dog", [](auto request, auto context){ // '/animals/dog'
+    animals.get("^/dog$", [](auto request, auto context){ // '/animals/dog'
         context.get().send(make_response(request, "aw! aw! Rrrrr\n"));
     });
 
-    animals.get("/mouse", [](auto request, auto context){ // '/animals/mouse'
+    animals.get("^/mouse$", [](auto request, auto context){ // '/animals/mouse'
         context.get().send(make_response(request, "...\n"));
     });
 
-    animals.get("[/]??", [](auto request, auto context){ // '/animals' or '/animals/'
+    animals.get("^[/]??$", [](auto request, auto context){ // '/animals' or '/animals/'
         context.get().send(make_response(request, "animals home page\n"));
     });
 
-    router.use("/animals", animals);
+    router.use("^/animals$", animals);
 
 ```
 
@@ -161,7 +160,7 @@ Create handlers routes, forming a chain, for the route path:
 
     http::chain_router<session_type> books;
 
-    books_router.route("/book")
+    books_router.route("^/book$")
             .get([](auto request, auto context) {
         context.get().send(make_response(request, "get a random book\n"));
     })
@@ -172,7 +171,7 @@ Create handlers routes, forming a chain, for the route path:
         context.get().send(make_response(request, "update the book\n"));
     });
 
-    router.use("/books", books);
+    router.use("^/books$", books);
 
 ```
 
