@@ -111,8 +111,7 @@ protected:
         if (other.resource_map_)
             for (const auto& value : *other.resource_map_) {
                 auto storage = *value.second;
-                add_resource_cb_without_method(path_to_resource + value.first,
-                                               std::move(storage));
+                add_resource_cb_without_method(concat(path_to_resource, value.first), std::move(storage));
             }
 
         if (other.method_map_)
@@ -122,7 +121,7 @@ protected:
 
                 for (const auto& value_r : resource_map) {
                     auto storage = *value_r.second;
-                    add_resource_cb(path_to_resource + value_r.first, method, std::move(storage));
+                    add_resource_cb(concat(path_to_resource, value_r.first), method, std::move(storage));
                 }
             }
     }
@@ -149,6 +148,23 @@ public:
     }
 
 private:
+
+    resource_regex_type
+    concat(const resource_regex_type& resource1, const resource_regex_type& resource2)
+    {
+        resource_regex_type result;
+        if (resource1.back() == '$' and resource1.front() == '^' and
+                resource2.back() == '$' and resource2.front() == '^')
+            result = resource1.substr(0, resource1.size() - 1) + resource2.substr(1);
+        else if (resource1.back() == '$' and resource1.front() == '^')
+            result = resource1.substr(0, resource1.size() - 1) + resource2 + "$";
+        else if (resource2.back() == '$' and resource2.front() == '^')
+            result = "^" + resource1 + resource2.substr(1);
+        else
+            result = resource1 + resource2;
+
+        return result;
+    }
 
     std::shared_ptr<resource_map_type>& resource_map_;
     std::shared_ptr<method_map_type>& method_map_;
