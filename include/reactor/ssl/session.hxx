@@ -63,7 +63,9 @@ public:
 
     class flesh;
 
-    using context_type = context<flesh>;
+    using flesh_type = flesh;
+
+    using context_type = context<flesh_type>;
 
     using reference_wrapper = std::reference_wrapper<context_type const>;
 
@@ -647,7 +649,7 @@ public:
     }; // class context
 
     template<class... _OnAction>
-    static flesh&
+    static flesh_type&
     handshake(boost::asio::ssl::context& ctx,
               socket_type&& socket,
               std::shared_ptr<resource_map_type> const& resource_map,
@@ -656,13 +658,13 @@ public:
               buffer_type&& buffer,
               _OnAction&&... on_action)
     {
-        return std::make_shared<flesh>(
+        return std::make_shared<flesh_type>(
                     ctx, std::move(socket), resource_map, method_map, flags, std::move(buffer),
                     std::forward<_OnAction>(on_action)...)->handshake();
     }
 
     template<class... _OnAction>
-    static flesh&
+    static flesh_type&
     handshake(boost::asio::ssl::context& ctx,
               socket_type&& socket,
               std::shared_ptr<resource_map_type> const& resource_map,
@@ -675,7 +677,7 @@ public:
     }
 
     template<class... _OnAction>
-    static flesh&
+    static flesh_type&
     handshake(boost::asio::ssl::context& ctx,
               socket_type&& socket,
               duration_type const& duration,
@@ -685,13 +687,13 @@ public:
               buffer_type&& buffer,
               _OnAction&&... on_action)
     {
-        return std::make_shared<flesh>(
+        return std::make_shared<flesh_type>(
                     ctx, std::move(socket), resource_map, method_map, flags, std::move(buffer),
                     std::forward<_OnAction>(on_action)...)->handshake(duration);
     }
 
     template<class... _OnAction>
-    static flesh&
+    static flesh_type&
     handshake(boost::asio::ssl::context& ctx,
               socket_type&& socket,
               duration_type const& duration,
@@ -706,7 +708,7 @@ public:
     }
 
     template<class... _OnAction>
-    static flesh&
+    static flesh_type&
     handshake(boost::asio::ssl::context& ctx,
               socket_type&& socket,
               time_point_type const& time_point,
@@ -716,13 +718,13 @@ public:
               buffer_type&& buffer,
               _OnAction&&... on_action)
     {
-        return std::make_shared<flesh>(
+        return std::make_shared<flesh_type>(
                     ctx, std::move(socket), resource_map, method_map, flags, std::move(buffer),
                     std::forward<_OnAction>(on_action)...)->handshake(time_point);
     }
 
     template<class... _OnAction>
-    static flesh&
+    static flesh_type&
     handshake(boost::asio::ssl::context& ctx,
               socket_type&& socket,
               time_point_type const& time_point,
@@ -737,7 +739,7 @@ public:
     }
 
     template<class... _OnAction>
-    static flesh&
+    static flesh_type&
     eof(boost::asio::ssl::context& ctx,
         socket_type&& socket,
         std::shared_ptr<resource_map_type> const& resource_map,
@@ -746,7 +748,7 @@ public:
         _OnAction&&... on_action)
     {
         buffer_type buffer;
-        return std::make_shared<flesh>(
+        return std::make_shared<flesh_type>(
                     ctx, std::move(socket), resource_map, method_map, flags, std::move(buffer),
                     std::forward<_OnAction>(on_action)...)->force_eof();
     }

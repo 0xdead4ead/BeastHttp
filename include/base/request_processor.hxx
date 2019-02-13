@@ -18,7 +18,7 @@ class request_processor : private Session::cbexecutor_type
                    and traits::HasMethodMapType<session_type>::value
                    and traits::HasResourceType<session_type>::value
                    and traits::HasMethodType<session_type>::value
-                   and traits::HasFlesh<session_type>::value
+                   and traits::HasFleshType<session_type>::value
                    and traits::HasRegexType<session_type>::value
                    and traits::HasRequestType<session_type>::value,
                    "Invalid session type!");
@@ -33,7 +33,7 @@ public:
 
     using method_type = typename session_type::method_type;
 
-    using session_flesh = typename session_type::flesh;
+    using session_flesh = typename session_type::flesh_type;
 
     using regex_type = typename session_type::regex_type;
 

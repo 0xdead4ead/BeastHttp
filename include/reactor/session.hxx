@@ -60,7 +60,9 @@ public:
 
     class flesh;
 
-    using context_type = context<flesh>;
+    using flesh_type = flesh;
+
+    using context_type = context<flesh_type>;
 
     using reference_wrapper = std::reference_wrapper<context_type const>;
 
@@ -521,7 +523,7 @@ public:
     }; // class context
 
     template<class... _OnAction>
-    static flesh&
+    static flesh_type&
     recv(socket_type&& socket,
          std::shared_ptr<resource_map_type> const& resource_map,
          std::shared_ptr<method_map_type> const& method_map,
@@ -529,13 +531,13 @@ public:
          buffer_type&& buffer,
          _OnAction&&... on_action)
     {
-        return std::make_shared<flesh>(
+        return std::make_shared<flesh_type>(
                     connection_type{std::move(socket)}, resource_map, method_map, flags, std::move(buffer),
                     std::forward<_OnAction>(on_action)...)->recv();
     }
 
     template<class... _OnAction>
-    static flesh&
+    static flesh_type&
     recv(socket_type&& socket,
          std::shared_ptr<resource_map_type> const& resource_map,
          std::shared_ptr<method_map_type> const& method_map,
@@ -547,7 +549,7 @@ public:
     }
 
     template<class... _OnAction>
-    static flesh&
+    static flesh_type&
     recv(socket_type&& socket,
          duration_type const& duration,
          std::shared_ptr<resource_map_type> const& resource_map,
@@ -562,7 +564,7 @@ public:
     }
 
     template<class... _OnAction>
-    static flesh&
+    static flesh_type&
     recv(socket_type&& socket,
          duration_type const& duration,
          std::shared_ptr<resource_map_type> const& resource_map,
@@ -575,7 +577,7 @@ public:
     }
 
     template<class... _OnAction>
-    static flesh&
+    static flesh_type&
     recv(socket_type&& socket,
          time_point_type const& time_point,
          std::shared_ptr<resource_map_type> const& resource_map,
@@ -584,13 +586,13 @@ public:
          buffer_type&& buffer,
          _OnAction&&... on_action)
     {
-        return std::make_shared<flesh>(
+        return std::make_shared<flesh_type>(
                     connection_type{std::move(socket)}, resource_map, method_map, flags, std::move(buffer),
                     std::forward<_OnAction>(on_action)...)->recv(time_point);
     }
 
     template<class... _OnAction>
-    static flesh&
+    static flesh_type&
     recv(socket_type&& socket,
          time_point_type const& time_point,
          std::shared_ptr<resource_map_type> const& resource_map,
@@ -603,7 +605,7 @@ public:
     }
 
     template<class Response, class... _OnAction>
-    static flesh&
+    static flesh_type&
     send(Response&& response,
          socket_type&& socket,
          std::shared_ptr<resource_map_type> const& resource_map,
@@ -612,13 +614,13 @@ public:
          buffer_type&& buffer,
          _OnAction&&... on_action)
     {
-        return std::make_shared<flesh>(
+        return std::make_shared<flesh_type>(
                     connection_type{std::move(socket)}, resource_map, method_map, flags, std::move(buffer),
                     std::forward<_OnAction>(on_action)...)->send(std::forward<Response>(response));
     }
 
     template<class Response, class... _OnAction>
-    static flesh&
+    static flesh_type&
     send(Response&& response,
          socket_type&& socket,
          std::shared_ptr<resource_map_type> const& resource_map,
@@ -632,7 +634,7 @@ public:
     }
 
     template<class Response, class... _OnAction>
-    static flesh&
+    static flesh_type&
     send(Response&& response,
          socket_type&& socket,
          duration_type const& duration,
@@ -642,13 +644,13 @@ public:
          buffer_type&& buffer,
          _OnAction&&... on_action)
     {
-        return std::make_shared<flesh>(
+        return std::make_shared<flesh_type>(
                     connection_type{std::move(socket)}, resource_map, method_map, flags, std::move(buffer),
                     std::forward<_OnAction>(on_action)...)->send(std::forward<Response>(response), duration);
     }
 
     template<class Response, class... _OnAction>
-    static flesh&
+    static flesh_type&
     send(Response&& response,
          socket_type&& socket,
          duration_type const& duration,
@@ -663,7 +665,7 @@ public:
     }
 
     template<class Response, class... _OnAction>
-    static flesh&
+    static flesh_type&
     send(Response&& response,
          socket_type&& socket,
          time_point_type const& time_point,
@@ -673,13 +675,13 @@ public:
          buffer_type&& buffer,
          _OnAction&&... on_action)
     {
-        return std::make_shared<flesh>(
+        return std::make_shared<flesh_type>(
                     connection_type{std::move(socket)}, resource_map, method_map, flags, std::move(buffer),
                     std::forward<_OnAction>(on_action)...)->send(std::forward<Response>(response), time_point);
     }
 
     template<class Response, class... _OnAction>
-    static flesh&
+    static flesh_type&
     send(Response&& response,
          socket_type&& socket,
          time_point_type const& time_point,
@@ -694,7 +696,7 @@ public:
     }
 
     template<class... _OnAction>
-    static flesh&
+    static flesh_type&
     eof(socket_type&& socket,
         std::shared_ptr<resource_map_type> const& resource_map,
         std::shared_ptr<method_map_type> const& method_map,
@@ -702,7 +704,7 @@ public:
         _OnAction&&... on_action)
     {
         buffer_type buffer;
-        return std::make_shared<flesh>(
+        return std::make_shared<flesh_type>(
                     connection_type{std::move(socket)}, resource_map, method_map, flags, std::move(buffer),
                     std::forward<_OnAction>(on_action)...)->eof();
     }

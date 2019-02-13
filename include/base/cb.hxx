@@ -167,7 +167,7 @@ public:
 
     using session_type = Session;
 
-    using session_flesh = typename session_type::flesh;
+    using session_flesh = typename session_type::flesh_type;
 
     using session_context = typename session_type::context_type;
 
@@ -191,7 +191,7 @@ public:
 
     static_assert (traits::HasRequestType<session_type>::value
                    and traits::HasContextType<session_type>::value
-                   and traits::HasFlesh<session_type>::value,
+                   and traits::HasFleshType<session_type>::value,
                    "Invalid session type");
 
     static_assert (traits::TryInvoke<entry_type, request_type, session_wrapper, iterator>::value,

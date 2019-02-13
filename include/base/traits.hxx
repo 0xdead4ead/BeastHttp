@@ -135,9 +135,9 @@ constexpr auto hasRequestType(X&& x)
 }
 
 template<class X>
-constexpr auto hasFlesh(X&& x)
+constexpr auto hasFleshType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::flesh {})
+    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::flesh_type {})
             (std::forward<X>(x));
 }
 
@@ -269,9 +269,9 @@ static inline constexpr auto hasRequestType
     = isValid([](auto&& x)
               -> typename std::decay_t<decltype (x)>::request_type {});
 
-static inline constexpr auto hasFlesh
+static inline constexpr auto hasFleshType
     = isValid([](auto&& x)
-              -> typename std::decay_t<decltype (x)>::flesh {});
+              -> typename std::decay_t<decltype (x)>::flesh_type {});
 
 static inline constexpr auto hasDuration
     = isValid([](auto&& x)
@@ -355,7 +355,7 @@ template<typename X>
 using HasRequestType = decltype (hasRequestType(std::declval<X>()));
 
 template<typename X>
-using HasFlesh = decltype (hasFlesh(std::declval<X>()));
+using HasFleshType = decltype (hasFleshType(std::declval<X>()));
 
 template<typename X>
 using HasDuration = decltype (hasDuration(std::declval<X>()));

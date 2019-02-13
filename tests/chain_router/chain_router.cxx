@@ -21,7 +21,9 @@ public:
 
     class flesh;
 
-    using context_type = context<flesh>;
+    using flesh_type = flesh;
+
+    using context_type = context<flesh_type>;
 
     using reference_wrapper = std::reference_wrapper<context_type const>;
 
