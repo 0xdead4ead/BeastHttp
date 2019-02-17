@@ -12,23 +12,17 @@ using void_t = void;
 #endif // not defined __cpp_lib_void_t
 
 #if not defined __cpp_lib_is_invocable
-
-template<typename F, typename... Args, typename = std::result_of_t<F(Args...)>>
+template<typename F, typename... Args,
+         typename = decltype(std::declval<F>()(std::declval<Args&&>()...))>
 std::true_type is_invocable_impl(void*);
 
-template<typename F, typename... Args>
+template<typename, typename...>
 std::false_type is_invocable_impl(...);
 
-/**
-  Not used
-*/
-template <typename, typename = std::void_t<>>
-struct is_invocable : std::false_type { };
-
-template <typename F, class... Args>
-struct is_invocable<F(Args...), std::void_t<std::result_of_t<F(Args...)>>>
-    : std::true_type { };
-
+template<typename F, typename... Args>
+struct is_invocable : decltype (is_invocable_impl<F, Args...>(nullptr))
+{
+};
 #endif // not defined __cpp_lib_is_invocable
 
 } // namespace std
@@ -44,12 +38,9 @@ struct validity_checker
     template <typename... Args>
     constexpr auto operator()(Args&&... args) const
     {
-        return std::is_invocable_impl<F, decltype (args)...>(nullptr);
+        return std::is_invocable<F, decltype (args)...>{};
     }
 };
-
-template<class T>
-class Debug;
 
 template <typename F>
 constexpr auto isValid(F&&)
@@ -60,168 +51,192 @@ constexpr auto isValid(F&&)
 template<class F, class... Args>
 constexpr auto tryInvoke(F&& f, Args&&... args)
 {
-    return isValid([](auto&& f, auto&&... args) -> decltype (f(std::forward<decltype (args)>(args)...)) {})
+    return isValid([](auto&& f, auto&&... args)
+                   -> decltype (f(std::forward<decltype (args)>(args)...)) {})
             (std::forward<F>(f), std::forward<Args>(args)...);
 }
 
 template<class X>
 constexpr auto tryCbegin(X&& x)
 {
-    return isValid([](auto&& x) -> decltype(x.cbegin()){})
+    return isValid([](auto&& x)
+                   -> decltype(x.cbegin()){})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto tryCend(X&& x)
 {
-    return isValid([](auto&& x) -> decltype(x.cend()){})
+    return isValid([](auto&& x)
+                   -> decltype(x.cend()){})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto trySize(X&& x)
 {
-    return isValid([](auto&& x) -> decltype(x.size()){})
+    return isValid([](auto&& x)
+                   -> decltype(x.size()){})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasConstIterator(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::const_iterator {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::const_iterator {})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasSizeType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::size_type {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::size_type {})
             (std::forward<X>(x));
 }
 
 template<class X, class Y>
 constexpr auto tryPushBack(X&& x, Y&& y)
 {
-    return isValid([](auto&& x, auto&& y) -> decltype (x.push_back(std::forward<decltype (y)>(y))){})
+    return isValid([](auto&& x, auto&& y)
+                   -> decltype (x.push_back(std::forward<decltype (y)>(y))){})
             (std::forward<X>(x), std::forward<Y>(y));
 }
 
 template<class X, class Y, class Z>
 constexpr auto tryBind(X&& x, Y&& y, Z&& z)
 {
-    return isValid([](auto&& x, auto&& y, auto&& z) -> decltype (x.bind(std::forward<decltype (y)>(y), std::forward<decltype (z)>(z))){})
+    return isValid([](auto&& x, auto&& y, auto&& z)
+                   -> decltype (x.bind(std::forward<decltype (y)>(y), std::forward<decltype (z)>(z))){})
             (std::forward<X>(x), std::forward<Y>(y), std::forward<Z>(z));
 }
 
 template<class X>
 constexpr auto tryStream(X&& x)
 {
-    return isValid([](auto&& x) -> decltype(x.stream()){})
+    return isValid([](auto&& x)
+                   -> decltype(x.stream()){})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasContextType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::context_type {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::context_type {})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasRequestType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::request_type {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::request_type {})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasFleshType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::flesh_type {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::flesh_type {})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasDuration(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::duration {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::duration {})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasTimePoint(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::time_point {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::time_point {})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasClockType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::clock_type {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::clock_type {})
             (std::forward<X>(x));
 }
 
 template<class X, class Y>
 constexpr auto tryLeftShift(X&& x, Y&& y)
 {
-    return isValid([](auto&& x, auto&& y) -> decltype (x << y) {})
+    return isValid([](auto&& x, auto&& y)
+                   -> decltype (x << y) {})
             (std::forward<X>(x), std::forward<Y>(y));
 }
 
 template<class X>
 constexpr auto hasStorageType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::storage_type {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::storage_type {})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasResourceMapType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::resource_map_type {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::resource_map_type {})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasMethodMapType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::method_map_type {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::method_map_type {})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasResourceRegexType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::resource_regex_type {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::resource_regex_type {})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasResourceType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::resource_type {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::resource_type {})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasMethodType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::method_type {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::method_type {})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasCbExecutorType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::cbexecutor_type {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::cbexecutor_type {})
             (std::forward<X>(x));
 }
 
 template<class X>
 constexpr auto hasRegexType(X&& x)
 {
-    return isValid([](auto&& x) -> typename std::decay_t<decltype (x)>::regex_type {})
+    return isValid([](auto&& x)
+                   -> typename std::decay_t<decltype (x)>::regex_type {})
             (std::forward<X>(x));
 }
 #else
@@ -236,13 +251,16 @@ static inline constexpr auto tryInvoke
               -> decltype (f(std::forward<decltype (args)>(args) ... )) {});
 
 static inline constexpr auto tryCbegin
-    = isValid([](auto&& x) -> decltype (x.cbegin()) {});
+    = isValid([](auto&& x)
+              -> decltype (x.cbegin()) {});
 
 static inline constexpr auto tryCend
-    = isValid([](auto&& x) -> decltype (x.cend()) {});
+    = isValid([](auto&& x)
+              -> decltype (x.cend()) {});
 
 static inline constexpr auto trySize
-    = isValid([](auto&& x) -> decltype (x.size()) {});
+    = isValid([](auto&& x)
+              -> decltype (x.size()) {});
 
 static inline constexpr auto hasConstIterator
     = isValid([](auto&& x)
@@ -253,13 +271,16 @@ static inline constexpr auto hasSizeType
               -> typename std::decay_t<decltype (x)>::size_type {});
 
 static inline constexpr auto tryPushBack
-    = isValid([](auto&& x, auto&& y) -> decltype (x.push_back(std::forward<decltype (y)>(y))) {});
+    = isValid([](auto&& x, auto&& y)
+              -> decltype (x.push_back(std::forward<decltype (y)>(y))) {});
 
 static inline constexpr auto tryBind
-    = isValid([](auto&& x, auto&& y, auto&& z) -> decltype (x.bind(std::forward<decltype (y)>(y), std::forward<decltype (z)>(z))) {});
+    = isValid([](auto&& x, auto&& y, auto&& z)
+              -> decltype (x.bind(std::forward<decltype (y)>(y), std::forward<decltype (z)>(z))) {});
 
 static inline constexpr auto tryStream
-    = isValid([](auto&& x) -> decltype (x.stream()) {});
+    = isValid([](auto&& x)
+              -> decltype (x.stream()) {});
 
 static inline constexpr auto hasContextType
     = isValid([](auto&& x)
@@ -286,7 +307,8 @@ static inline constexpr auto hasClockType
               -> typename std::decay_t<decltype (x)>::clock_type {});
 
 static inline constexpr auto tryLeftShift
-    = isValid([](auto&& x, auto&& y) -> decltype (x << y) {});
+    = isValid([](auto&& x, auto&& y)
+              -> decltype (x << y) {});
 
 static inline constexpr auto hasStorageType
     = isValid([](auto&& x)

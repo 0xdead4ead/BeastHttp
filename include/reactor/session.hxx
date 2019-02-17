@@ -558,7 +558,7 @@ public:
          buffer_type&& buffer,
          _OnAction&&... on_action)
     {
-        return std::make_shared<flesh>(
+        return std::make_shared<flesh_type>(
                     connection_type{std::move(socket)}, resource_map, method_map, flags, std::move(buffer),
                     std::forward<_OnAction>(on_action)...)->recv(duration);
     }
