@@ -12,38 +12,38 @@
              template<typename> class Entry, \
              template<typename, typename...> class Container>
 
-#define BEASTHTTP_DECLARE_FRIEND_CB_ITERATOR_CLASS \
+#define BEASTHTTP_DECLARE_FRIEND_CB_ITERATOR_STRUCT \
     template<class, \
              template<typename> class, \
-             template<typename, typename...> class> friend class cb::iterator;
+             template<typename, typename...> class> friend struct cb::iterator;
 
-#define BEASTHTTP_DECLARE_FRIEND_BASE_CBEXECUTOR_CLASS \
+#define BEASTHTTP_DECLARE_FRIEND_BASE_CB_EXECUTOR_CLASS \
     friend class cb::executor;
 
 namespace http {
 namespace base {
 namespace cb {
 
-namespace helpers {
+namespace details {
 #if not defined (__cpp_if_constexpr)
 template<std::size_t value>
 using size_type = std::integral_constant<std::size_t, value>;
 
 template <class Begin, class End, typename S, class... Elements>
-struct for_each_1
+struct for_each_impl
 {
     void
     operator()(const std::tuple<Elements...>& tpl, const Begin& begin, const End& end)
     {
         const auto& value = std::get<S::value>(tpl);
         begin(value);
-        for_each_1<Begin, End, size_type<S() + 1>, Elements...>{}(tpl, begin, end);
+        for_each_impl<Begin, End, size_type<S() + 1>, Elements...>{}(tpl, begin, end);
     }
 
-}; // struct for_each_1
+}; // struct for_each_impl
 
 template <class Begin, class End, class... Elements>
-struct for_each_1<Begin, End, size_type<std::tuple_size<std::tuple<Elements...>>::value - 1>, Elements...>
+struct for_each_impl<Begin, End, size_type<std::tuple_size<std::tuple<Elements...>>::value - 1>, Elements...>
 {
     void
     operator()(const std::tuple<Elements...>& tpl, const Begin& begin, const End& end)
@@ -53,15 +53,15 @@ struct for_each_1<Begin, End, size_type<std::tuple_size<std::tuple<Elements...>>
         (void)begin;
     }
 
-}; // struct for_each_1
+}; // struct for_each_impl
 
 template<std::size_t Index, class Begin, class End, class... Elements>
 void for_each(const std::tuple<Elements...>& tpl, const Begin& begin, const End& end)
 {
-    for_each_1<Begin, End, size_type<Index>, Elements...>{}(tpl, begin, end);
+    for_each_impl<Begin, End, size_type<Index>, Elements...>{}(tpl, begin, end);
 }
 #else
-template <std::size_t Index, class Begin, class End, class... Elements>
+template<std::size_t Index, class Begin, class End, class... Elements>
 void for_each(const std::tuple<Elements...>& tpl, const Begin& begin, const End& end)
 {
     const auto& value = std::get<Index>(tpl);
@@ -73,7 +73,7 @@ void for_each(const std::tuple<Elements...>& tpl, const Begin& begin, const End&
     }
 }
 #endif
-} // namespace helpers
+} // namespace details
 
 class executor
 {
@@ -93,7 +93,10 @@ BEASTHTTP_DECLARE_STORAGE_TEMPLATE
 class storage;
 
 BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-class iterator
+struct iterator : std::iterator<
+        std::input_iterator_tag, void, typename storage<
+              Session, Entry, Container>::container_type ::difference_type, void, void
+        >
 {
     using self_type = iterator;
 
@@ -107,23 +110,11 @@ public:
         : storage_{storage}
     {}
 
-    using value_type = void;
-
-    using reference = void;
-
-    using pointer = void;
-
-    using container_type = typename storage_type::container_type;
-
-    using difference_type = typename container_type::difference_type;
-
-    using iterator_category = std::input_iterator_tag;
-
     self_type
     operator++() const
     {
         storage_.step_fwd();
-        return *this;//const_cast<std::add_lvalue_reference_t<self_type>>(*this);
+        return *this;
     }
 
     self_type
@@ -152,7 +143,7 @@ public:
         return storage_.pos();
     }
 
-}; // class iterator
+}; // struct iterator
 
 template<class Session,
          template<typename Signature> class Entry,
@@ -163,7 +154,7 @@ class storage
 
 public:
 
-    using iterator = cb::iterator<Session, Entry, Container>;
+    using iterator_type = cb::iterator<Session, Entry, Container>;
 
     using session_type = Session;
 
@@ -175,7 +166,7 @@ public:
 
     using request_type = typename session_type::request_type;
 
-    using entry_type = Entry<void (request_type, session_wrapper, iterator)>;
+    using entry_type = Entry<void (request_type, session_wrapper, iterator_type)>;
 
     using container_type = Container<entry_type>;
 
@@ -194,12 +185,12 @@ public:
                    and traits::HasFleshType<session_type>::value,
                    "Invalid session type");
 
-    static_assert (traits::TryInvoke<entry_type, request_type, session_wrapper, iterator>::value,
+    static_assert (traits::TryInvoke<entry_type, request_type, session_wrapper, iterator_type>::value,
                    "Invalid entry type!");
 
-    BEASTHTTP_DECLARE_FRIEND_BASE_CBEXECUTOR_CLASS
+    BEASTHTTP_DECLARE_FRIEND_BASE_CB_EXECUTOR_CLASS
 
-    BEASTHTTP_DECLARE_FRIEND_CB_ITERATOR_CLASS
+    BEASTHTTP_DECLARE_FRIEND_CB_ITERATOR_STRUCT
 
     storage() = default;
 
@@ -226,7 +217,7 @@ private:
         static_assert(std::tuple_size<std::decay_t<decltype (tuple_cb) >>::value != 0,
                       "Oops...! tuple is empty.");
 
-        helpers::for_each<0>(tuple_cb,
+        details::for_each<0>(tuple_cb,
                              [&_l](const auto& value){
             _l.push_back(
                         entry_type(
@@ -251,10 +242,8 @@ private:
     {
         it_next_++; cb_pos_++;
 
-        if (it_next_ == container_.cend()) {
+        if (it_next_ == container_.cend())
             it_next_--; cb_pos_--;
-            //return;
-        }
 
         skip_target();
     }
@@ -295,7 +284,7 @@ private:
         operator()(_Self& self)
         {
             session_context _ctx{*self.session_flesh_};
-            (*self.it_next_) (*self.request_, std::cref(_ctx), iterator{self});
+            (*self.it_next_) (*self.request_, std::cref(_ctx), iterator_type{self});
         }
     }; // struct do_exec
 
