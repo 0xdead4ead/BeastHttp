@@ -10,25 +10,6 @@ matrix:
     env:
       - COMPILER=g++-8
       - FLAGS=-std=c++14
-      - BUILD_TYPE=Debug
-    addons:
-      apt:
-        sources:
-          - ubuntu-toolchain-r-test
-          - sourceline: 'ppa:mhier/libboost-latest'
-        packages:
-          - libssl-dev
-          - libicu-dev
-          - boost1.67
-          - g++-8
-
-          
-  - os: linux
-    compiler: gcc
-    env:
-      - COMPILER=g++-8
-      - FLAGS=-std=c++14
-      - BUILD_TYPE=Release
     addons:
       apt:
         sources:
@@ -45,24 +26,6 @@ matrix:
     env:
       - COMPILER=g++-8
       - FLAGS=-std=c++17
-      - BUILD_TYPE=Debug
-    addons:
-      apt:
-        sources:
-          - ubuntu-toolchain-r-test
-          - sourceline: 'ppa:mhier/libboost-latest'
-        packages:
-          - libssl-dev
-          - libicu-dev
-          - boost1.67
-          - g++-8
-        
-  - os: linux
-    compiler: gcc
-    env:
-      - COMPILER=g++-8
-      - FLAGS=-std=c++17
-      - BUILD_TYPE=Release
     addons:
       apt:
         sources:
@@ -79,26 +42,6 @@ matrix:
     env:
       - COMPILER=clang++-6.0
       - FLAGS="-std=c++14 -stdlib=libstdc++"
-      - BUILD_TYPE=Debug
-    addons:
-      apt:
-        sources:
-          - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-6.0
-          - sourceline: 'ppa:mhier/libboost-latest'
-        packages:
-          - libssl-dev
-          - libicu-dev
-          - boost1.67
-          - clang++-6.0
-          - g++-8
-          
-  - os: linux
-    compiler: clang
-    env:
-      - COMPILER=clang++-6.0
-      - FLAGS="-std=c++14 -stdlib=libstdc++"
-      - BUILD_TYPE=Release
     addons:
       apt:
         sources:
@@ -117,26 +60,6 @@ matrix:
     env:
       - COMPILER=clang++-6.0
       - FLAGS="-std=c++17 -stdlib=libstdc++"
-      - BUILD_TYPE=Debug
-    addons:
-      apt:
-        sources:
-          - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-6.0
-          - sourceline: 'ppa:mhier/libboost-latest'
-        packages:
-          - libssl-dev
-          - libicu-dev
-          - boost1.67
-          - clang++-6.0
-          - g++-8
-
-  - os: linux
-    compiler: clang
-    env:
-      - COMPILER=clang++-6.0
-      - FLAGS="-std=c++17 -stdlib=libstdc++"
-      - BUILD_TYPE=Release
     addons:
       apt:
         sources:
@@ -154,25 +77,11 @@ matrix:
     osx_image: xcode10
     env:
       - FLAGS="-std=c++14"
-      - BUILD_TYPE=Debug
-
-  - os: osx
-    osx_image: xcode10
-    env:
-      - FLAGS="-std=c++14"
-      - BUILD_TYPE=Release
       
   - os: osx
     osx_image: xcode10
     env:
       - FLAGS="-std=c++17"
-      - BUILD_TYPE=Debug
-      
-  - os: osx
-    osx_image: xcode10
-    env:
-      - FLAGS="-std=c++17"
-      - BUILD_TYPE=Release
           
 install:
   - uname -a
@@ -201,11 +110,11 @@ script:
   - mkdir build && cd build
   - |
      if [[ ($OS == Darwin) ]]; then    ## OS X
-       cmake .. -DCMAKE_CXX_FLAGS="${FLAGS}" -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+       cmake .. -DCMAKE_CXX_FLAGS="${FLAGS}"
        cmake --build . --target all
        ctest --verbose
      else                              ## Linux
-       ../bin/cmake .. -DCMAKE_CXX_FLAGS="${FLAGS}" -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+       ../bin/cmake .. -DCMAKE_CXX_FLAGS="${FLAGS}" -DCMAKE_CXX_COMPILER=${COMPILER}
        ../bin/cmake --build . --target all
        ../bin/ctest --verbose
      fi
