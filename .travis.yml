@@ -150,17 +150,62 @@ matrix:
           - clang++-6.0
           - g++-8
           
+  - os: osx
+    osx_image: xcode10
+    env:
+      - FLAGS="-std=c++14"
+      - BUILD_TYPE=Debug
+
+  - os: osx
+    osx_image: xcode10
+    env:
+      - FLAGS="-std=c++14"
+      - BUILD_TYPE=Release
+      
+  - os: osx
+    osx_image: xcode10
+    env:
+      - FLAGS="-std=c++17"
+      - BUILD_TYPE=Debug
+      
+  - os: osx
+    osx_image: xcode10
+    env:
+      - FLAGS="-std=c++17"
+      - BUILD_TYPE=Release
+          
 install:
   - uname -a
   - if [[ "${COMPILER}" != "" ]]; then $COMPILER --version; fi
   - OS=`uname -s`
-  - wget https://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.sh
-  - chmod +x ./cmake-3.11.4-Linux-x86_64.sh
-  - sudo ./cmake-3.11.4-Linux-x86_64.sh --prefix=. --exclude-subdir --skip-license
-  - ./bin/cmake --version
+  - |
+     if [[ (-x $(which brew)) ]]; then
+       brew update
+       brew install boost cmake icu4c openssl
+       brew upgrade cmake openssl
+       brew link openssl icu4c --force
+       export LDFLAGS="${LDFLAGS} -L/usr/local/opt/icu4c/lib"
+       export CPPFLAGS="${CPPFLAGS} -I/usr/local/opt/icu4c/include"
+       export LDFLAGS="${LDFLAGS} -L/usr/local/opt/openssl/lib"
+       export CPPFLAGS="${CPPFLAGS} -I/usr/local/opt/openssl/include"
+       export OPENSSL_ROOT_DIR="/usr/local/opt/openssl"
+       cmake --version
+     else
+       wget https://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.sh
+       chmod +x ./cmake-3.11.4-Linux-x86_64.sh
+       sudo ./cmake-3.11.4-Linux-x86_64.sh --prefix=. --exclude-subdir --skip-license
+       ./bin/cmake --version
+     fi
      
 script:
   - mkdir build && cd build
-  - ../bin/cmake .. -DCMAKE_CXX_FLAGS="${FLAGS}" -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
-  - ../bin/cmake --build . --target all
-  - ../bin/ctest --verbose
+  - |
+     if [[ ($OS == Darwin) ]]; then    ## OS X
+       cmake .. -DCMAKE_CXX_FLAGS="${FLAGS}" -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+       cmake --build . --target all
+       ctest --verbose
+     else                              ## Linux
+       ../bin/cmake .. -DCMAKE_CXX_FLAGS="${FLAGS}" -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+       ../bin/cmake --build . --target all
+       ../bin/ctest --verbose
+     fi
