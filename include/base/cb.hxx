@@ -242,8 +242,9 @@ private:
     {
         it_next_++; cb_pos_++;
 
-        if (it_next_ == container_.cend())
+        if (it_next_ == container_.cend()) {
             it_next_--; cb_pos_--;
+        }
 
         skip_target();
     }
