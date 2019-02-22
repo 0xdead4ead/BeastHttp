@@ -17,35 +17,35 @@ constexpr char whitespace = ' ';
 namespace prefix {
 namespace version {
 
-template<class Stream, class Source, class... Args>
-auto push(Source& source, Args const&... args)
--> decltype (boost::asio::write(source, std::declval<boost::asio::streambuf>()))
+template<class Stream, class Destination, class... Args>
+auto push(Destination& destination, Args const&... args)
+-> decltype (boost::asio::write(destination, std::declval<boost::asio::streambuf>()))
 {
     boost::asio::streambuf buffer{};
     Stream stream{std::addressof(buffer)};
     base::display::print(stream, "BeastHttp/", BEAST_HTTP_VERSION_VALUE, whitespace,
                          '[', BOOST_BEAST_VERSION_STRING, ']', whitespace);
     base::display::print<whitespace>(stream, args...);
-    return boost::asio::write(source, buffer);
+    return boost::asio::write(destination, buffer);
 }
 
-template<class Stream, class Source, class... Args>
-auto pushn(Source& source, Args const&... args)
--> decltype (boost::asio::write(source, std::declval<boost::asio::streambuf>()))
+template<class Stream, class Destination, class... Args>
+auto pushn(Destination& destination, Args const&... args)
+-> decltype (boost::asio::write(destination, std::declval<boost::asio::streambuf>()))
 {
     boost::asio::streambuf buffer{};
     Stream stream{std::addressof(buffer)};
     base::display::print(stream, "BeastHttp/", BEAST_HTTP_VERSION_VALUE, whitespace,
                          '[', BOOST_BEAST_VERSION_STRING, ']', whitespace);
     base::display::printline<whitespace>(stream, args...);
-    return boost::asio::write(source, buffer);
+    return boost::asio::write(destination, buffer);
 }
 
 namespace time {
 
-template<class Stream, class Source, class... Args>
-auto push(Source& source, Args const&... args)
--> decltype (boost::asio::write(source, std::declval<boost::asio::streambuf>()))
+template<class Stream, class Destination, class... Args>
+auto push(Destination& destination, Args const&... args)
+-> decltype (boost::asio::write(destination, std::declval<boost::asio::streambuf>()))
 {
     boost::asio::streambuf buffer{};
     Stream stream{std::addressof(buffer)};
@@ -53,12 +53,12 @@ auto push(Source& source, Args const&... args)
                          '[', BOOST_BEAST_VERSION_STRING, ']', whitespace,
                          '(', boost::posix_time::second_clock::local_time(), ')', whitespace);
     base::display::print<whitespace>(stream, args...);
-    return boost::asio::write(source, buffer);
+    return boost::asio::write(destination, buffer);
 }
 
-template<class Stream, class Source, class... Args>
-auto pushn(Source& source, Args const&... args)
--> decltype (boost::asio::write(source, std::declval<boost::asio::streambuf>()))
+template<class Stream, class Destination, class... Args>
+auto pushn(Destination& destination, Args const&... args)
+-> decltype (boost::asio::write(destination, std::declval<boost::asio::streambuf>()))
 {
     boost::asio::streambuf buffer{};
     Stream stream{std::addressof(buffer)};
@@ -66,7 +66,7 @@ auto pushn(Source& source, Args const&... args)
                          '[', BOOST_BEAST_VERSION_STRING, ']', whitespace,
                          '(', boost::posix_time::second_clock::local_time(), ')', whitespace);
     base::display::printline<whitespace>(stream, args...);
-    return boost::asio::write(source, buffer);
+    return boost::asio::write(destination, buffer);
 }
 
 } // namespace time
