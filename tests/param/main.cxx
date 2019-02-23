@@ -6,8 +6,9 @@
 #include <base/cb.hxx>
 #include <base/regex.hxx>
 #include <base/request_processor.hxx>
-#include <basic_router.hxx>
+
 #include <param.hxx>
+#include <basic_router.hxx>
 
 #include <boost/beast/http.hpp>
 
@@ -71,20 +72,20 @@ BOOST_AUTO_TEST_CASE(no_1) {
     http::base::request_processor<test_session>
             procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
 
-    router.param<http::param::pack<int>>(boost::regex::ECMAScript)
+    router.param<int>(boost::regex::ECMAScript)
             .get("/(\\d+)", [](auto request, auto /*context*/, auto args){
         BOOST_CHECK(request.target() == "/10");
         BOOST_CHECK_EQUAL(std::get<0>(args), 10);
     });
 
-    router.param<http::param::pack<int, int>>(boost::regex::ECMAScript)
+    router.param<int, int>(boost::regex::ECMAScript)
             .get("/(\\d+)/(\\d+)", [](auto request, auto /*context*/, auto args){
         BOOST_CHECK(request.target() == "/10/20");
         BOOST_CHECK_EQUAL(std::get<0>(args), 10);
         BOOST_CHECK_EQUAL(std::get<1>(args), 20);
     });
 
-    router.param<http::param::pack<int, int, std::string>>(boost::regex::ECMAScript)
+    router.param<int, int, std::string>(boost::regex::ECMAScript)
             .get("/(\\d+)/(\\d+)/(\\w+)", [](auto request, auto /*context*/, auto args){
         BOOST_CHECK(request.target() == "/10/20/abc");
         BOOST_CHECK_EQUAL(std::get<0>(args), 10);
@@ -92,7 +93,7 @@ BOOST_AUTO_TEST_CASE(no_1) {
         BOOST_CHECK_EQUAL(std::get<2>(args), "abc");
     });
 
-    router.param<http::param::pack<int, int, std::string, int>>(boost::regex::ECMAScript)
+    router.param<int, int, std::string, int>(boost::regex::ECMAScript)
             .get("/(\\d+)/(\\d+)/(\\w+)/(\\d+)", [](auto request, auto /*context*/, auto args){
         BOOST_CHECK(request.target() == "/10/20/abc/30");
         BOOST_CHECK_EQUAL(std::get<0>(args), 10);
@@ -101,7 +102,7 @@ BOOST_AUTO_TEST_CASE(no_1) {
         BOOST_CHECK_EQUAL(std::get<3>(args), 30);
     });
 
-    router.param<http::param::pack<int, int, std::string, int, int>>(boost::regex::ECMAScript)
+    router.param<int, int, std::string, int, int>(boost::regex::ECMAScript)
             .get("/(\\d+)/(\\d+)/(\\w+)/(\\d+)/(-\\d+)", [](auto request, auto /*context*/, auto args){
         BOOST_CHECK(request.target() == "/10/20/abc/30/-30");
         BOOST_CHECK_EQUAL(std::get<0>(args), 10);
@@ -111,7 +112,7 @@ BOOST_AUTO_TEST_CASE(no_1) {
         BOOST_CHECK_EQUAL(std::get<4>(args), -30);
     });
 
-    router.param<http::param::pack<int, int, std::string, int, int, std::string>>(boost::regex::ECMAScript)
+    router.param<int, int, std::string, int, int, std::string>(boost::regex::ECMAScript)
             .get("/(\\d+)/(\\d+)/(\\w+)/(\\d+)/(-\\d+)/([XYZ])", [](auto request, auto /*context*/, auto args){
         BOOST_CHECK(request.target() == "/10/20/abc/30/-30/X");
         BOOST_CHECK_EQUAL(std::get<0>(args), 10);
@@ -122,7 +123,7 @@ BOOST_AUTO_TEST_CASE(no_1) {
         BOOST_CHECK_EQUAL(std::get<5>(args), "X");
     });
 
-    router.param<http::param::pack<int, int, std::string, int, int, std::string, unsigned int>>(boost::regex::ECMAScript)
+    router.param<int, int, std::string, int, int, std::string, unsigned int>(boost::regex::ECMAScript)
             .get("/(\\d+)/(\\d+)/(\\w+)/(\\d+)/(-\\d+)/([XYZ])/(\\d+)", [](auto request, auto /*context*/, auto args){
         BOOST_CHECK(request.target() == "/10/20/abc/30/-30/Y/1000");
         BOOST_CHECK_EQUAL(std::get<0>(args), 10);
@@ -134,7 +135,7 @@ BOOST_AUTO_TEST_CASE(no_1) {
         BOOST_CHECK_EQUAL(std::get<6>(args), 1000);
     });
 
-    router.param<http::param::pack<int, int, std::string, int, int, std::string, uint16_t, float, char, char, char>>(boost::regex::ECMAScript)
+    router.param<int, int, std::string, int, int, std::string, uint16_t, float, char, char, char>(boost::regex::ECMAScript)
             .get("/(\\d+)/(\\d+)/(\\w+)/(\\d+)/(-\\d+)/([XYZ])/(\\d+)/(\\d+.\\d+)/(X)(Y)(Z)", [](auto request, auto /*context*/, auto args){
         BOOST_CHECK(request.target() == "/10/20/abc/30/-30/Y/1000/12.3/XYZ");
         BOOST_CHECK_EQUAL(std::get<0>(args), 10);
@@ -150,7 +151,7 @@ BOOST_AUTO_TEST_CASE(no_1) {
         BOOST_CHECK_EQUAL(std::get<10>(args), 'Z');
     });
 
-    router.param<http::param::pack<int, int, std::string, int, int, std::string, uint16_t, float, char, char, char, uint8_t>>(boost::regex::ECMAScript)
+    router.param<int, int, std::string, int, int, std::string, uint16_t, float, char, char, char, uint8_t>(boost::regex::ECMAScript)
             .get("/(\\d+)/(\\d+)/(\\w+)/(\\d+)/(-\\d+)/([XYZ])/(\\d+)/(\\d+.\\d+)/(X)(Y)(Z)/(\\d)", [](auto request, auto /*context*/, auto args){
         BOOST_CHECK(request.target() == "/10/20/abc/30/-30/Y/1000/12.3/XYZ/0");
         BOOST_CHECK_EQUAL(std::get<0>(args), 10);
@@ -167,7 +168,7 @@ BOOST_AUTO_TEST_CASE(no_1) {
         BOOST_CHECK_EQUAL(std::get<11>(args), 0x30);
     });
 
-    router.param<http::param::pack<int, int, int>>(boost::regex::ECMAScript)
+    router.param<int, int, int>(boost::regex::ECMAScript)
             .get("/param[?]o=(\\d+)&t=(\\d+)&f=(\\d+)", [](auto request, auto /*context*/, auto args){
         BOOST_CHECK(request.target() == "/param?o=10&t=20&f=30");
         BOOST_CHECK_EQUAL(std::get<0>(args), 10);
@@ -196,7 +197,7 @@ BOOST_AUTO_TEST_CASE(no_2) {
     http::base::request_processor<test_session>
             procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
 
-    router.param<http::param::pack<int>>(boost::regex::ECMAScript)
+    router.param<int>(boost::regex::ECMAScript)
             .get("/a/(\\d+)",
        [](auto request, auto /*context*/, auto _1x, auto args){
         BOOST_CHECK(request.target() == "/a");
@@ -207,7 +208,7 @@ BOOST_AUTO_TEST_CASE(no_2) {
         BOOST_CHECK_EQUAL(std::get<0>(args), 10);
     });
 
-    router.param<http::param::pack<int, std::string>>(boost::regex::ECMAScript)
+    router.param<int, std::string>(boost::regex::ECMAScript)
             .get("/a/(\\d+)/b/(\\w+)",
        [](auto request, auto /*context*/, auto _1x, auto args){
         BOOST_CHECK(request.target() == "/a");
@@ -230,7 +231,7 @@ BOOST_AUTO_TEST_CASE(no_2) {
         BOOST_CHECK_EQUAL(std::get<1>(args), "cde");
     });
 
-    router.param<http::param::pack<int, int, int>>(boost::regex::ECMAScript)
+    router.param<int, int, int>(boost::regex::ECMAScript)
             .get("/a/(\\d+)+(\\d+)/b",
        [](auto request, auto /*context*/, auto _1x, auto args){
         BOOST_CHECK(request.target() == "/a");
@@ -257,7 +258,7 @@ BOOST_AUTO_TEST_CASE(no_2) {
         BOOST_CHECK_EQUAL(std::get<2>(args), 0);
     });
 
-    router.param<http::param::pack<int, int, int>>(boost::regex::ECMAScript)
+    router.param<int, int, int>(boost::regex::ECMAScript)
             .get("/a/(\\d+)/b/(\\d+)/c/(\\d+)",
        [](auto request, auto /*context*/, auto _1x, auto args){
         BOOST_CHECK(request.target() == "/a");

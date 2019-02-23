@@ -42,19 +42,19 @@ public:
     BEASTHTTP_DECLARE_FRIEND_SSL_SESSION_CLASS
 
     template <class F, class B>
-    auto
+    void
     async_handshake(const B& buf, F&& f)
     {
-        return stream_.async_handshake(
+        stream_.async_handshake(
                     boost::asio::ssl::stream_base::server, buf.data(),
                     boost::asio::bind_executor(base_connection::strand_, std::forward<F>(f)));
     }
 
     template<class F>
-    auto
+    void
     async_shutdown(F&& f)
     {
-        return stream_.async_shutdown(
+        stream_.async_shutdown(
                     boost::asio::bind_executor(base_connection::strand_, std::forward<F>(f)));
     }
 

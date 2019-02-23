@@ -8,7 +8,7 @@ set(BEASTHTTP_EXAMPLE_NAME reactor_ssl)
 include_directories(${BEASTHTTP_INCLUDE_PATH})
 include_directories(${Boost_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR})
 
-set(SRCS reactor_ssl.cxx)
+set(SRCS main.cxx)
 
 add_executable(${BEASTHTTP_EXAMPLE_NAME} ${SRCS})
 

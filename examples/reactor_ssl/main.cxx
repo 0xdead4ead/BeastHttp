@@ -2,6 +2,7 @@
 #include <reactor/ssl/session.hxx>
 
 #include <basic_router.hxx>
+
 #include <out.hxx>
 
 #include <boost/asio/posix/stream_descriptor.hpp>
@@ -129,22 +130,22 @@ int main()
 
     http::basic_router<session_type> router;
 
-    router.get("/1", [](auto request, auto context) {
+    router.get(R"(^/1$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "GET 1\n"));
     });
 
-    router.get("/2", [](auto request, auto context) {
+    router.get(R"(^/2$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "GET 2\n"));
     });
 
-    router.get("/3", [](auto request, auto context){
+    router.get(R"(^/3$)", [](auto request, auto context){
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "GET 3\n"));
     });
 
-    router.all(".*", [](auto request, auto context){
+    router.all(R"(^.*$)", [](auto request, auto context){
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "ALL\n"));
     });

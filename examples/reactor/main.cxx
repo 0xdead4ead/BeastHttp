@@ -8,7 +8,6 @@
 #include <boost/asio/signal_set.hpp>
 
 #include <thread>
-#include <vector>
 
 template<class Body>
 auto make_response(const boost::beast::http::request<Body>& req,
@@ -44,35 +43,25 @@ int main()
 
     using session_type = http::reactor::_default::session_type;
     using listener_type = http::reactor::_default::listener_type;
-    using session_array = std::vector<std::weak_ptr<session_type::flesh>>;
-
-    const uint32_t max_clients = 100;
-    const uint32_t max_threads = std::thread::hardware_concurrency() * 4;
-
-    session_array clients;
-    std::vector<std::thread> threads;
-
-    clients.reserve(max_clients);
-    threads.reserve(max_threads);
 
     http::basic_router<session_type> router;
 
-    router.get("/1", [](auto request, auto context){
+    router.get(R"(^/1$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "GET 1\n"));
     });
 
-    router.get("/2", [](auto request, auto context){
+    router.get(R"(^/2$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "GET 2\n"));
     });
 
-    router.get("/3", [](auto request, auto context){
+    router.get(R"(^/3$)", [](auto request, auto context){
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "GET 3\n"));
     });
 
-    router.all(".*", [](auto request, auto context){
+    router.all(R"(^.*$)", [](auto request, auto context){
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "ALL\n"));
     });
@@ -89,39 +78,8 @@ int main()
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, socket.remote_endpoint().address().to_string(), "connected!");
 
-        bool closed = false;
-
-        if(clients.size() >= max_clients){
-            http::out::prefix::version::time::pushn<std::ostream>(
-                        out, "Achieved maximum connections!", "Limit", max_clients);
-            socket.close();
-            closed = true;
-        }
-
-        std::vector<session_array::const_iterator> expireds_;
-
-        for(auto client = clients.cbegin(); client != clients.cend();){
-            if(client->expired())
-                expireds_.push_back(client);
-
-            client++;
-        }
-
-        for(auto expired : expireds_){
-            clients.erase(expired);
-        }
-
-        if(!closed){
-            std::weak_ptr<session_type::flesh> cl
-                    = session_type::recv(std::move(socket), std::chrono::seconds(10), router.resource_map(),
-                               router.method_map(), boost::regex::ECMAScript, onError).launch_timer().shared_from_this();
-
-            clients.emplace_back(cl);
-        }
-
-        if(threads.size() < max_threads && clients.size() > std::pow(threads.size(), 2))
-            threads.emplace_back(std::bind(static_cast<std::size_t (boost::asio::io_context::*)()>
-                                           (&boost::asio::io_context::run), std::ref(ioc)));
+        session_type::recv(std::move(socket), router.resource_map(),
+                           router.method_map(), boost::regex::ECMAScript, onError);
     };
 
     auto const address = boost::asio::ip::make_address("127.0.0.1");
@@ -139,9 +97,16 @@ int main()
         ioc.stop();
     });
 
-    threads.emplace_back(std::bind(static_cast<std::size_t (boost::asio::io_context::*)()>
-                                   (&boost::asio::io_context::run), std::ref(ioc)));
+    uint32_t pool_size = std::thread::hardware_concurrency() * 2;
 
+    // Run the I/O service on the requested number of threads
+    std::vector<std::thread> threads;
+    threads.reserve(pool_size > 0 ? pool_size : 4);
+    for(uint32_t i = 0; i < pool_size; i++)
+        threads.emplace_back(std::bind(static_cast<std::size_t (boost::asio::io_context::*)()>
+                                       (&boost::asio::io_context::run), std::ref(ioc)));
+
+    // Block until all the threads exit
     for(auto& t : threads)
         t.join();
 

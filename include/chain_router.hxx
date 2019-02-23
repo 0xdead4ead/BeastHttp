@@ -1,5 +1,5 @@
-#if not defined BEASTHTTP_CHAIN_ROUTER_HPP
-#define BEASTHTTP_CHAIN_ROUTER_HPP
+#if not defined BEASTHTTP_CHAIN_ROUTER_HXX
+#define BEASTHTTP_CHAIN_ROUTER_HXX
 
 #include "base/router.hxx"
 
@@ -55,14 +55,15 @@ public:
     {
         base_type::use("", other);
     }
-
-    template<class Pack>
+#if defined BEASTHTTP_PARAM_HXX
+    template<class... Types>
     auto
     param(typename regex_type::flag_type flags)
+    -> param::impl<self_type, param::pack<Types...>>
     {
-        return base_type::template param<self_type, Pack>(*this, flags);
+        return base_type::template param<self_type, param::pack<Types...>>(*this, flags);
     }
-
+#endif
 private:
 
     class chain_node
@@ -385,4 +386,4 @@ private:
 
 } // namespace http
 
-#endif // not defined BEASTHTTP_CHAIN_ROUTER_HPP
+#endif // not defined BEASTHTTP_CHAIN_ROUTER_HXX

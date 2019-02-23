@@ -34,7 +34,8 @@ auto printline(Stream& stream) -> decltype (stream.flush())
 #if not defined __cpp_fold_expressions
 template<class Stream, class Arg, class... Args>
 auto print(Stream& stream, Arg const& arg, Args const&... args)
--> decltype (std::enable_if_t<traits::TryLeftShift<Stream, Arg>::value, int>{}, stream.flush())
+-> decltype (typename std::enable_if<
+             traits::TryLeftShift<Stream, Arg>::value, int>::type{}, stream.flush())
 {
     stream << arg;
     if (sizeof... (args) > 0) {
@@ -46,7 +47,8 @@ auto print(Stream& stream, Arg const& arg, Args const&... args)
 
 template<class Stream, class Arg, class... Args>
 auto printline(Stream& stream, Arg const& arg, Args const&... args)
--> decltype (std::enable_if_t<traits::TryLeftShift<Stream, Arg>::value, int>{}, stream.flush())
+-> decltype (typename std::enable_if<
+             traits::TryLeftShift<Stream, Arg>::value, int>::type{}, stream.flush())
 {
     stream << arg;
     if (sizeof... (args) > 0) {
@@ -76,7 +78,8 @@ auto printline(Stream& stream, Args const&... args)
 
 template<const char s, class Stream, class Arg, class... Args>
 auto print(Stream& stream, Arg const& arg, Args const&... args)
--> decltype (std::enable_if_t<traits::TryLeftShift<Stream, Arg>::value, int>{}, stream.flush())
+-> decltype (typename std::enable_if<
+             traits::TryLeftShift<Stream, Arg>::value, int>::type{}, stream.flush())
 {
     stream << arg;
 #if not defined __cpp_if_constexpr
@@ -93,7 +96,8 @@ auto print(Stream& stream, Arg const& arg, Args const&... args)
 
 template<const char s, class Stream, class Arg, class... Args>
 auto printline(Stream& stream, Arg const& arg, Args const&... args)
--> decltype (std::enable_if_t<traits::TryLeftShift<Stream, Arg>::value, int>{}, stream.flush())
+-> decltype (typename std::enable_if<
+             traits::TryLeftShift<Stream, Arg>::value, int>::type{}, stream.flush())
 {
     stream << arg;
 #if not defined __cpp_if_constexpr

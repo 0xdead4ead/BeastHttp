@@ -86,7 +86,7 @@ public:
 
     using timer_type = base::timer<Clock, Timer>;
 
-    using duration_type = typename timer_type::duration;
+    using duration_type = typename timer_type::duration_type;
 
     using time_point_type = typename timer_type::time_point;
 
@@ -172,7 +172,7 @@ public:
                 struct work_impl : work
                 {
                     flesh& impl_;
-                    std::decay_t<Response> response_;
+                    typename std::decay<Response>::type response_;
 
                     work_impl(flesh& impl, Response&& response)
                         : impl_(impl)
@@ -185,10 +185,14 @@ public:
                         impl_.do_write(response_);
                     }
                 };
-
                 // Allocate and store the work
-                items_.push_back(std::make_unique<work_impl>
-                                 (impl_, std::forward<Response>(response)));
+#if not defined __cpp_lib_make_unique
+                items_.push_back(std::unique_ptr<work_impl>(
+                                     new work_impl(impl_, std::forward<Response>(response))));
+#else
+                items_.push_back(std::make_unique<work_impl>(
+                                     impl_, std::forward<Response>(response)));
+#endif
 
                 // If there was no previous work, start this one
                 if (items_.size() == 1)

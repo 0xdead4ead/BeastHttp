@@ -2,6 +2,7 @@
 #include <reactor/session.hxx>
 
 #include <basic_router.hxx>
+
 #include <out.hxx>
 
 #include <boost/asio/posix/stream_descriptor.hpp>
@@ -9,26 +10,30 @@
 
 #include <thread>
 
-template<class Body>
-auto make_response(const boost::beast::http::request<Body>& req,
-                   const typename Body::value_type& user_body){
+struct make_response
+{
+    template<class Body>
+    boost::beast::http::response<Body>
+    operator()(const boost::beast::http::request<Body>& req,
+                    const typename Body::value_type& body_value) const
+    {
+        typename Body::value_type body(body_value);
 
-    typename Body::value_type body(user_body);
+        auto const body_size = body.size();
 
-    auto const body_size = body.size();
+        boost::beast::http::response<boost::beast::http::string_body> res{
+             std::piecewise_construct,
+             std::make_tuple(std::move(body)),
+             std::make_tuple(boost::beast::http::status::ok, req.version())};
 
-    boost::beast::http::response<boost::beast::http::string_body> res{
-         std::piecewise_construct,
-         std::make_tuple(std::move(body)),
-         std::make_tuple(boost::beast::http::status::ok, req.version())};
+        res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+        res.set(boost::beast::http::field::content_type, "text/html");
+        res.content_length(body_size);
+        res.keep_alive(req.keep_alive());
 
-    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-    res.set(boost::beast::http::field::content_type, "text/html");
-    res.content_length(body_size);
-    res.keep_alive(req.keep_alive());
-
-    return res;
-}
+        return res;
+    }
+}; // struct make_response
 
 static boost::asio::io_context ioc;
 static boost::asio::posix::stream_descriptor out{ioc, ::dup(STDOUT_FILENO)};
@@ -44,29 +49,33 @@ int main()
     using session_type = http::reactor::_default::session_type;
     using listener_type = http::reactor::_default::listener_type;
 
+    using http_context = typename session_type::reference_wrapper;
+    using http_request = typename session_type::request_type;
+    using http_socket = typename session_type::socket_type;
+
     http::basic_router<session_type> router;
 
-    router.get("/1", [](auto request, auto context) {
+    router.get(R"(^/1$)", [](http_request request, http_context context){
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response(request, "GET 1\n"));
+        context.get().send(make_response{}(request, "GET 1\n"));
     });
 
-    router.get("/2", [](auto request, auto context) {
+    router.get(R"(^/2$)", [](http_request request, http_context context){
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response(request, "GET 2\n"));
+        context.get().send(make_response{}(request, "GET 2\n"));
     });
 
-    router.get("/3", [](auto request, auto context){
+    router.get(R"(^/3$)", [](http_request request, http_context context){
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response(request, "GET 3\n"));
+        context.get().send(make_response{}(request, "GET 3\n"));
     });
 
-    router.all(".*", [](auto request, auto context){
+    router.all(R"(^.*$)", [](http_request request, http_context context){
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response(request, "ALL\n"));
+        context.get().send(make_response{}(request, "ALL\n"));
     });
 
-    const auto& onError = [](auto code, auto from){
+    const auto& onError = [](boost::system::error_code code, const char* from){
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, "From:", from, "Info:", code.message());
 
@@ -74,7 +83,7 @@ int main()
             ioc.stop();
     };
 
-    const auto& onAccept = [&](auto socket){
+    const auto& onAccept = [&](http_socket socket){
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, socket.remote_endpoint().address().to_string(), "connected!");
 

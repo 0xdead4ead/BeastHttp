@@ -26,7 +26,7 @@ public:
 
     using clock_type = typename timer_type::clock_type;
 
-    using duration = typename timer_type::duration;
+    using duration_type = typename timer_type::duration;
 
     using time_point = typename timer_type::time_point;
 
@@ -54,9 +54,9 @@ public:
     }
 
     template<class F>
-    auto
+    void
     async_wait(F&& f){
-        return timer_.async_wait(
+        timer_.async_wait(
                     boost::asio::bind_executor(
                         strand_, std::forward<F>(f)));
     }

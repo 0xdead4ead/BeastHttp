@@ -2,12 +2,12 @@ cmake_minimum_required(VERSION 3.11)
 
 find_package(Boost 1.66 COMPONENTS system thread regex unit_test_framework REQUIRED)
 
-set(BEASTHTTP_CHAIN_ROUTER_TEST_NAME chain_router_test)
+set(BEASTHTTP_CHAIN_ROUTER_TEST_NAME chain_router)
 
 include_directories(${BEASTHTTP_INCLUDE_PATH})
 include_directories(${Boost_INCLUDE_DIRS})
 
-set(SRCS chain_router.cxx)
+set(SRCS main.cxx)
 
 add_executable(${BEASTHTTP_CHAIN_ROUTER_TEST_NAME} ${SRCS})
 

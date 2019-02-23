@@ -9,6 +9,9 @@
 namespace http {
 namespace base {
 
+#define BEASTHTTP_PACK_PROVIDE_CALL(r, f) \
+    Pack::template provide<DerivedRouter>(r, f)
+
 /**
   @brief Routing module class
 */
@@ -129,8 +132,9 @@ protected:
     template<class DerivedRouter, class Pack>
     auto
     param(DerivedRouter& router, typename regex_type::flag_type flags)
+    -> decltype (BEASTHTTP_PACK_PROVIDE_CALL(router, flags))
     {
-        return Pack::template provide<DerivedRouter>(router, flags);
+        return BEASTHTTP_PACK_PROVIDE_CALL(router, flags);
     }
 
 public:
@@ -168,6 +172,7 @@ private:
 
     std::shared_ptr<resource_map_type>& resource_map_;
     std::shared_ptr<method_map_type>& method_map_;
+
 }; // class router
 
 } // namespace base

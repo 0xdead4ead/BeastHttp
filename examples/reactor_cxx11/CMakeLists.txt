@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.11)
 
 find_package(Boost 1.66 COMPONENTS system thread regex)
 
-set(BEASTHTTP_EXAMPLE_NAME reactor_extented)
+set(BEASTHTTP_EXAMPLE_NAME reactor_cxx11)
 
 include_directories(${BEASTHTTP_INCLUDE_PATH})
 include_directories(${Boost_INCLUDE_DIRS})

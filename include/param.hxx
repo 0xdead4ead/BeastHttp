@@ -121,7 +121,7 @@ class pack
 public:
 
     template<class Router>
-    static auto
+    static impl<Router, self_type>
     provide(Router& router, typename regex_type::flag_type flags)
     {
         return impl<Router, self_type>{router, flags};
