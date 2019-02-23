@@ -2,6 +2,8 @@
 
 Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the Boost.Beast when constructing queries and answers.
 
+## Work in progress...
+
 # FEATURES
 
 * Header-only
@@ -81,7 +83,7 @@ Getting a parameter from a URI `/user/param?y=1992` :
 
 ```cpp
 
-    router.param<http::param::pack<int>>(boost::regex::ECMAScript)
+    router.param<int>(boost::regex::ECMAScript)
             .get("^/user/param[?]y=(\\d+)$", 
        [](auto /*request*/, auto /*context*/, auto args){
         assert(std::get<0>(args) == 1992);
@@ -89,8 +91,8 @@ Getting a parameter from a URI `/user/param?y=1992` :
 
     // or
 
-    router.param<http::param::pack<int>>(boost::regex::ECMAScript)
-            .get(^"/user/param[?]y=(\\d+)$",
+    router.param<int>(boost::regex::ECMAScript)
+            .get("^/user/param[?]y=(\\d+)$",
        [](auto /*request*/, auto /*context*/, auto _1x, auto /*args*/){
         // process /user
         std::next(_1x)();
@@ -108,7 +110,7 @@ Getting a parameter using a string literal (as above) :
     using http::literals::value;
     using http::literals::operator""_c;
 
-    auto param = router.param<http::param::pack<int>>(boost::regex::ECMAScript);
+    auto param = router.param<int>(boost::regex::ECMAScript);
     
     "^/user/param[?]y=(\\d+)$"_get.advance(std::move(param), 
        [](auto /*request*/, auto /*context*/, auto args){
@@ -160,7 +162,7 @@ Create handlers routes, forming a chain, for the route path:
 
     http::chain_router<session_type> books;
 
-    books_router.route("^/book$")
+    books.route("^/book$")
             .get([](auto request, auto context) {
         context.get().send(make_response(request, "get a random book\n"));
     })
@@ -218,6 +220,6 @@ Run the I/O service on the requested number of threads:
 
 # LICENSE
 
-Copyright © 2018 0xdead4ead
+Copyright © 2018-2019 0xdead4ead
 
 [BSD 2-Clause "Simplified" License](https://github.com/0xdead4ead/beast_http_server/blob/dev/LICENSE)
