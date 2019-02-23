@@ -1,12 +1,17 @@
-# SYNOPSIS [![Build Status](https://travis-ci.org/0xdead4ead/BeastHttp.svg?branch=master)](https://travis-ci.org/0xdead4ead/BeastHttp)
+# BeastHttp [![license][badge.license]][license] [![build][badge.build]][build] ![badge.cpp](https://img.shields.io/badge/c++-11/14-ff69b4.svg?style=flat-square)
 
-Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the Boost.Beast when constructing queries and answers.
+[badge.license]: http://img.shields.io/badge/license-BSD%E2%80%932%E2%80%93Clause-blue.svg?style=flat-square
+[badge.build]: https://img.shields.io/travis/0xdead4ead/BeastHttp.svg?style=flat-square&logo=travis
+
+[license]: https://github.com/0xdead4ead/BeastHttp/blob/master/LICENSE
+[build]: https://travis-ci.org/0xdead4ead/BeastHttp
+
+Easy HTTP (Header-only) library implemented using minimum C++11 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the Boost.Beast when constructing queries and answers.
 
 ## Work in progress...
 
 # FEATURES
 
-* Header-only
 * HTTP 1.0 / 1.1
 * TLS/SSL
 * Pipeline
@@ -19,7 +24,6 @@ Easy HTTP library implemented using C++14 and Boost.Beast. Allows you to get or 
 * Boost Libraries >= 1.66.0v
 * [`Boost.Regex`](https://github.com/boostorg/regex), [`Boost.Asio`](https://github.com/boostorg/asio), [`Boost.Beast`](https://github.com/boostorg/beast/tree/develop) & [`Boost.LexicalCast`](https://github.com/boostorg/lexical_cast) library
 * [`OpenSSL`](https://github.com/openssl/openssl) (optional)
-* Minimal C++ 14 compatible compilator
 
 # USAGE
 
@@ -35,7 +39,7 @@ Alias's represent instances of default classes for reactive design.
 
 ```
 
-Add new route for GET request with "/" and "/a/b" resource: 
+Creating a new callback functions storage and route path for GET request with "/" resource: 
 
 ```cpp
 
@@ -45,8 +49,19 @@ Add new route for GET request with "/" and "/a/b" resource:
         context.get().send(make_response(request, "MAIN PAGE\n"));
     });
     
-    // and
+    // or so ...
 
+    using http::literals::operator""_get;
+
+    "^/$"_get.advance(router, [](auto request, auto context) {
+        context.get().send(make_response(request, "MAIN PAGE\n"));
+    });
+
+```
+
+It is possible to add multiple handlers for one route. For movement on them `std::next` or `std::advance` is used:
+
+```cpp
     router.get("^/a/b$",
        [](auto /*request*/, auto /*context*/, auto _1x){
         // process /a
@@ -57,29 +72,7 @@ Add new route for GET request with "/" and "/a/b" resource:
 
 ```
 
-Add a route using a literal operator (as above)
-
-```cpp
-
-    using http::literals::operator""_get;
-
-    "^/$"_get.advance(router, [](auto request, auto context) {
-        context.get().send(make_response(request, "MAIN PAGE\n"));
-    });
-    
-    // and
-    
-    "^/a/b$"_get.advance(router, 
-       [](auto /*request*/, auto /*context*/, auto _1x){
-        // process /a
-        std::next(_1x)();
-    }, [](auto /*request*/, auto /*context*/){
-        // process /b
-    });
-
-```
-
-Getting a parameter from a URI `/user/param?y=1992` :
+Getting a parameter from a URI. Request send example `curl localhost --request 'GET' --request-target '/user/param?y=1992'`:
 
 ```cpp
 
@@ -107,6 +100,7 @@ Getting a parameter using a string literal (as above) :
 
 ```cpp
 
+    // For value f'n is required c++14
     using http::literals::value;
     using http::literals::operator""_c;
 
@@ -114,17 +108,6 @@ Getting a parameter using a string literal (as above) :
     
     "^/user/param[?]y=(\\d+)$"_get.advance(std::move(param), 
        [](auto /*request*/, auto /*context*/, auto args){
-        assert(value(args, 0_c) == 1992);
-    });
-
-    // or
-
-    "^/user/param[?]y=(\\d+)$"_get.advance(std::move(param), 
-       [](auto /*request*/, auto /*context*/, auto _1x, auto /*args*/){
-        // process /user
-        std::next(_1x)();
-    }, [](auto /*request*/, auto /*context*/, auto args){
-        // process /param
         assert(value(args, 0_c) == 1992);
     });
 
@@ -217,9 +200,4 @@ Run the I/O service on the requested number of threads:
     t.join();
 
 ```
-
-# LICENSE
-
-Copyright © 2018-2019 0xdead4ead
-
-[BSD 2-Clause "Simplified" License](https://github.com/0xdead4ead/beast_http_server/blob/dev/LICENSE)
+Note: In the future, it is planned to introduce preforked/prethreated server design, also support HTTP 2.
