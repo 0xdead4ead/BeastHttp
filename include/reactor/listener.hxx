@@ -13,6 +13,7 @@
 #define BEASTHTTP_LISTENER_TMPL_ATTRIBUTES \
     OnAccept, OnError, Protocol, Acceptor, Socket, Endpoint
 
+namespace _0xdead4ead {
 namespace http {
 namespace reactor {
 
@@ -191,5 +192,6 @@ using listener_type = listener<>;
 } // namespace _default
 } // namespace reactor
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // not defined BEASTHTTP_REACTOR_LISTENER_HXX

@@ -5,6 +5,7 @@
 
 #include <boost/beast/http/message.hpp>
 
+namespace _0xdead4ead {
 namespace http {
 namespace base {
 
@@ -104,5 +105,6 @@ private:
 
 } // namespace base
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // BEASTHTTP_BASE_REQUEST_PROCESSOR_HXX

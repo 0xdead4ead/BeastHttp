@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <utility>
 
+namespace _0xdead4ead {
 namespace http {
 namespace base {
 namespace traits {
@@ -674,5 +675,6 @@ using HasRegexType = decltype (hasRegexType(std::declval<X>()));
 } // namespace traits
 } // namespace base
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // not defined BEASTHTTP_BASE_TRAITS_HXX

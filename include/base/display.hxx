@@ -3,6 +3,7 @@
 
 #include "traits.hxx"
 
+namespace _0xdead4ead {
 namespace http {
 namespace base {
 namespace display {
@@ -116,5 +117,6 @@ auto printline(Stream& stream, Arg const& arg, Args const&... args)
 } // namespace display
 } // namespace base
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // not defined BEASTHTTP_BASE_DISPLAY_HXX

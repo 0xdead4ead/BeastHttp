@@ -20,6 +20,7 @@
 #define BEASTHTTP_DECLARE_FRIEND_BASE_CB_EXECUTOR_CLASS \
     friend class cb::executor;
 
+namespace _0xdead4ead {
 namespace http {
 namespace base {
 namespace cb {
@@ -385,5 +386,6 @@ private:
 } // namespace cb
 } // namespace base
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // not defined BEASTHTTP_BASE_CB_HXX

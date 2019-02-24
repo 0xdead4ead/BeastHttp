@@ -43,6 +43,7 @@
     };
 
 #if defined BEASTHTTP_LITERALS_DETECT_CXX14
+namespace _0xdead4ead {
 namespace http {
 namespace literals {
 namespace details {
@@ -370,6 +371,7 @@ inline auto operator "" _route(const char* s, std::size_t n)
 
 } // namespace literals
 } // namespace http
+} // namespace _0xdead4ead
 #endif // #if defined BEASTHTTP_LITERALS_DETECT_CXX14
 
 #endif // not defined BEASTHTTP_LITERALS_HXX

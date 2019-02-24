@@ -13,6 +13,7 @@
              template<typename, typename, typename...> class, template<typename> class, template<typename> class, template<typename> class> \
     friend class session;
 
+namespace _0xdead4ead {
 namespace http {
 namespace reactor {
 namespace ssl {
@@ -101,5 +102,6 @@ private:
 } // namespace ssl
 } // namespace reactor
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // not defined BEASTHTTP_REACTOR_SSL_CONNECTION_HXX

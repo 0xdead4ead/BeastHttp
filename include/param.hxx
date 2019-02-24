@@ -51,6 +51,7 @@
           f_{std::move(f)} \
     {}
 
+namespace _0xdead4ead {
 namespace http {
 
 template<class>
@@ -3413,5 +3414,6 @@ public:
 
 } // namespace param
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // not defined BEASTHTTP_PARAM_HXX

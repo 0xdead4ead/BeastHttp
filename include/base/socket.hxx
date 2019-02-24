@@ -9,6 +9,7 @@
 #define BEASTHTTP_SOCKET_TMPL_ATTRIBUTES \
     Protocol, Socket
 
+namespace _0xdead4ead {
 namespace http {
 namespace base {
 
@@ -65,5 +66,6 @@ protected:
 
 } // namespace base
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // BEASTHTTP_BASE_SOCKET_HXX

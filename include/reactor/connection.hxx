@@ -11,6 +11,7 @@
              template<typename, typename, typename...> class, template<typename> class, template<typename> class> \
     friend class session;
 
+namespace _0xdead4ead {
 namespace http {
 namespace reactor {
 
@@ -80,5 +81,6 @@ private:
 
 } // namespace reactor
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // not defined BEASTHTTP_REACTOR_CONNECTION_HXX

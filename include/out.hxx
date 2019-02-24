@@ -9,6 +9,7 @@
 #include <boost/beast/version.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+namespace _0xdead4ead {
 namespace http {
 namespace out {
 
@@ -95,5 +96,6 @@ auto pushn(Destination& destination, Args const&... args)
 
 } // namespace out
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // not defined BEASTHTTP_OUT_HXX

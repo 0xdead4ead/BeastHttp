@@ -6,6 +6,7 @@
 #include <string>
 #include <boost/regex.hpp>
 
+namespace _0xdead4ead {
 namespace http {
 namespace base {
 
@@ -50,5 +51,6 @@ private:
 
 } // namespace base
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // not defined BEASTHTTP_BASE_REGEX_HXX

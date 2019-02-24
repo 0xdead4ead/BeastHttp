@@ -3,6 +3,7 @@
 
 #include "base/router.hxx"
 
+namespace _0xdead4ead {
 namespace http {
 
 template<class Session>
@@ -374,5 +375,6 @@ private:
 }; // class basic_router
 
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // not defined BEASTHTTP_BASIC_ROUTER_HXX

@@ -10,6 +10,7 @@
 #include <boost/beast/http/write.hpp>
 #include <boost/beast/http/read.hpp>
 
+namespace _0xdead4ead {
 namespace http {
 namespace base {
 
@@ -88,5 +89,6 @@ public:
 
 } // namespace base
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // not defined BEASTHTTP_BASE_CONNECTION_HXX

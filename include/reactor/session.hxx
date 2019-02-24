@@ -22,6 +22,7 @@
 #include <boost/beast/http/string_body.hpp>
 #include <boost/asio/steady_timer.hpp>
 
+namespace _0xdead4ead {
 namespace http {
 namespace reactor {
 
@@ -722,5 +723,6 @@ using session_type = session<>;
 } // namespace _default
 } // namespace reactor
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // not defined BEASTHTTP_REACTOR_SESSION_HXX

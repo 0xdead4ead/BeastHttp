@@ -22,6 +22,7 @@
 #include <boost/beast/http/string_body.hpp>
 #include <boost/asio/steady_timer.hpp>
 
+namespace _0xdead4ead {
 namespace http {
 namespace reactor {
 namespace ssl {
@@ -767,5 +768,6 @@ using session_type = session<>;
 } // namespace ssl
 } // namespace reactor
 } // namespace http
+} // namespace _0xdead4ead
 
 #endif // not defined BEASTHTTP_REACTOR_SSL_SESSION_HXX
