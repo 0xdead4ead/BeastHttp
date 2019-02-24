@@ -1,4 +1,4 @@
-# BeastHttp [![license][badge.license]][license] [![build][badge.build]][build] ![badge.cpp](https://img.shields.io/badge/c++-11/14-ff69b4.svg?style=flat-square)
+# SYNOPSIS [![license][badge.license]][license] [![build][badge.build]][build] ![badge.cpp](https://img.shields.io/badge/c++-11/14-ff69b4.svg?style=flat-square)
 
 [badge.license]: http://img.shields.io/badge/license-BSD%E2%80%932%E2%80%93Clause-blue.svg?style=flat-square
 [badge.build]: https://img.shields.io/travis/0xdead4ead/BeastHttp.svg?style=flat-square&logo=travis
@@ -33,6 +33,8 @@ The following notes show the standard syntax for setting up routes and starting 
 Alias's represent instances of default classes for reactive design.
 
 ```cpp
+
+    using namespace _0xdead4ead;
 
     using session_type = http::reactor::_default::session_type;
     using listener_type = http::reactor::_default::listener_type;
