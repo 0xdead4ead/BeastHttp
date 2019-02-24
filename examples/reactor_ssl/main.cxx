@@ -125,6 +125,8 @@ int main()
         return "test";
     });
 
+    using namespace _0xdead4ead;
+
     using session_type = http::reactor::ssl::_default::session_type;
     using listener_type = http::reactor::_default::listener_type;
 

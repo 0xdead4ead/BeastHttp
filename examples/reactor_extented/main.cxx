@@ -43,6 +43,8 @@ int main()
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/2'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/3'
 
+    using namespace _0xdead4ead;
+
     using session_type = http::reactor::_default::session_type;
     using listener_type = http::reactor::_default::listener_type;
     using session_array = std::vector<std::weak_ptr<session_type::flesh>>;
