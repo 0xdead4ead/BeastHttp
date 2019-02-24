@@ -7,6 +7,8 @@
 
 #include <sstream>
 
+using namespace _0xdead4ead;
+
 BOOST_AUTO_TEST_CASE(no_1) {
 
     {

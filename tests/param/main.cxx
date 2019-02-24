@@ -7,10 +7,14 @@
 #include <base/regex.hxx>
 #include <base/request_processor.hxx>
 
-#include <param.hxx>
+#include <param.hxx> // Must be defined before router header
 #include <basic_router.hxx>
+#include <chain_router.hxx>
+#include <literals.hxx>
 
 #include <boost/beast/http.hpp>
+
+using namespace _0xdead4ead;
 
 class test_session
 {
@@ -295,3 +299,91 @@ BOOST_AUTO_TEST_CASE(no_2) {
     procs.provide({boost::beast::http::verb::get, "/a/1/b/2/c/3", 11}, test_session::flesh{});
 
 } // BOOST_AUTO_TEST_CASE(no_2)
+
+BOOST_AUTO_TEST_CASE(literals_no_1) {
+
+    using http::literals::value;
+    using http::literals::operator""_c;
+    using http::literals::operator""_get;
+
+    http::basic_router<test_session> router;
+
+    http::base::request_processor<test_session>
+            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+
+    "^/(\\d+)$"_get.advance(router.param<int>(boost::regex::ECMAScript),
+       [](auto request, auto /*context*/, auto args){
+        BOOST_CHECK(request.target() == "/10");
+        BOOST_CHECK_EQUAL(value(args, 0_c), 10);
+    });
+
+    "^/a/(\\d+)$"_get.advance(router.param<int>(boost::regex::ECMAScript),
+       [](auto request, auto /*context*/, auto _1x, auto args){
+        BOOST_CHECK(request.target() == "/a");
+        BOOST_CHECK_EQUAL(value(args, 0_c), 0);
+        std::next(_1x)();
+    }, [](auto request, auto /*context*/, auto args){
+        BOOST_CHECK(request.target() == "/10");
+        BOOST_CHECK_EQUAL(value(args, 0_c), 10);
+    });
+
+    procs.provide({boost::beast::http::verb::get, "/10", 11}, test_session::flesh{});
+    procs.provide({boost::beast::http::verb::get, "/a/10", 11}, test_session::flesh{});
+
+} // BOOST_AUTO_TEST_CASE(literals_no_1)
+
+BOOST_AUTO_TEST_CASE(literals_no_2) {
+
+    using http::literals::value;
+    using http::literals::operator""_c;
+    using http::literals::operator""_route;
+
+    http::chain_router<test_session> router;
+
+    http::base::request_processor<test_session>
+            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+
+    "^/(\\d+)$"_route.advance(router.param<int>(boost::regex::ECMAScript))
+      .get([](auto request, auto /*context*/, auto args){
+        BOOST_CHECK(request.target() == "/10");
+        BOOST_CHECK_EQUAL(value(args, 0_c), 10);
+    }).post([](auto request, auto /*context*/, auto args){
+        BOOST_CHECK(request.target() == "/10");
+        BOOST_CHECK_EQUAL(value(args, 0_c), 10);
+    }).put([](auto request, auto /*context*/, auto args){
+        BOOST_CHECK(request.target() == "/10");
+        BOOST_CHECK_EQUAL(value(args, 0_c), 10);
+    });
+
+    "^/a/(\\d+)$"_route.advance(router.param<int>(boost::regex::ECMAScript))
+       .get([](auto request, auto /*context*/, auto _1x, auto args){
+        BOOST_CHECK(request.target() == "/a");
+        BOOST_CHECK_EQUAL(value(args, 0_c), 0);
+        std::next(_1x)();
+    }, [](auto request, auto /*context*/, auto args){
+        BOOST_CHECK(request.target() == "/10");
+        BOOST_CHECK_EQUAL(value(args, 0_c), 10);
+    }).post([](auto request, auto /*context*/, auto _1x, auto args){
+        BOOST_CHECK(request.target() == "/a");
+        BOOST_CHECK_EQUAL(value(args, 0_c), 0);
+        std::next(_1x)();
+    }, [](auto request, auto /*context*/, auto args){
+        BOOST_CHECK(request.target() == "/10");
+        BOOST_CHECK_EQUAL(value(args, 0_c), 10);
+    }).put([](auto request, auto /*context*/, auto _1x, auto args){
+        BOOST_CHECK(request.target() == "/a");
+        BOOST_CHECK_EQUAL(value(args, 0_c), 0);
+        std::next(_1x)();
+    }, [](auto request, auto /*context*/, auto args){
+        BOOST_CHECK(request.target() == "/10");
+        BOOST_CHECK_EQUAL(value(args, 0_c), 10);
+    });
+
+    procs.provide({boost::beast::http::verb::get, "/10", 11}, test_session::flesh{});
+    procs.provide({boost::beast::http::verb::post, "/10", 11}, test_session::flesh{});
+    procs.provide({boost::beast::http::verb::put, "/10", 11}, test_session::flesh{});
+    procs.provide({boost::beast::http::verb::get, "/a/10", 11}, test_session::flesh{});
+    procs.provide({boost::beast::http::verb::post, "/a/10", 11}, test_session::flesh{});
+    procs.provide({boost::beast::http::verb::put, "/a/10", 11}, test_session::flesh{});
+
+} // BOOST_AUTO_TEST_CASE(literals_no_2)

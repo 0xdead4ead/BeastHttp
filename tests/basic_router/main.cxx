@@ -6,9 +6,13 @@
 #include <base/cb.hxx>
 #include <base/regex.hxx>
 #include <base/request_processor.hxx>
+
+#include <literals.hxx>
 #include <basic_router.hxx>
 
 #include <boost/beast/http.hpp>
+
+using namespace _0xdead4ead;
 
 class test_session
 {
@@ -770,3 +774,29 @@ BOOST_AUTO_TEST_CASE(put_no_3) {
     BOOST_CHECK_EQUAL(shared_resource[6], "putdata");
 
 } // BOOST_AUTO_TEST_CASE(put_no_3)
+
+BOOST_AUTO_TEST_CASE(literals_no_1) {
+
+    using http::literals::operator""_get;
+
+    http::basic_router<test_session> router;
+
+    http::base::request_processor<test_session>
+            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+
+    "^/a$"_get.advance(router, [](auto request, auto /*context*/){
+        BOOST_CHECK(request.target() == "/a");
+    });
+
+    "^/a/b$"_get.advance(router,
+       [](auto request, auto /*context*/, auto _1x){
+        BOOST_CHECK(request.target() == "/a");
+        std::next(_1x)();
+    }, [](auto request, auto /*context*/){
+        BOOST_CHECK(request.target() == "/b");
+    });
+
+    procs.provide({boost::beast::http::verb::get, "/a", 11}, test_session::flesh{});
+    procs.provide({boost::beast::http::verb::get, "/a/b", 11}, test_session::flesh{});
+
+} // BOOST_AUTO_TEST_CASE(literals_no_1)

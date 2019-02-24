@@ -6,9 +6,13 @@
 #include <base/cb.hxx>
 #include <base/regex.hxx>
 #include <base/request_processor.hxx>
+
+#include <literals.hxx>
 #include <chain_router.hxx>
 
 #include <boost/beast/http.hpp>
+
+using namespace _0xdead4ead;
 
 class test_session
 {
@@ -145,3 +149,66 @@ BOOST_AUTO_TEST_CASE(no_2) {
     procs.provide({boost::beast::http::verb::put, "/a/b/c/d/e", 11, "putdata"}, test_session::flesh{});
 
 } // BOOST_AUTO_TEST_CASE(no_2)
+
+BOOST_AUTO_TEST_CASE(literals_no_1) {
+
+    using http::literals::operator""_route;
+
+    http::chain_router<test_session> router;
+
+    http::base::request_processor<test_session>
+            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+
+    "^/a/b/c$"_route.advance(router).get(
+       [](auto request, auto /*context*/, auto _1x){
+        BOOST_CHECK(request.target() == "/a");
+        std::next(_1x)();
+    }, [](auto request, auto /*context*/, auto _2x){
+        BOOST_CHECK(request.target() == "/b");
+        std::next(_2x)();
+    }, [](auto request, auto /*context*/){
+        BOOST_CHECK(request.target() == "/c");
+    });
+
+    "^/a/b/c/d$"_route.advance(router)
+      .get([](auto request, auto /*context*/){
+        BOOST_CHECK(request.target() == "/a/b/c/d");
+    }).post([](auto request, auto /*context*/){
+        BOOST_CHECK(request.target() == "/a/b/c/d");
+        BOOST_CHECK_EQUAL(request.body(), "postdata");
+    }).put([](auto request, auto /*context*/){
+        BOOST_CHECK(request.target() == "/a/b/c/d");
+        BOOST_CHECK_EQUAL(request.body(), "putdata");
+    });
+
+    "^/a/b/c/d/e$"_route.advance(router)
+      .get([](auto request, auto /*context*/, auto _1x){
+        BOOST_CHECK(request.target() == "/a");
+        std::next(_1x)();
+    }, [](auto request, auto /*context*/){
+        BOOST_CHECK(request.target() == "/b");
+    }).post([](auto request, auto /*context*/, auto _1x){
+        BOOST_CHECK(request.target() == "/a");
+        BOOST_CHECK_EQUAL(request.body(), "postdata");
+        std::next(_1x)();
+    }, [](auto request, auto /*context*/){
+        BOOST_CHECK(request.target() == "/b");
+        BOOST_CHECK_EQUAL(request.body(), "postdata");
+    }).put([](auto request, auto /*context*/, auto _1x){
+        BOOST_CHECK(request.target() == "/a");
+        BOOST_CHECK_EQUAL(request.body(), "putdata");
+        std::next(_1x)();
+    }, [](auto request, auto /*context*/){
+        BOOST_CHECK(request.target() == "/b");
+        BOOST_CHECK_EQUAL(request.body(), "putdata");
+    });
+
+    procs.provide({boost::beast::http::verb::get, "/a/b/c", 11}, test_session::flesh{});
+    procs.provide({boost::beast::http::verb::get, "/a/b/c/d", 11}, test_session::flesh{});
+    procs.provide({boost::beast::http::verb::post, "/a/b/c/d", 11, "postdata"}, test_session::flesh{});
+    procs.provide({boost::beast::http::verb::put, "/a/b/c/d", 11, "putdata"}, test_session::flesh{});
+    procs.provide({boost::beast::http::verb::get, "/a/b/c/d/e", 11}, test_session::flesh{});
+    procs.provide({boost::beast::http::verb::post, "/a/b/c/d/e", 11, "postdata"}, test_session::flesh{});
+    procs.provide({boost::beast::http::verb::put, "/a/b/c/d/e", 11, "putdata"}, test_session::flesh{});
+
+} // BOOST_AUTO_TEST_CASE(literals_no_1)
