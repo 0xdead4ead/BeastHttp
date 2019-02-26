@@ -24,8 +24,6 @@ message("CMAKE_BUILD_TYPE=" ${CMAKE_BUILD_TYPE})
 
 set(BEASTHTTP_INCLUDE_PATH ${PROJECT_SOURCE_DIR}/include)
 
-file(GLOB BEASTHTTP_BASE_HEADS ${BEASTHTTP_INCLUDE_PATH}/base/*.hxx)
-
 add_subdirectory("${PROJECT_SOURCE_DIR}/examples/reactor")
 add_subdirectory("${PROJECT_SOURCE_DIR}/examples/reactor_extented")
 add_subdirectory("${PROJECT_SOURCE_DIR}/examples/reactor_ssl")
