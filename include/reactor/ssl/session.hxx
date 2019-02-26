@@ -6,7 +6,7 @@
 #include "base/timer.hxx"
 #include "base/regex.hxx"
 
-#include "connection.hxx"
+#include "shared/ssl/connection.hxx"
 
 #include <boost/beast/core/string.hpp>
 #include <boost/system/error_code.hpp>
