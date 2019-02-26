@@ -41,8 +41,6 @@ protected:
         : strand_{executor}
     {}
 
-    virtual ~connection() = default; // TODO: extra member
-
 public:
 
     template <class F, class R>

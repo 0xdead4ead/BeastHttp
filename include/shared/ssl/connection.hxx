@@ -6,16 +6,9 @@
 
 #include <boost/asio/ssl/stream.hpp>
 
-#define BEASTHTTP_DECLARE_FRIEND_SSL_SESSION_CLASS \
-    template<class, class, class, template<typename> class, class, \
-             template<typename, typename...> class, template<typename> class, \
-             template<typename, typename...> class, template<typename, typename, typename...> class, \
-             template<typename, typename, typename...> class, template<typename> class, template<typename> class, template<typename> class> \
-    friend class session;
-
 namespace _0xdead4ead {
 namespace http {
-namespace reactor {
+namespace shared {
 namespace ssl {
 
 /**
@@ -32,15 +25,20 @@ class connection : private base::socket<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES>,
 
     using base_socket = base::socket<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES>;
 
+public:
+
     using socket_type = typename base_socket::Sock;
 
     using ssl_stream_type = boost::asio::ssl::stream<socket_type&>;
 
     using shutdown_type = typename socket_type::shutdown_type;
 
-public:
-
-    BEASTHTTP_DECLARE_FRIEND_SSL_SESSION_CLASS
+    explicit
+    connection(socket_type&& socket, boost::asio::ssl::context& ctx)
+        : base_socket{std::move(socket)},
+          base_connection{base_socket::instance_.get_executor()},
+          stream_{base_socket::instance_, ctx}
+    {}
 
     template <class F, class B>
     void
@@ -85,22 +83,12 @@ public:
 
 private:
 
-    explicit
-    connection(socket_type&& socket, boost::asio::ssl::context& ctx)
-        : base_socket{std::move(socket)},
-          base_connection{base_socket::instance_.get_executor()},
-          stream_{base_socket::instance_, ctx}
-    {}
-
-    ~connection() override
-    {}
-
     ssl_stream_type stream_;
 
 }; // class connection
 
 } // namespace ssl
-} // namespace reactor
+} // namespace shared
 } // namespace http
 } // namespace _0xdead4ead
 

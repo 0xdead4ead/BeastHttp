@@ -4,16 +4,9 @@
 #include "base/connection.hxx"
 #include "base/socket.hxx"
 
-#define BEASTHTTP_DECLARE_FRIEND_SESSION_CLASS \
-    template<class, class, class, template<typename> class, class, \
-             template<typename, typename...> class, template<typename> class, \
-             template<typename, typename...> class, template<typename, typename, typename...> class, \
-             template<typename, typename, typename...> class, template<typename> class, template<typename> class> \
-    friend class session;
-
 namespace _0xdead4ead {
 namespace http {
-namespace reactor {
+namespace shared {
 
 /**
   @brief The plain connection class
@@ -35,7 +28,11 @@ public:
 
     using shutdown_type = typename socket_type::shutdown_type;
 
-    BEASTHTTP_DECLARE_FRIEND_SESSION_CLASS
+    explicit
+    connection(socket_type&& socket)
+        : base_connection{socket.get_executor()},
+          base_socket{std::move(socket)}
+    {}
 
     connection(self_type&&) = default;
     auto operator=(self_type&&) -> self_type& = default;
@@ -64,22 +61,9 @@ public:
         return base_socket::release();
     }
 
-private:
-
-    explicit
-    connection(socket_type&& socket)
-        : base_connection{socket.get_executor()},
-          base_socket{std::move(socket)}
-    {}
-
-    ~connection() override
-    {
-        close();
-    }
-
 }; // class connection
 
-} // namespace reactor
+} // namespace shared
 } // namespace http
 } // namespace _0xdead4ead
 

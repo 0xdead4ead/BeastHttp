@@ -84,7 +84,7 @@ public:
 
     using buffer_type = Buffer;
 
-    using connection_type = connection<Protocol, Socket>;
+    using connection_type = shared::ssl::connection<Protocol, Socket>;
 
     using socket_type = typename connection_type::socket_type;
 
