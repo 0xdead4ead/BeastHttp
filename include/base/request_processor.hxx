@@ -40,6 +40,15 @@ public:
 
     using request_type = typename session_type::request_type;
 
+    static_assert (traits::TryCbegin<resource_map_type>::value
+                   and traits::TryCend<resource_map_type>::value,
+                   "Invalid resource container!");
+
+    static_assert (traits::TryCbegin<method_map_type>::value
+                   and traits::TryCend<method_map_type>::value
+                   and traits::TryFind<method_map_type, method_type>::value,
+                   "Invalid method/verb container!");
+
     request_processor(std::shared_ptr<resource_map_type> const& resource_map,
                       std::shared_ptr<method_map_type> const& method_map,
                       typename regex_type::flag_type flags)
@@ -65,14 +74,15 @@ public:
 
         bool invoked = false;
         if (method_map_) {
-            auto method_pos = method_map_->find(method);
-            if (method_pos != method_map_->end()) {
+            auto method_pos = static_cast<method_map_type const &>(*method_map_).find(method);
+            if (method_pos != method_map_->cend()) {
 
                 auto& resource_map = method_pos->second;
 
-                for (const auto & value : resource_map) {
-                    if (regex_.match(value.first, target.to_string())) {
-                        auto const& storage = value.second;
+                for (auto __it_value = resource_map.cbegin();
+                     __it_value != resource_map.cend(); ++__it_value) {
+                    if (regex_.match(__it_value->first, target.to_string())) {
+                        auto const& storage = __it_value->second;
 
                         if (storage) {
                             this->execute(request, _flesh, *storage);
@@ -84,9 +94,10 @@ public:
         }
 
         if (resource_map_ and not invoked)
-            for (const auto& value : *resource_map_) {
-                if (regex_.match(value.first, target.to_string())) {
-                    auto const& storage = value.second;
+            for (auto __it_value = resource_map_->cbegin();
+                 __it_value != resource_map_->cend(); ++__it_value) {
+                if (regex_.match(__it_value->first, target.to_string())) {
+                    auto const& storage = __it_value->second;
 
                     if (storage)
                         this->execute(request, _flesh, *storage);

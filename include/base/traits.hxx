@@ -48,6 +48,17 @@ struct try_cend_cxx11<X, details::void_t<decltype (
 {
 };
 
+template<class, class, class = details::void_t<>>
+struct try_find_cxx11 : std::false_type
+{
+};
+
+template<class X, class Y>
+struct try_find_cxx11<X, Y, details::void_t<decltype (
+        std::declval<X>().find(std::declval<Y>()))>> : std::true_type
+{
+};
+
 template<class, class = details::void_t<>>
 struct try_size_cxx11 : std::false_type
 {
@@ -335,6 +346,14 @@ constexpr auto tryCend(X&& x)
             (std::forward<X>(x));
 }
 
+template<class X, class Y>
+constexpr auto tryFind(X&& x, Y&& y)
+{
+    return details::isValid([](auto&& x, auto&& y)
+                            -> decltype(x.find(std::forward<decltype (y)>(y))){})
+            (std::forward<X>(x), std::forward<Y>(y));
+}
+
 template<class X>
 constexpr auto trySize(X&& x)
 {
@@ -515,6 +534,10 @@ template<class X>
 constexpr auto tryCend(X&&)
 -> decltype (details::try_cend_cxx11<X>{});
 
+template<class X, class Y>
+constexpr auto tryFind(X&&, Y&&)
+-> decltype (details::try_find_cxx11<X, Y>{});
+
 template<class X>
 constexpr auto trySize(X&&)
 -> decltype (details::try_size_cxx11<X>{});
@@ -608,6 +631,9 @@ using TryCbegin = decltype (tryCbegin(std::declval<X>()));
 
 template<typename X>
 using TryCend = decltype (tryCend(std::declval<X>()));
+
+template<typename X, typename Y>
+using TryFind = decltype (tryFind(std::declval<X>(), std::declval<Y>()));
 
 template<typename X>
 using HasConstIterator = decltype (hasConstIterator(std::declval<X>()));
