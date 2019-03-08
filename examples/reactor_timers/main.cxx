@@ -17,7 +17,7 @@ auto make_response(const boost::beast::http::request<Body>& req,
 
     auto const body_size = body.size();
 
-    boost::beast::http::response<boost::beast::http::string_body> res{
+    boost::beast::http::response<Body> res{
          std::piecewise_construct,
          std::make_tuple(std::move(body)),
          std::make_tuple(boost::beast::http::status::ok, req.version())};
@@ -64,6 +64,7 @@ int main()
         // Send End-of-stream. Write function can no longer be issued.
         context.get().eof();
         // Write half of the connection is closed
+        // In this place connection point is closed gracefully
     };
 
     const auto& onAccept = [&](auto socket){
