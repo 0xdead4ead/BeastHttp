@@ -105,6 +105,15 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::eof()
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::cls()
+{
+    do_cls();
+
+    return *this;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::launch_timer()
 {
     timer_.async_wait(
@@ -260,13 +269,24 @@ BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 void
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_eof()
 {
-    // Is this connection alive?
     if (not connection_.stream().is_open())
         return;
 
     auto ec = connection_.shutdown(shutdown_type::shutdown_send);
     if (ec and on_error_)
         on_error_(ec, "shutdown/eof");
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+void
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_cls()
+{
+    if (not connection_.stream().is_open())
+        return;
+
+    auto ec = connection_.close();
+    if (ec and on_error_)
+        on_error_(ec, "close/cls");
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -288,7 +308,6 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::process_request()
 {
     this->provide(request_, *this);
 
-    // If we aren't at the queue limit, try to pipeline another request
     if (not queue_.is_full() and connection_.stream().is_open())
         recv();
 }

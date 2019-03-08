@@ -145,6 +145,9 @@ public:
         eof();
 
         flesh&
+        cls();
+
+        flesh&
         launch_timer();
 
         explicit
@@ -193,6 +196,9 @@ public:
 
         void
         do_eof();
+
+        void
+        do_cls();
 
         void
         do_timeout();
@@ -270,6 +276,14 @@ public:
         eof() const &
         {
             flesh_.eof();
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        context&
+        cls() const &
+        {
+            flesh_.cls();
             return const_cast<typename std::add_lvalue_reference<
                     context>::type>(*this);
         }
