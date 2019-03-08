@@ -1,8 +1,8 @@
 #if not defined BEASTHTTP_OUT_HXX
 #define BEASTHTTP_OUT_HXX
 
-#include "base/display.hxx"
-#include "base/version.hxx"
+#include <base/display.hxx>
+#include <base/version.hxx>
 
 #include <boost/asio/streambuf.hpp>
 #include <boost/asio/write.hpp>

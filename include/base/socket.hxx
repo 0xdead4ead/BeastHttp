@@ -1,8 +1,6 @@
 #if not defined BEASTHTTP_BASE_SOCKET_HXX
 #define BEASTHTTP_BASE_SOCKET_HXX
 
-#include <type_traits>
-
 #include <boost/asio/socket_base.hpp>
 #include <boost/system/error_code.hpp>
 
@@ -32,33 +30,16 @@ protected:
     auto operator=(self_type&&) -> self_type& = default;
 
     boost::system::error_code
-    shutdown(typename Sock::shutdown_type type)
-    {
-        auto ec = boost::system::error_code{};
-        instance_.shutdown(type, ec);
-
-        return ec;
-    }
+    shutdown(typename Sock::shutdown_type);
 
     boost::system::error_code
-    close()
-    {
-        auto ec = boost::system::error_code{};
-        instance_.close(ec);
-
-        return ec;
-    }
+    close();
 
     Sock
-    release()
-    {
-        return std::move(instance_);
-    }
+    release();
 
     explicit
-    socket(Sock&& sock)
-        : instance_{std::move(sock)}
-    {}
+    socket(Sock&& sock);
 
     Sock instance_;
 
@@ -67,5 +48,7 @@ protected:
 } // namespace base
 } // namespace http
 } // namespace _0xdead4ead
+
+#include <base/impl/socket.ixx>
 
 #endif // BEASTHTTP_BASE_SOCKET_HXX

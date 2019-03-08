@@ -1,7 +1,7 @@
 #if not defined BEASTHTTP_REACTOR_LISTENER_HXX
 #define BEASTHTTP_REACTOR_LISTENER_HXX
 
-#include "base/traits.hxx"
+#include <base/traits.hxx>
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/socket_base.hpp>
@@ -10,7 +10,7 @@
 
 #include <boost/asio/ip/tcp.hpp>
 
-#define BEASTHTTP_LISTENER_TMPL_ATTRIBUTES \
+#define BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES \
     OnAccept, OnError, Protocol, Acceptor, Socket, Endpoint
 
 namespace _0xdead4ead {
@@ -23,7 +23,7 @@ template<template<typename> class OnAccept = std::function,
          template<typename> class Acceptor = boost::asio::basic_socket_acceptor,
          template<typename> class Socket = boost::asio::basic_stream_socket,
          template<typename> class Endpoint = boost::asio::ip::basic_endpoint>
-class listener : public std::enable_shared_from_this<listener<BEASTHTTP_LISTENER_TMPL_ATTRIBUTES>>
+class listener : public std::enable_shared_from_this<listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>>
         , boost::asio::coroutine
 {
     using self_type = listener;
@@ -64,118 +64,32 @@ public:
 
     template<class... _OnAction>
     static self_type&
-    loop(io_context& ioc,
-         endpoint_type const& endpoint,
-         _OnAction&&... on_action)
-    {
-        return std::make_shared<self_type>
-                (ioc, std::forward<_OnAction>(on_action)...)->loop(endpoint);
-    }
+    loop(io_context&, endpoint_type const&, _OnAction&&...);
 
     boost::system::error_code
-    close()
-    {
-        auto ec = boost::system::error_code{};
-        acceptor_.close(ec);
-
-        if (ec and on_error_)
-            on_error_(ec, "close");
-
-        return ec;
-    }
+    close();
 
     endpoint_type const&
-    endpoint() const
-    {
-        return endpoint_;
-    }
+    endpoint() const;
 
     socket_type
-    socket()
-    {
-        return std::move(socket_);
-    }
+    socket();
 
     template<class _OnAccept>
     explicit
-    listener(io_context& ioc,
-             _OnAccept&& on_accept)
-        : acceptor_{ioc},
-          socket_{ioc},
-          on_accept_{std::forward<_OnAccept>(on_accept)}
-    {}
+    listener(io_context&, _OnAccept&&);
 
     template<class _OnAccept, class _OnError>
     explicit
-    listener(io_context& ioc,
-             _OnAccept&& on_accept,
-             _OnError&& on_error)
-        : acceptor_{ioc},
-          socket_{ioc},
-          on_accept_{std::forward<_OnAccept>(on_accept)},
-          on_error_{std::forward<_OnError>(on_error)}
-    {}
+    listener(io_context&, _OnAccept&&, _OnError&&);
 
 private:
 
     self_type&
-    loop(endpoint_type const& endpoint)
-    {
-        auto ec = boost::system::error_code{};
-        // Open the acceptor
-        acceptor_.open(endpoint.protocol(), ec);
-        if (ec and on_error_) {
-            on_error_(ec, "open/loop");
-            return *this;
-        }
-
-        // Allow address reuse
-        acceptor_.set_option(boost::asio::socket_base::reuse_address(false));
-        if (ec and on_error_) {
-            on_error_(ec, "set_option/loop");
-            return *this;
-        }
-
-        // Bind to the server address
-        acceptor_.bind(endpoint, ec);
-        if (ec and on_error_) {
-            on_error_(ec, "bind/loop");
-            return *this;
-        }
-
-        // Start listening for connections
-        acceptor_.listen(
-            boost::asio::socket_base::max_listen_connections, ec);
-        if (ec and on_error_) {
-            on_error_(ec, "listen/loop");
-            return *this;
-        }
-
-        endpoint_ = endpoint;
-
-        do_loop();
-        return *this;
-    }
+    loop(endpoint_type const& endpoint);
 
     void
-    do_loop(boost::system::error_code ec = {})
-    {
-        BOOST_ASIO_CORO_REENTER(*this){
-            for(;;)
-            {
-                BOOST_ASIO_CORO_YIELD acceptor_.async_accept(
-                            socket_,
-                            std::bind(
-                                &self_type::do_loop,
-                                this->shared_from_this(),
-                                std::placeholders::_1));
-                if (ec and on_error_)
-                    on_error_(ec, "accept/do_loop");
-                else
-                    on_accept_(std::move(socket_));
-            }
-        }
-    }
+    do_loop(boost::system::error_code ec = {});
 
     acceptor_type acceptor_;
     socket_type socket_;
@@ -193,5 +107,7 @@ using listener_type = listener<>;
 } // namespace reactor
 } // namespace http
 } // namespace _0xdead4ead
+
+#include <reactor/impl/listener.ixx>
 
 #endif // not defined BEASTHTTP_REACTOR_LISTENER_HXX

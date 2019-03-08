@@ -1,8 +1,8 @@
 #if not defined BEASTHTTP_REACTOR_SSL_CONNECTION_HXX
 #define BEASTHTTP_REACTOR_SSL_CONNECTION_HXX
 
-#include "base/connection.hxx"
-#include "base/socket.hxx"
+#include <base/connection.hxx>
+#include <base/socket.hxx>
 
 #include <boost/asio/ssl/stream.hpp>
 
@@ -34,52 +34,27 @@ public:
     using shutdown_type = typename socket_type::shutdown_type;
 
     explicit
-    connection(socket_type&& socket, boost::asio::ssl::context& ctx)
-        : base_socket{std::move(socket)},
-          base_connection{base_socket::instance_.get_executor()},
-          stream_{base_socket::instance_, ctx}
-    {}
+    connection(socket_type&&, boost::asio::ssl::context&);
 
     template <class F, class B>
     void
-    async_handshake(const B& buf, F&& f)
-    {
-        stream_.async_handshake(
-                    boost::asio::ssl::stream_base::server, buf.data(),
-                    boost::asio::bind_executor(base_connection::strand_, std::forward<F>(f)));
-    }
+    async_handshake(const B&, F&&);
 
     template<class F>
     void
-    async_shutdown(F&& f)
-    {
-        stream_.async_shutdown(
-                    boost::asio::bind_executor(base_connection::strand_, std::forward<F>(f)));
-    }
+    async_shutdown(F&&);
 
     boost::beast::error_code
-    force_shutdown(shutdown_type type)
-    {
-        return base_socket::shutdown(type);
-    }
+    force_shutdown(shutdown_type);
 
     boost::beast::error_code
-    force_close()
-    {
-        return base_socket::close();
-    }
+    force_close();
 
     ssl_stream_type&
-    stream()
-    {
-        return stream_;
-    }
+    stream();
 
     socket_type
-    release_socket()
-    {
-        return base_socket::release_socket();
-    }
+    release_socket();
 
 private:
 
@@ -91,5 +66,7 @@ private:
 } // namespace shared
 } // namespace http
 } // namespace _0xdead4ead
+
+#include <shared/ssl/impl/connection.ixx>
 
 #endif // not defined BEASTHTTP_REACTOR_SSL_CONNECTION_HXX

@@ -1,7 +1,7 @@
 #if not defined BEASTHTTP_PARAM_HXX
 #define BEASTHTTP_PARAM_HXX
 
-#include "base/regex.hxx"
+#include <base/regex.hxx>
 
 #include <tuple>
 

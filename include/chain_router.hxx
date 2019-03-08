@@ -1,7 +1,7 @@
 #if not defined BEASTHTTP_CHAIN_ROUTER_HXX
 #define BEASTHTTP_CHAIN_ROUTER_HXX
 
-#include "base/router.hxx"
+#include <base/router.hxx>
 
 namespace _0xdead4ead {
 namespace http {

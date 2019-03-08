@@ -1,14 +1,9 @@
 #if not defined BEASTHTTP_BASE_CONNECTION_HXX
 #define BEASTHTTP_BASE_CONNECTION_HXX
 
-#include "traits.hxx"
-
-#include <boost/system/error_code.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/asio/io_context.hpp>
-#include <boost/asio/bind_executor.hpp>
-#include <boost/beast/http/write.hpp>
-#include <boost/beast/http/read.hpp>
+#include <boost/beast/core/error.hpp>
 
 namespace _0xdead4ead {
 namespace http {
@@ -37,56 +32,32 @@ protected:
     strand_type strand_;
 
     explicit
-    connection(io_context::executor_type executor)
-        : strand_{executor}
-    {}
+    connection(io_context::executor_type);
 
 public:
 
     template <class F, class R>
     void
-    async_write(/*const*/ R& msg, F&& f)
-    {
-        boost::beast::http::async_write(derived().stream(), msg,
-                                   boost::asio::bind_executor(
-                                           strand_, std::forward<F>(f)));
-    }
+    async_write(/*const*/ R&, F&&);
 
     template <class F, class B, class R>
     void
-    async_read(B& buf, R& msg, F&& f)
-    {
-        boost::beast::http::async_read(derived().stream(), buf, msg,
-                                   boost::asio::bind_executor(
-                                           strand_, std::forward<F>(f)));
-    }
+    async_read(B&, R&, F&&);
 
     template<class R>
     boost::beast::error_code
-    write(/*const*/ R& msg)
-    {
-        auto ec = boost::beast::error_code{};
-
-        boost::beast::http::write(derived().stream(), msg, ec);
-
-        return ec;
-    }
+    write(/*const*/ R&);
 
     template<class R, class B>
     boost::beast::error_code
-    read(B& buf, R& msg)
-    {
-        auto ec = boost::beast::error_code{};
-
-        boost::beast::http::read(derived().stream(), buf, msg, ec);
-
-        return ec;
-    }
+    read(B&, R&);
 
 }; // connection class
 
 } // namespace base
 } // namespace http
 } // namespace _0xdead4ead
+
+#include <base/impl/connection.ixx>
 
 #endif // not defined BEASTHTTP_BASE_CONNECTION_HXX

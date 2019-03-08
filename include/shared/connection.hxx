@@ -1,8 +1,8 @@
 #if not defined BEASTHTTP_REACTOR_CONNECTION_HXX
 #define BEASTHTTP_REACTOR_CONNECTION_HXX
 
-#include "base/connection.hxx"
-#include "base/socket.hxx"
+#include <base/connection.hxx>
+#include <base/socket.hxx>
 
 namespace _0xdead4ead {
 namespace http {
@@ -29,42 +29,29 @@ public:
     using shutdown_type = typename socket_type::shutdown_type;
 
     explicit
-    connection(socket_type&& socket)
-        : base_connection{socket.get_executor()},
-          base_socket{std::move(socket)}
-    {}
+    connection(socket_type&&);
 
     connection(self_type&&) = default;
     auto operator=(self_type&&) -> self_type& = default;
 
     boost::beast::error_code
-    shutdown(shutdown_type type)
-    {
-        return base_socket::shutdown(type);
-    }
+    shutdown(shutdown_type);
 
     boost::beast::error_code
-    close()
-    {
-        return base_socket::close();
-    }
+    close();
 
     socket_type&
-    stream()
-    {
-        return base_socket::instance_;
-    }
+    stream();
 
     socket_type
-    release_socket()
-    {
-        return base_socket::release();
-    }
+    release_socket();
 
 }; // class connection
 
 } // namespace shared
 } // namespace http
 } // namespace _0xdead4ead
+
+#include <shared/impl/connection.ixx>
 
 #endif // not defined BEASTHTTP_REACTOR_CONNECTION_HXX

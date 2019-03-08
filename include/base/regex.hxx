@@ -1,9 +1,6 @@
 #if not defined BEASTHTTP_BASE_REGEX_HXX
 #define BEASTHTTP_BASE_REGEX_HXX
 
-#include "traits.hxx"
-
-#include <string>
 #include <boost/regex.hpp>
 
 namespace _0xdead4ead {
@@ -24,24 +21,13 @@ public:
 
     using flag_type = typename regex_type::flag_type;
 
-    regex(flag_type flags)
-        : flags_{flags}
-    {}
+    regex(flag_type);
 
     bool
-    match(const std::string& regx, const std::string& str)
-    {
-        const regex_type e(regx, flags_);
-        return boost::regex_match(str, e);
-    }
+    match(const std::string&, const std::string&);
 
     bool
-    match(const std::string& regx, const std::string& str,
-          boost::smatch& results)
-    {
-        const regex_type e(regx, flags_);
-        return boost::regex_match(str, results, e);
-    }
+    match(const std::string&, const std::string&, boost::smatch&);
 
 private:
 
@@ -52,5 +38,7 @@ private:
 } // namespace base
 } // namespace http
 } // namespace _0xdead4ead
+
+#include <base/impl/regex.ixx>
 
 #endif // not defined BEASTHTTP_BASE_REGEX_HXX

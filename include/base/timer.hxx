@@ -1,11 +1,10 @@
 #if not defined BEASTHTTP_BASE_TIMER_HXX
 #define BEASTHTTP_BASE_TIMER_HXX
 
-#include "traits.hxx"
+#include <base/traits.hxx>
 
 #include <boost/asio/strand.hpp>
 #include <boost/asio/io_context.hpp>
-#include <boost/asio/bind_executor.hpp>
 
 namespace _0xdead4ead {
 namespace http {
@@ -38,29 +37,19 @@ public:
 
     template<class Time>
     explicit
-    timer(io_context::executor_type executor,
-          const Time& duration_or_time)
-        : strand_{executor},
-          timer_{executor.context(), duration_or_time}
-    {}
+    timer(io_context::executor_type, const Time&);
 
     timer(self_type&&) = default;
     auto operator=(self_type&&) -> self_type& = default;
 
-    ~timer() = default;
+    //~timer() = default;
 
     timer_type&
-    stream(){
-        return timer_;
-    }
+    stream();
 
     template<class F>
     void
-    async_wait(F&& f){
-        timer_.async_wait(
-                    boost::asio::bind_executor(
-                        strand_, std::forward<F>(f)));
-    }
+    async_wait(F&&);
 
 private:
 
@@ -72,5 +61,7 @@ private:
 } // namespace base
 } // namespace http
 } // namespace _0xdead4ead
+
+#include <base/impl/timer.ixx>
 
 #endif // not defined BEASTHTTP_BASE_TIMER_HXX

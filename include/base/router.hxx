@@ -1,8 +1,7 @@
 #if not defined BEASTHTTP_BASE_ROUTER_HXX
 #define BEASTHTTP_BASE_ROUTER_HXX
 
-#include "base/traits.hxx"
-#include "base/cb.hxx"
+#include <base/traits.hxx>
 
 #include <memory>
 
@@ -49,127 +48,39 @@ protected:
                    "Invalid session type!");
 
     explicit
-    router(std::shared_ptr<resource_map_type>& resource_map,
-           std::shared_ptr<method_map_type>& method_map) noexcept
-        : resource_map_{resource_map},
-          method_map_{method_map}
-    {}
+    router(std::shared_ptr<resource_map_type>&,
+           std::shared_ptr<method_map_type>&) noexcept;
 
     void
-    add_resource_cb(resource_regex_type const& path_to_resource,
-                    method_type const& method,
-                    storage_type&& storage)
-    {
-
-        if (path_to_resource.empty()) // can not place callback with empty regex
-            return;
-
-        if (not method_map_)
-            method_map_ = std::make_shared<method_map_type>();
-
-        method_map_->insert({
-                                method,
-                                resource_map_type()
-                            });
-
-        auto& resource_map_ref = method_map_->at(method);
-
-        resource_map_ref.insert({
-                                    path_to_resource,
-                                    std::shared_ptr<storage_type>{}
-                                });
-
-        auto& storage_sp = resource_map_ref.at(path_to_resource);
-        if (not storage_sp)
-            storage_sp = std::make_shared<storage_type>();
-
-        *storage_sp = std::move(storage);
-    }
+    add_resource_cb(resource_regex_type const&,
+                    method_type const&,
+                    storage_type&&);
 
     void
-    add_resource_cb_without_method(resource_regex_type const& path_to_resource,
-                                   storage_type&& storage){
-
-        if (path_to_resource.empty()) // can not place callback with empty regex
-            return;
-
-        if (not resource_map_)
-            resource_map_ = std::make_shared<resource_map_type>();
-
-        resource_map_->insert({
-                                  path_to_resource,
-                                  std::shared_ptr<storage_type>{}
-                              });
-
-        auto & storage_sp = resource_map_->at(path_to_resource);
-        if (not storage_sp)
-            storage_sp = std::make_shared<storage_type>();
-
-        *storage_sp = std::move(storage);
-    }
+    add_resource_cb_without_method(resource_regex_type const&,
+                                   storage_type&&);
 
     void
-    use(resource_regex_type const& path_to_resource,
-        self_type const& other)
-    {
-        if (other.resource_map_)
-            for (const auto& value : *other.resource_map_) {
-                auto storage = *value.second;
-                add_resource_cb_without_method(concat(path_to_resource, value.first), std::move(storage));
-            }
-
-        if (other.method_map_)
-            for (const auto& value_m : *other.method_map_) {
-                auto method = value_m.first;
-                const auto& resource_map = value_m.second;
-
-                for (const auto& value_r : resource_map) {
-                    auto storage = *value_r.second;
-                    add_resource_cb(concat(path_to_resource, value_r.first), method, std::move(storage));
-                }
-            }
-    }
+    use(resource_regex_type const&,
+        self_type const&);
 
     template<class DerivedRouter, class Pack>
     auto
     param(DerivedRouter& router, typename regex_type::flag_type flags)
-    -> decltype (BEASTHTTP_PACK_PROVIDE_CALL(router, flags))
-    {
-        return BEASTHTTP_PACK_PROVIDE_CALL(router, flags);
-    }
+    -> decltype (BEASTHTTP_PACK_PROVIDE_CALL(router, flags));
 
 public:
 
     std::shared_ptr<resource_map_type> const&
-    resource_map() const
-    {
-        return resource_map_;
-    }
+    resource_map() const;
 
     std::shared_ptr<method_map_type> const&
-    method_map() const
-    {
-        return method_map_;
-    }
+    method_map() const;
 
 private:
 
     resource_regex_type
-    concat(const resource_regex_type& resource1, const resource_regex_type& resource2)
-    {
-        resource_regex_type result;
-        if (resource1.back() == '$' and resource1.front() == '^' and
-                resource2.back() == '$' and resource2.front() == '^')
-            result = resource1.substr(0, resource1.size() - 1) + resource2.substr(1);
-        else if (resource1.back() == '$' and resource1.front() == '^')
-            result = resource1.substr(0, resource1.size() - 1) + resource2 + "$";
-        else if (resource2.back() == '$' and resource2.front() == '^')
-            result = "^" + resource1 + resource2.substr(1);
-        else
-            result = resource1 + resource2;
-
-        return result;
-    }
+    concat(const resource_regex_type&, const resource_regex_type&);
 
     std::shared_ptr<resource_map_type>& resource_map_;
     std::shared_ptr<method_map_type>& method_map_;
@@ -179,5 +90,7 @@ private:
 } // namespace base
 } // namespace http
 } // namespace _0xdead4ead
+
+#include <base/impl/router.ixx>
 
 #endif // not defined BEASTHTTP_BASE_ROUTER_HXX
