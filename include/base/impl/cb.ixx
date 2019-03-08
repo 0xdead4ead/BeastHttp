@@ -82,8 +82,10 @@ struct cb_push_cxx11
 
     Container& l_;
 
-    cb_push_cxx11(Container& l) : l_{l}
-    {}
+    cb_push_cxx11(Container& l)
+        : l_{l}
+    {
+    }
 
     template<class F>
     void
@@ -108,8 +110,10 @@ struct cb_push_fin_cxx11
 
     Container& l_;
 
-    cb_push_fin_cxx11(Container& l) : l_{l}
-    {}
+    cb_push_fin_cxx11(Container& l)
+        : l_{l}
+    {
+    }
 
     template<class F>
     void
@@ -183,12 +187,14 @@ iterator<Session, Entry, Container>::pos() const
 BEASTHTTP_DECLARE_STORAGE_TEMPLATE
 template<class Head, class... Tail, typename>
 storage<Session, Entry, Container>::storage(Head&& head, Tail&&... tail)
-    : container_{prepare(std::forward<Head>(head), std::forward<Tail>(tail)...)},
+    : container_{prepare(std::forward<Head>(head),
+                         std::forward<Tail>(tail)...)},
       it_next_{container_.cbegin()},
       request_{nullptr},
       session_flesh_{nullptr},
       cb_pos_{size_type{}}
-{}
+{
+}
 
 BEASTHTTP_DECLARE_STORAGE_TEMPLATE
 template<class... OnRequest>
@@ -197,9 +203,11 @@ storage<Session, Entry, Container>::prepare(OnRequest&&... on_request)
 {
     container_type _l;
 
-    const auto& tuple_cb = std::make_tuple(std::forward<OnRequest>(on_request)...);
+    const auto& tuple_cb = std::make_tuple(
+                std::forward<OnRequest>(on_request)...);
 
-    static_assert(std::tuple_size<typename std::decay<decltype (tuple_cb) >::type>::value != 0,
+    static_assert(std::tuple_size<typename std::decay<
+                  decltype (tuple_cb) >::type>::value != 0,
                   "Oops...! tuple is empty.");
 
 #if not defined __cpp_generic_lambdas
