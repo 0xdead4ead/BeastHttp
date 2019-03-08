@@ -10,30 +10,27 @@
 
 #include <thread>
 
-struct make_response
+template<class Body>
+boost::beast::http::response<Body>
+make_response(const boost::beast::http::request<Body>& req,
+              const typename Body::value_type& body_value)
 {
-    template<class Body>
-    boost::beast::http::response<Body>
-    operator()(const boost::beast::http::request<Body>& req,
-                    const typename Body::value_type& body_value) const
-    {
-        typename Body::value_type body(body_value);
+    typename Body::value_type body(body_value);
 
-        auto const body_size = body.size();
+    auto const body_size = body.size();
 
-        boost::beast::http::response<boost::beast::http::string_body> res{
-             std::piecewise_construct,
-             std::make_tuple(std::move(body)),
-             std::make_tuple(boost::beast::http::status::ok, req.version())};
+    boost::beast::http::response<Body> res{
+         std::piecewise_construct,
+         std::make_tuple(std::move(body)),
+         std::make_tuple(boost::beast::http::status::ok, req.version())};
 
-        res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-        res.set(boost::beast::http::field::content_type, "text/html");
-        res.content_length(body_size);
-        res.keep_alive(req.keep_alive());
+    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+    res.set(boost::beast::http::field::content_type, "text/html");
+    res.content_length(body_size);
+    res.keep_alive(req.keep_alive());
 
-        return res;
-    }
-}; // struct make_response
+    return res;
+}
 
 static boost::asio::io_context ioc;
 static boost::asio::posix::stream_descriptor out{ioc, ::dup(STDOUT_FILENO)};
@@ -59,22 +56,22 @@ int main()
 
     router.get(R"(^/1$)", [](http_request request, http_context context){
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response{}(request, "GET 1\n"));
+        context.get().send(make_response(request, "GET 1\n"));
     });
 
     router.get(R"(^/2$)", [](http_request request, http_context context){
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response{}(request, "GET 2\n"));
+        context.get().send(make_response(request, "GET 2\n"));
     });
 
     router.get(R"(^/3$)", [](http_request request, http_context context){
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response{}(request, "GET 3\n"));
+        context.get().send(make_response(request, "GET 3\n"));
     });
 
     router.all(R"(^.*$)", [](http_request request, http_context context){
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response{}(request, "ALL\n"));
+        context.get().send(make_response(request, "ALL\n"));
     });
 
     const auto& onError = [](boost::system::error_code code, const char* from){
