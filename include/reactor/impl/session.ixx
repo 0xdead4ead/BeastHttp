@@ -525,6 +525,22 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::eof(socket_type&& socket,
             ->eof();
 }
 
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class... _OnAction>
+typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::cls(socket_type&& socket,
+    std::shared_ptr<resource_map_type> const& resource_map,
+    std::shared_ptr<method_map_type> const& method_map,
+    regex_flag_type flags,
+    _OnAction&&... on_action)
+{
+    buffer_type buffer;
+    return std::make_shared<flesh_type>(
+                connection_type{std::move(socket)}, resource_map, method_map,
+                flags, std::move(buffer), std::forward<_OnAction>(on_action)...)
+            ->cls();
+}
+
 } // namespace reactor
 } // namespace http
 } // namespace _0xdead4ead

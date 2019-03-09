@@ -422,6 +422,14 @@ public:
         regex_flag_type,
         _OnAction&&...);
 
+    template<class... _OnAction>
+    static flesh_type&
+    cls(socket_type&&,
+        std::shared_ptr<resource_map_type> const&,
+        std::shared_ptr<method_map_type> const&,
+        regex_flag_type,
+        _OnAction&&...);
+
 }; // class session
 
 namespace _default {
