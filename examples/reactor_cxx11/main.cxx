@@ -54,27 +54,27 @@ int main()
 
     http::basic_router<session_type> router;
 
-    router.get(R"(^/1$)", [](http_request request, http_context context){
+    router.get(R"(^/1$)", [](http_request request, http_context context) {
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "GET 1\n"));
     });
 
-    router.get(R"(^/2$)", [](http_request request, http_context context){
+    router.get(R"(^/2$)", [](http_request request, http_context context) {
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "GET 2\n"));
     });
 
-    router.get(R"(^/3$)", [](http_request request, http_context context){
+    router.get(R"(^/3$)", [](http_request request, http_context context) {
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "GET 3\n"));
     });
 
-    router.all(R"(^.*$)", [](http_request request, http_context context){
+    router.all(R"(^.*$)", [](http_request request, http_context context) {
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "ALL\n"));
     });
 
-    const auto& onError = [](boost::system::error_code code, const char* from){
+    const auto& onError = [](boost::system::error_code code, const char* from) {
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, "From:", from, "Info:", code.message());
 
@@ -82,7 +82,7 @@ int main()
             ioc.stop();
     };
 
-    const auto& onAccept = [&](http_socket socket){
+    const auto& onAccept = [&](http_socket socket) {
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, socket.remote_endpoint().address().to_string(), "connected!");
 

@@ -52,7 +52,7 @@ int main()
         context.get().send(make_response(request, request.target().to_string()), std::chrono::seconds(1)).launch_timer();
     });
 
-    const auto& onError = [](auto code, auto from){
+    const auto& onError = [](auto code, auto from) {
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, "From:", from, "Info:", code.message());
 
@@ -67,7 +67,7 @@ int main()
         // In this place connection point is closed gracefully
     };
 
-    const auto& onAccept = [&](auto socket){
+    const auto& onAccept = [&](auto socket) {
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, socket.remote_endpoint().address().to_string(), "connected!");
 

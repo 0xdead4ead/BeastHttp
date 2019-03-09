@@ -17,7 +17,7 @@ auto make_response(const boost::beast::http::request<Body>& req,
 
     auto const body_size = body.size();
 
-    boost::beast::http::response<boost::beast::http::string_body> res{
+    boost::beast::http::response<Body> res{
          std::piecewise_construct,
          std::make_tuple(std::move(body)),
          std::make_tuple(boost::beast::http::status::ok, req.version())};
@@ -58,17 +58,17 @@ int main()
         context.get().send(make_response(request, "GET 2\n"));
     });
 
-    router.get(R"(^/3$)", [](auto request, auto context){
+    router.get(R"(^/3$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "GET 3\n"));
     });
 
-    router.all(R"(^.*$)", [](auto request, auto context){
+    router.all(R"(^.*$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "ALL\n"));
     });
 
-    const auto& onError = [](auto code, auto from){
+    const auto& onError = [](auto code, auto from) {
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, "From:", from, "Info:", code.message());
 
@@ -76,7 +76,7 @@ int main()
             ioc.stop();
     };
 
-    const auto& onAccept = [&](auto socket){
+    const auto& onAccept = [&](auto socket) {
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, socket.remote_endpoint().address().to_string(), "connected!");
 

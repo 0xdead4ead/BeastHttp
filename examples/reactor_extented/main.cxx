@@ -19,7 +19,7 @@ auto make_response(const boost::beast::http::request<Body>& req,
 
     auto const body_size = body.size();
 
-    boost::beast::http::response<boost::beast::http::string_body> res{
+    boost::beast::http::response<Body> res{
          std::piecewise_construct,
          std::make_tuple(std::move(body)),
          std::make_tuple(boost::beast::http::status::ok, req.version())};
@@ -70,17 +70,17 @@ int main()
         context.get().send(make_response(request, "GET 2\n"));
     });
 
-    router.get(R"(^/3$)", [](auto request, auto context){
+    router.get(R"(^/3$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "GET 3\n"));
     });
 
-    router.all(R"(^.*$)", [](auto request, auto context){
+    router.all(R"(^.*$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
         context.get().send(make_response(request, "ALL\n"));
     });
 
-    const auto& onError = [](auto code, auto from){
+    const auto& onError = [](auto code, auto from) {
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, "From:", from, "Info:", code.message());
 
@@ -88,33 +88,34 @@ int main()
             ioc.stop();
     };
 
-    const auto& onAccept = [&](auto socket){
+    const auto& onAccept = [&](auto socket) {
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, socket.remote_endpoint().address().to_string(), "connected!");
 
-        bool closed = false;
+        bool eof = false;
 
-        if(clients.size() >= max_clients){
+        if (clients.size() >= max_clients) {
             http::out::prefix::version::time::pushn<std::ostream>(
                         out, "Achieved maximum connections!", "Limit", max_clients);
-            socket.close();
-            closed = true;
+
+            session_type::eof(std::move(socket), {}, {}, {}, onError);
+            eof = true;
         }
 
         std::vector<session_array::const_iterator> expireds_;
 
-        for(auto client = clients.cbegin(); client != clients.cend();){
-            if(client->expired())
+        for (auto client = clients.cbegin(); client != clients.cend();) {
+            if (client->expired())
                 expireds_.push_back(client);
 
             client++;
         }
 
-        for(auto expired : expireds_){
+        for (auto expired : expireds_) {
             clients.erase(expired);
         }
 
-        if(!closed){
+        if (!eof) {
             std::weak_ptr<session_type::flesh> cl
                     = session_type::recv(std::move(socket), std::chrono::seconds(10), router.resource_map(),
                                router.method_map(), boost::regex::ECMAScript, onError).launch_timer().shared_from_this();
@@ -122,7 +123,7 @@ int main()
             clients.emplace_back(cl);
         }
 
-        if(threads.size() < max_threads && clients.size() > std::pow(threads.size(), 2))
+        if (threads.size() < max_threads && clients.size() > std::pow(threads.size(), 2))
             threads.emplace_back(std::bind(static_cast<std::size_t (boost::asio::io_context::*)()>
                                            (&boost::asio::io_context::run), std::ref(ioc)));
     };
