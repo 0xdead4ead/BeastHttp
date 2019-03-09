@@ -165,6 +165,15 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::force_eof()
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::force_cls()
+{
+    do_force_cls();
+
+    return *this;
+}
+
+BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
+typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::launch_timer()
 {
     timer_.async_wait(
@@ -398,6 +407,19 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_force_eof()
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 void
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_force_cls()
+{
+    if (not connection_.stream().next_layer().is_open())
+        return;
+
+    auto ec = connection_.force_close();
+    if (ec and on_error_)
+        on_error_(ec, "close/force_cls");
+}
+
+
+BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
+void
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_timeout()
 {
     if (eof_)
@@ -527,7 +549,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 template<class... _OnAction>
 typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh_type&
-session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::eof(
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::force_eof(
         boost::asio::ssl::context& ctx,
         socket_type&& socket,
         std::shared_ptr<resource_map_type> const& resource_map,
@@ -540,6 +562,24 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::eof(
                 ctx, std::move(socket), resource_map, method_map, flags,
                 std::move(buffer), std::forward<_OnAction>(on_action)...)
             ->force_eof();
+}
+
+BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
+template<class... _OnAction>
+typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::force_cls(
+        boost::asio::ssl::context& ctx,
+        socket_type&& socket,
+        std::shared_ptr<resource_map_type> const& resource_map,
+        std::shared_ptr<method_map_type> const& method_map,
+        regex_flag_type flags,
+        _OnAction&&... on_action)
+{
+    buffer_type buffer;
+    return std::make_shared<flesh_type>(
+                ctx, std::move(socket), resource_map, method_map, flags,
+                std::move(buffer), std::forward<_OnAction>(on_action)...)
+            ->force_cls();
 }
 
 } // namespace ssl

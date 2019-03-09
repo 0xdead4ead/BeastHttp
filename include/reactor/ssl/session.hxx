@@ -171,6 +171,9 @@ public:
         force_eof();
 
         flesh&
+        force_cls();
+
+        flesh&
         launch_timer();
 
         template<class _OnHandshake>
@@ -241,6 +244,9 @@ public:
 
         void
         do_force_eof();
+
+        void
+        do_force_cls();
 
         void
         do_timeout();
@@ -334,6 +340,22 @@ public:
         }
 
         context&
+        force_eof() const &
+        {
+            flesh_.force_eof();
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        context&
+        force_cls() const &
+        {
+            flesh_.force_cls();
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        context&
         launch_timer() const &
         {
             flesh_.launch_timer();
@@ -406,12 +428,21 @@ public:
 
     template<class... _OnAction>
     static flesh_type&
-    eof(boost::asio::ssl::context&,
-        socket_type&&,
-        std::shared_ptr<resource_map_type> const&,
-        std::shared_ptr<method_map_type> const&,
-        regex_flag_type,
-        _OnAction&&...);
+    force_eof(boost::asio::ssl::context&,
+              socket_type&&,
+              std::shared_ptr<resource_map_type> const&,
+              std::shared_ptr<method_map_type> const&,
+              regex_flag_type,
+              _OnAction&&...);
+
+    template<class... _OnAction>
+    static flesh_type&
+    force_cls(boost::asio::ssl::context&,
+              socket_type&&,
+              std::shared_ptr<resource_map_type> const&,
+              std::shared_ptr<method_map_type> const&,
+              regex_flag_type,
+              _OnAction&&...);
 
 }; // class session
 
