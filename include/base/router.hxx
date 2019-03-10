@@ -38,13 +38,13 @@ protected:
 
     using regex_type = typename session_type::regex_type;
 
-    static_assert (base::traits::HasStorageType<session_type>::value
-                   and base::traits::HasResourceMapType<session_type>::value
-                   and base::traits::HasMethodMapType<session_type>::value
-                   and base::traits::HasResourceRegexType<session_type>::value
-                   and base::traits::HasResourceType<session_type>::value
-                   and base::traits::HasMethodType<session_type>::value
-                   and base::traits::HasRegexType<session_type>::value,
+    static_assert (base::traits::HasStorageType<session_type, void>::value
+                   and base::traits::HasResourceMapType<session_type, void>::value
+                   and base::traits::HasMethodMapType<session_type, void>::value
+                   and base::traits::HasResourceRegexType<session_type, void>::value
+                   and base::traits::HasResourceType<session_type, void>::value
+                   and base::traits::HasMethodType<session_type, void>::value
+                   and base::traits::HasRegexType<session_type, void>::value,
                    "Invalid session type!");
 
     explicit

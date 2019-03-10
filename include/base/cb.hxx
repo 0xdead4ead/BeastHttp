@@ -97,20 +97,20 @@ public:
 
     using size_type = typename container_type::size_type;
 
-    static_assert (traits::HasConstIterator<container_type>::value
-                   and traits::TryCbegin<container_type>::value
-                   and traits::TryCend<container_type>::value
-                   and traits::HasSizeType<container_type>::value
-                   and traits::TrySize<container_type>::value
-                   and traits::TryPushBack<container_type, entry_type>::value,
+    static_assert (traits::HasConstIterator<container_type, void>::value
+                   and traits::TryCbegin<container_type, void()>::value
+                   and traits::TryCend<container_type, void()>::value
+                   and traits::HasSizeType<container_type, void>::value
+                   and traits::TrySize<container_type, void()>::value
+                   and traits::TryPushBack<container_type, void(entry_type)>::value,
                    "Invalid a cb container!");
 
-    static_assert (traits::HasRequestType<session_type>::value
-                   and traits::HasContextType<session_type>::value
-                   and traits::HasFleshType<session_type>::value,
+    static_assert (traits::HasRequestType<session_type, void>::value
+                   and traits::HasContextType<session_type, void>::value
+                   and traits::HasFleshType<session_type, void>::value,
                    "Invalid session type");
 
-    static_assert (traits::TryInvoke<entry_type, request_type, session_wrapper, iterator_type>::value,
+    static_assert (traits::TryInvoke<entry_type, void(request_type, session_wrapper, iterator_type)>::value,
                    "Invalid entry type!");
 
     BEASTHTTP_DECLARE_FRIEND_BASE_CB_EXECUTOR_CLASS

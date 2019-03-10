@@ -30,9 +30,9 @@ public:
 
     using time_point = typename timer_type::time_point;
 
-    static_assert (traits::HasDuration<timer_type>::value
-                   and traits::HasTimePoint<timer_type>::value
-                   and traits::HasClockType<timer_type>::value,
+    static_assert (traits::HasDuration<timer_type, void>::value
+                   and traits::HasTimePoint<timer_type, void>::value
+                   and traits::HasClockType<timer_type, void>::value,
                    "Invalid timer type!");
 
     template<class Time>
@@ -41,8 +41,6 @@ public:
 
     timer(self_type&&) = default;
     auto operator=(self_type&&) -> self_type& = default;
-
-    //~timer() = default;
 
     timer_type&
     stream();

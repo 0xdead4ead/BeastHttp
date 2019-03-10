@@ -14,14 +14,14 @@ class request_processor : private Session::cbexecutor_type
 {
     using session_type = Session;
 
-    static_assert (traits::HasCbExecutorType<session_type>::value
-                   and traits::HasResourceMapType<session_type>::value
-                   and traits::HasMethodMapType<session_type>::value
-                   and traits::HasResourceType<session_type>::value
-                   and traits::HasMethodType<session_type>::value
-                   and traits::HasFleshType<session_type>::value
-                   and traits::HasRegexType<session_type>::value
-                   and traits::HasRequestType<session_type>::value,
+    static_assert (traits::HasCbExecutorType<session_type, void>::value
+                   and traits::HasResourceMapType<session_type, void>::value
+                   and traits::HasMethodMapType<session_type, void>::value
+                   and traits::HasResourceType<session_type, void>::value
+                   and traits::HasMethodType<session_type, void>::value
+                   and traits::HasFleshType<session_type, void>::value
+                   and traits::HasRegexType<session_type, void>::value
+                   and traits::HasRequestType<session_type, void>::value,
                    "Invalid session type!");
 
 public:
@@ -40,13 +40,13 @@ public:
 
     using request_type = typename session_type::request_type;
 
-    static_assert (traits::TryCbegin<resource_map_type>::value
-                   and traits::TryCend<resource_map_type>::value,
+    static_assert (traits::TryCbegin<resource_map_type, void()>::value
+                   and traits::TryCend<resource_map_type, void()>::value,
                    "Invalid resource container!");
 
-    static_assert (traits::TryCbegin<method_map_type>::value
-                   and traits::TryCend<method_map_type>::value
-                   and traits::TryFind<method_map_type, method_type>::value,
+    static_assert (traits::TryCbegin<method_map_type, void()>::value
+                   and traits::TryCend<method_map_type, void()>::value
+                   and traits::TryFind<method_map_type, void(method_type)>::value,
                    "Invalid method/verb container!");
 
     request_processor(std::shared_ptr<resource_map_type> const&,

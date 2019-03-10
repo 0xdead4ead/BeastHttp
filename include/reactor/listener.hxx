@@ -50,13 +50,13 @@ public:
     static_assert (std::is_base_of<boost::asio::socket_base, acceptor_type>::value,
                    "Acceptor type is not supported!");
 
-    static_assert (base::traits::TryBind<acceptor_type, endpoint_type, boost::system::error_code&>::value,
+    static_assert (base::traits::TryBind<acceptor_type, void(endpoint_type, boost::system::error_code&)>::value,
                    "Invalid Endpoint type");
 
-    static_assert (base::traits::TryInvoke<on_accept_type, socket_type>::value,
+    static_assert (base::traits::TryInvoke<on_accept_type, void(socket_type)>::value,
                    "Invalid OnAccept handler!");
 
-    static_assert (base::traits::TryInvoke<on_error_type, boost::system::error_code, const char*>::value,
+    static_assert (base::traits::TryInvoke<on_error_type, void(boost::system::error_code, const char*)>::value,
                    "Invalid OnError handler!");
 
     listener(self_type&&) = default;

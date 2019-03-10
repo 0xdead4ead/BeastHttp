@@ -107,13 +107,13 @@ public:
 
     using shutdown_type = typename socket_type::shutdown_type;
 
-    static_assert (base::traits::TryInvoke<on_timer_type, reference_wrapper>::value,
+    static_assert (base::traits::TryInvoke<on_timer_type, void(reference_wrapper)>::value,
                    "Invalid OnTimer handler!");
 
-    static_assert (base::traits::TryInvoke<on_handshake_type, reference_wrapper>::value,
+    static_assert (base::traits::TryInvoke<on_handshake_type, void(reference_wrapper)>::value,
                    "Invalid OnHandshake handler!");
 
-    static_assert (base::traits::TryInvoke<on_error_type, boost::system::error_code, const char*>::value,
+    static_assert (base::traits::TryInvoke<on_error_type, void(boost::system::error_code, const char*)>::value,
                    "Invalid OnError handler!");
 
     class flesh : private base::request_processor<self_type>,
