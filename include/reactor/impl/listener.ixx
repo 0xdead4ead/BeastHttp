@@ -15,10 +15,12 @@ namespace reactor {
 
 BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
 template<class... _OnAction>
-typename listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::self_type&
+auto
 listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::loop(io_context& ioc,
      endpoint_type const& endpoint,
-     _OnAction&&... on_action)
+     _OnAction&&... on_action) -> decltype (
+        self_type{std::declval<io_context&>(), std::declval<_OnAction>()...},
+        std::declval<self_type&>())
 {
     return std::make_shared<self_type>
             (ioc, std::forward<_OnAction>(on_action)...)->loop(endpoint);
@@ -55,7 +57,9 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::socket()
 BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
 template<class _OnAccept>
 listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::listener(
-        io_context& ioc, _OnAccept&& on_accept)
+        io_context& ioc, _OnAccept&& on_accept,
+        typename std::enable_if<base::traits::TryInvoke<
+        _OnAccept, void(socket_type)>::value, int>::type)
     : acceptor_{ioc},
       socket_{ioc},
       on_accept_{std::forward<_OnAccept>(on_accept)}
@@ -65,7 +69,11 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::listener(
 BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
 template<class _OnAccept, class _OnError>
 listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::listener(
-        io_context& ioc, _OnAccept&& on_accept, _OnError&& on_error)
+        io_context& ioc, _OnAccept&& on_accept, _OnError&& on_error,
+        typename std::enable_if<base::traits::TryInvoke<
+        _OnAccept, void(socket_type)>::value and
+        base::traits::TryInvoke<_OnError, void(
+            boost::system::error_code, const char*)>::value, int>::type)
     : acceptor_{ioc},
       socket_{ioc},
       on_accept_{std::forward<_OnAccept>(on_accept)},

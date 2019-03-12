@@ -108,13 +108,13 @@ public:
     using shutdown_type = typename socket_type::shutdown_type;
 
     static_assert (base::traits::TryInvoke<on_timer_type, void(reference_wrapper)>::value,
-                   "Invalid OnTimer handler!");
+                   "Invalid OnTimer handler type!");
 
     static_assert (base::traits::TryInvoke<on_handshake_type, void(reference_wrapper)>::value,
-                   "Invalid OnHandshake handler!");
+                   "Invalid OnHandshake handler type!");
 
     static_assert (base::traits::TryInvoke<on_error_type, void(boost::system::error_code, const char*)>::value,
-                   "Invalid OnError handler!");
+                   "Invalid OnError handler type!");
 
     class flesh : private base::request_processor<self_type>,
             public std::enable_shared_from_this<flesh>
@@ -184,7 +184,10 @@ public:
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
               buffer_type&&,
-              _OnHandshake&&);
+              _OnHandshake&&,
+              typename std::enable_if<
+              base::traits::TryInvoke<_OnHandshake,
+              void(reference_wrapper)>::value, int>::type = 0);
 
         template<class _OnHandshake, class _OnError>
         explicit
@@ -195,7 +198,13 @@ public:
               regex_flag_type,
               buffer_type&&,
               _OnHandshake&&,
-              _OnError&&);
+              _OnError&&,
+              typename std::enable_if<
+              base::traits::TryInvoke<_OnHandshake,
+              void(reference_wrapper)>::value and
+              base::traits::TryInvoke<_OnError,
+              void(boost::system::error_code,
+                   const char*)>::value, int>::type = 0);
 
         template<class _OnHandshake, class _OnError, class _OnTimer>
         explicit
@@ -207,7 +216,15 @@ public:
               buffer_type&&,
               _OnHandshake&&,
               _OnError&&,
-              _OnTimer&&);
+              _OnTimer&&,
+              typename std::enable_if<
+              base::traits::TryInvoke<_OnHandshake,
+              void(reference_wrapper)>::value and
+              base::traits::TryInvoke<_OnError,
+              void(boost::system::error_code,
+                   const char*)>::value and
+              base::traits::TryInvoke<_OnTimer,
+              void(reference_wrapper)>::value, int>::type = 0);
 
     private:
 
@@ -366,26 +383,42 @@ public:
     }; // class context
 
     template<class... _OnAction>
-    static flesh_type&
+    static auto
     handshake(boost::asio::ssl::context&,
               socket_type&&,
               std::shared_ptr<resource_map_type> const&,
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
               buffer_type&&,
-              _OnAction&&...);
+              _OnAction&&...) -> decltype (
+            flesh_type(std::declval<boost::asio::ssl::context&>(),
+                       std::declval<socket_type>(),
+                       std::declval<std::shared_ptr<resource_map_type>>(),
+                       std::declval<std::shared_ptr<method_map_type>>(),
+                       std::declval<regex_flag_type>(),
+                       std::declval<buffer_type>(),
+                       std::declval<_OnAction>()...),
+            std::declval<flesh_type&>());
 
     template<class... _OnAction>
-    static flesh_type&
+    static auto
     handshake(boost::asio::ssl::context&,
               socket_type&&,
               std::shared_ptr<resource_map_type> const&,
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
-              _OnAction&&...);
+              _OnAction&&...) -> decltype (
+            flesh_type(std::declval<boost::asio::ssl::context&>(),
+                       std::declval<socket_type>(),
+                       std::declval<std::shared_ptr<resource_map_type>>(),
+                       std::declval<std::shared_ptr<method_map_type>>(),
+                       std::declval<regex_flag_type>(),
+                       std::declval<buffer_type>(),
+                       std::declval<_OnAction>()...),
+            std::declval<flesh_type&>());
 
     template<class... _OnAction>
-    static flesh_type&
+    static auto
     handshake(boost::asio::ssl::context&,
               socket_type&&,
               duration_type const&,
@@ -393,20 +426,36 @@ public:
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
               buffer_type&&,
-              _OnAction&&...);
+              _OnAction&&...) -> decltype (
+            flesh_type(std::declval<boost::asio::ssl::context&>(),
+                       std::declval<socket_type>(),
+                       std::declval<std::shared_ptr<resource_map_type>>(),
+                       std::declval<std::shared_ptr<method_map_type>>(),
+                       std::declval<regex_flag_type>(),
+                       std::declval<buffer_type>(),
+                       std::declval<_OnAction>()...),
+            std::declval<flesh_type&>());
 
     template<class... _OnAction>
-    static flesh_type&
+    static auto
     handshake(boost::asio::ssl::context&,
               socket_type&&,
               duration_type const&,
               std::shared_ptr<resource_map_type> const&,
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
-              _OnAction&&...);
+              _OnAction&&...) -> decltype (
+            flesh_type(std::declval<boost::asio::ssl::context&>(),
+                       std::declval<socket_type>(),
+                       std::declval<std::shared_ptr<resource_map_type>>(),
+                       std::declval<std::shared_ptr<method_map_type>>(),
+                       std::declval<regex_flag_type>(),
+                       std::declval<buffer_type>(),
+                       std::declval<_OnAction>()...),
+            std::declval<flesh_type&>());
 
     template<class... _OnAction>
-    static flesh_type&
+    static auto
     handshake(boost::asio::ssl::context&,
               socket_type&&,
               time_point_type const&,
@@ -414,35 +463,67 @@ public:
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
               buffer_type&&,
-              _OnAction&&...);
+              _OnAction&&...) -> decltype (
+            flesh_type(std::declval<boost::asio::ssl::context&>(),
+                       std::declval<socket_type>(),
+                       std::declval<std::shared_ptr<resource_map_type>>(),
+                       std::declval<std::shared_ptr<method_map_type>>(),
+                       std::declval<regex_flag_type>(),
+                       std::declval<buffer_type>(),
+                       std::declval<_OnAction>()...),
+            std::declval<flesh_type&>());
 
     template<class... _OnAction>
-    static flesh_type&
+    static auto
     handshake(boost::asio::ssl::context&,
               socket_type&&,
               time_point_type const&,
               std::shared_ptr<resource_map_type> const&,
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
-              _OnAction&&...);
+              _OnAction&&...) -> decltype (
+            flesh_type(std::declval<boost::asio::ssl::context&>(),
+                       std::declval<socket_type>(),
+                       std::declval<std::shared_ptr<resource_map_type>>(),
+                       std::declval<std::shared_ptr<method_map_type>>(),
+                       std::declval<regex_flag_type>(),
+                       std::declval<buffer_type>(),
+                       std::declval<_OnAction>()...),
+            std::declval<flesh_type&>());
 
     template<class... _OnAction>
-    static flesh_type&
+    static auto
     force_eof(boost::asio::ssl::context&,
               socket_type&&,
               std::shared_ptr<resource_map_type> const&,
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
-              _OnAction&&...);
+              _OnAction&&...) -> decltype (
+            flesh_type(std::declval<boost::asio::ssl::context&>(),
+                       std::declval<socket_type>(),
+                       std::declval<std::shared_ptr<resource_map_type>>(),
+                       std::declval<std::shared_ptr<method_map_type>>(),
+                       std::declval<regex_flag_type>(),
+                       std::declval<buffer_type>(),
+                       std::declval<_OnAction>()...),
+            std::declval<flesh_type&>());
 
     template<class... _OnAction>
-    static flesh_type&
+    static auto
     force_cls(boost::asio::ssl::context&,
               socket_type&&,
               std::shared_ptr<resource_map_type> const&,
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
-              _OnAction&&...);
+              _OnAction&&...) -> decltype (
+            flesh_type(std::declval<boost::asio::ssl::context&>(),
+                       std::declval<socket_type>(),
+                       std::declval<std::shared_ptr<resource_map_type>>(),
+                       std::declval<std::shared_ptr<method_map_type>>(),
+                       std::declval<regex_flag_type>(),
+                       std::declval<buffer_type>(),
+                       std::declval<_OnAction>()...),
+            std::declval<flesh_type&>());
 
 }; // class session
 

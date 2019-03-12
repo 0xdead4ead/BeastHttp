@@ -54,17 +54,19 @@ public:
                    "Invalid Endpoint type");
 
     static_assert (base::traits::TryInvoke<on_accept_type, void(socket_type)>::value,
-                   "Invalid OnAccept handler!");
+                   "Invalid OnAccept handler type!");
 
     static_assert (base::traits::TryInvoke<on_error_type, void(boost::system::error_code, const char*)>::value,
-                   "Invalid OnError handler!");
+                   "Invalid OnError handler type!");
 
     listener(self_type&&) = default;
     auto operator=(self_type&&) -> self_type& = default;
 
     template<class... _OnAction>
-    static self_type&
-    loop(io_context&, endpoint_type const&, _OnAction&&...);
+    static auto
+    loop(io_context&, endpoint_type const&, _OnAction&&...) -> decltype (
+            self_type{std::declval<io_context&>(), std::declval<_OnAction>()...},
+            std::declval<self_type&>());
 
     boost::system::error_code
     close();
@@ -77,11 +79,17 @@ public:
 
     template<class _OnAccept>
     explicit
-    listener(io_context&, _OnAccept&&);
+    listener(io_context&, _OnAccept&&,
+             typename std::enable_if<base::traits::TryInvoke<
+             _OnAccept, void(socket_type)>::value, int>::type = 0);
 
     template<class _OnAccept, class _OnError>
     explicit
-    listener(io_context&, _OnAccept&&, _OnError&&);
+    listener(io_context&, _OnAccept&&, _OnError&&,
+             typename std::enable_if<base::traits::TryInvoke<
+             _OnAccept, void(socket_type)>::value and
+             base::traits::TryInvoke<_OnError, void(
+                 boost::system::error_code, const char*)>::value, int>::type = 0);
 
 private:
 

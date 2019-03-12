@@ -18,7 +18,6 @@
 #define BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES \
     Body, Buffer, Protocol, Socket, Clock, Timer, Entry, Container, MethodMap, ResourceMap, OnError, OnTimer
 
-
 namespace _0xdead4ead {
 namespace http {
 namespace reactor {
@@ -148,7 +147,11 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         std::shared_ptr<method_map_type> const& method_map,
         regex_flag_type flags,
         buffer_type&& buffer,
-        _OnError&& on_error)
+        _OnError&& on_error,
+        typename std::enable_if<
+        base::traits::TryInvoke<_OnError,
+        void(boost::system::error_code,
+             const char*)>::value, int>::type)
     : base_type{resource_map, method_map, flags},
       connection_{std::move(connection)},
       timer_{connection.stream().get_executor(), (time_point_type::max)()},
@@ -166,7 +169,13 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         std::shared_ptr<method_map_type> const& method_map,
         regex_flag_type flags,
         buffer_type&& buffer,
-        _OnError&& on_error, _OnTimer&& on_timer)
+        _OnError&& on_error, _OnTimer&& on_timer,
+        typename std::enable_if<
+        base::traits::TryInvoke<_OnError,
+        void(boost::system::error_code,
+             const char*)>::value and
+        base::traits::TryInvoke<_OnTimer,
+        void(reference_wrapper)>::value, int>::type)
     : base_type{resource_map, method_map, flags},
       connection_{std::move(connection)},
       timer_{connection.stream().get_executor(), (time_point_type::max)()},
@@ -185,15 +194,19 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_timer(
     context_type _self{*this};
 
     if (ec and ec != boost::asio::error::operation_aborted
-            and on_error_)
-        return on_error_(ec, "async_wait/on_timer");
+            and on_error_) {
+        on_error_(ec, "async_wait/on_timer");
+        return;
+    }
 
     if (timer_.stream().expiry() <= clock_type::now()) {
 
         bool is_alive = connection_.stream().is_open();
 
-        if (on_timer_ and is_alive)
-            return on_timer_(std::cref(_self));
+        if (on_timer_ and is_alive) {
+            on_timer_(std::cref(_self));
+            return;
+        }
 
         if (not is_alive)
             return;
@@ -214,8 +227,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_read(
         return;
     }
 
-    if (ec and on_error_)
-        return on_error_(ec, "async_read/on_read");
+    if (ec and on_error_) {
+        on_error_(ec, "async_read/on_read");
+        return;
+    }
 
     process_request();
 }
@@ -227,8 +242,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_write(
 {
     boost::ignore_unused(bytes_transferred);
 
-    if (ec and on_error_)
-        return on_error_(ec, "async_write/on_write");
+    if (ec and on_error_) {
+        on_error_(ec, "async_write/on_write");
+        return;
+    }
 
     if (close) {
         do_eof();
@@ -314,13 +331,20 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::process_request()
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class... _OnAction>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
      std::shared_ptr<resource_map_type> const& resource_map,
      std::shared_ptr<method_map_type> const& method_map,
      regex_flag_type flags,
      buffer_type&& buffer,
-     _OnAction&&... on_action)
+     _OnAction&&... on_action) -> decltype (
+        flesh_type(connection_type(std::declval<socket_type>()),
+                   std::declval<std::shared_ptr<resource_map_type>>(),
+                   std::declval<std::shared_ptr<method_map_type>>(),
+                   std::declval<regex_flag_type>(),
+                   std::declval<buffer_type>(),
+                   std::declval<_OnAction>()...),
+        std::declval<flesh_type&>())
 {
     return std::make_shared<flesh_type>(
                 connection_type{std::move(socket)}, resource_map, method_map,
@@ -330,12 +354,19 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class... _OnAction>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
      std::shared_ptr<resource_map_type> const& resource_map,
      std::shared_ptr<method_map_type> const& method_map,
      regex_flag_type flags,
-     _OnAction&&... on_action)
+     _OnAction&&... on_action) -> decltype (
+        flesh_type(connection_type(std::declval<socket_type>()),
+                   std::declval<std::shared_ptr<resource_map_type>>(),
+                   std::declval<std::shared_ptr<method_map_type>>(),
+                   std::declval<regex_flag_type>(),
+                   std::declval<buffer_type>(),
+                   std::declval<_OnAction>()...),
+        std::declval<flesh_type&>())
 {
     buffer_type buffer;
     return recv(std::move(socket), resource_map, method_map, flags,
@@ -344,14 +375,21 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class... _OnAction>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
      duration_type const& duration,
      std::shared_ptr<resource_map_type> const& resource_map,
      std::shared_ptr<method_map_type> const& method_map,
      regex_flag_type flags,
      buffer_type&& buffer,
-     _OnAction&&... on_action)
+     _OnAction&&... on_action) -> decltype (
+        flesh_type(connection_type(std::declval<socket_type>()),
+                   std::declval<std::shared_ptr<resource_map_type>>(),
+                   std::declval<std::shared_ptr<method_map_type>>(),
+                   std::declval<regex_flag_type>(),
+                   std::declval<buffer_type>(),
+                   std::declval<_OnAction>()...),
+        std::declval<flesh_type&>())
 {
     return std::make_shared<flesh_type>(
                 connection_type{std::move(socket)}, resource_map, method_map,
@@ -361,13 +399,20 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class... _OnAction>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
      duration_type const& duration,
      std::shared_ptr<resource_map_type> const& resource_map,
      std::shared_ptr<method_map_type> const& method_map,
      regex_flag_type flags,
-     _OnAction&&... on_action)
+     _OnAction&&... on_action) -> decltype (
+        flesh_type(connection_type(std::declval<socket_type>()),
+                   std::declval<std::shared_ptr<resource_map_type>>(),
+                   std::declval<std::shared_ptr<method_map_type>>(),
+                   std::declval<regex_flag_type>(),
+                   std::declval<buffer_type>(),
+                   std::declval<_OnAction>()...),
+        std::declval<flesh_type&>())
 {
     buffer_type buffer;
     return recv(std::move(socket), duration, resource_map, method_map, flags,
@@ -376,14 +421,21 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class... _OnAction>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
      time_point_type const& time_point,
      std::shared_ptr<resource_map_type> const& resource_map,
      std::shared_ptr<method_map_type> const& method_map,
      regex_flag_type flags,
      buffer_type&& buffer,
-     _OnAction&&... on_action)
+     _OnAction&&... on_action) -> decltype (
+        flesh_type(connection_type(std::declval<socket_type>()),
+                   std::declval<std::shared_ptr<resource_map_type>>(),
+                   std::declval<std::shared_ptr<method_map_type>>(),
+                   std::declval<regex_flag_type>(),
+                   std::declval<buffer_type>(),
+                   std::declval<_OnAction>()...),
+        std::declval<flesh_type&>())
 {
     return std::make_shared<flesh_type>(
                 connection_type{std::move(socket)}, resource_map, method_map,
@@ -393,13 +445,20 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class... _OnAction>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
      time_point_type const& time_point,
      std::shared_ptr<resource_map_type> const& resource_map,
      std::shared_ptr<method_map_type> const& method_map,
      regex_flag_type flags,
-     _OnAction&&... on_action)
+     _OnAction&&... on_action) -> decltype (
+        flesh_type(connection_type(std::declval<socket_type>()),
+                   std::declval<std::shared_ptr<resource_map_type>>(),
+                   std::declval<std::shared_ptr<method_map_type>>(),
+                   std::declval<regex_flag_type>(),
+                   std::declval<buffer_type>(),
+                   std::declval<_OnAction>()...),
+        std::declval<flesh_type&>())
 {
     buffer_type buffer;
     return recv(std::move(socket), time_point, resource_map, method_map, flags,
@@ -408,14 +467,21 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Response, class... _OnAction>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
      socket_type&& socket,
      std::shared_ptr<resource_map_type> const& resource_map,
      std::shared_ptr<method_map_type> const& method_map,
      regex_flag_type flags,
      buffer_type&& buffer,
-     _OnAction&&... on_action)
+     _OnAction&&... on_action) -> decltype (
+        flesh_type(connection_type(std::declval<socket_type>()),
+                   std::declval<std::shared_ptr<resource_map_type>>(),
+                   std::declval<std::shared_ptr<method_map_type>>(),
+                   std::declval<regex_flag_type>(),
+                   std::declval<buffer_type>(),
+                   std::declval<_OnAction>()...),
+        std::declval<flesh_type&>())
 {
     return std::make_shared<flesh_type>(
                 connection_type{std::move(socket)}, resource_map, method_map,
@@ -425,13 +491,20 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Response, class... _OnAction>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
      socket_type&& socket,
      std::shared_ptr<resource_map_type> const& resource_map,
      std::shared_ptr<method_map_type> const& method_map,
      regex_flag_type flags,
-     _OnAction&&... on_action)
+     _OnAction&&... on_action) -> decltype (
+        flesh_type(connection_type(std::declval<socket_type>()),
+                   std::declval<std::shared_ptr<resource_map_type>>(),
+                   std::declval<std::shared_ptr<method_map_type>>(),
+                   std::declval<regex_flag_type>(),
+                   std::declval<buffer_type>(),
+                   std::declval<_OnAction>()...),
+        std::declval<flesh_type&>())
 {
     buffer_type buffer;
     return send(std::forward<Response>(response), std::move(socket),
@@ -441,7 +514,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Response, class... _OnAction>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
      socket_type&& socket,
      duration_type const& duration,
@@ -449,7 +522,14 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
      std::shared_ptr<method_map_type> const& method_map,
      regex_flag_type flags,
      buffer_type&& buffer,
-     _OnAction&&... on_action)
+     _OnAction&&... on_action) -> decltype (
+        flesh_type(connection_type(std::declval<socket_type>()),
+                   std::declval<std::shared_ptr<resource_map_type>>(),
+                   std::declval<std::shared_ptr<method_map_type>>(),
+                   std::declval<regex_flag_type>(),
+                   std::declval<buffer_type>(),
+                   std::declval<_OnAction>()...),
+        std::declval<flesh_type&>())
 {
     return std::make_shared<flesh_type>(
                 connection_type{std::move(socket)}, resource_map, method_map,
@@ -459,14 +539,21 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Response, class... _OnAction>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
      socket_type&& socket,
      duration_type const& duration,
      std::shared_ptr<resource_map_type> const& resource_map,
      std::shared_ptr<method_map_type> const& method_map,
      regex_flag_type flags,
-     _OnAction&&... on_action)
+     _OnAction&&... on_action) -> decltype (
+        flesh_type(connection_type(std::declval<socket_type>()),
+                   std::declval<std::shared_ptr<resource_map_type>>(),
+                   std::declval<std::shared_ptr<method_map_type>>(),
+                   std::declval<regex_flag_type>(),
+                   std::declval<buffer_type>(),
+                   std::declval<_OnAction>()...),
+        std::declval<flesh_type&>())
 {
     buffer_type buffer;
     return send(std::forward<Response>(response), std::move(socket),
@@ -476,7 +563,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Response, class... _OnAction>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
      socket_type&& socket,
      time_point_type const& time_point,
@@ -484,7 +571,14 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
      std::shared_ptr<method_map_type> const& method_map,
      regex_flag_type flags,
      buffer_type&& buffer,
-     _OnAction&&... on_action)
+     _OnAction&&... on_action) -> decltype (
+        flesh_type(connection_type(std::declval<socket_type>()),
+                   std::declval<std::shared_ptr<resource_map_type>>(),
+                   std::declval<std::shared_ptr<method_map_type>>(),
+                   std::declval<regex_flag_type>(),
+                   std::declval<buffer_type>(),
+                   std::declval<_OnAction>()...),
+        std::declval<flesh_type&>())
 {
     return std::make_shared<flesh_type>(
                 connection_type{std::move(socket)}, resource_map, method_map,
@@ -494,14 +588,21 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Response, class... _OnAction>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
      socket_type&& socket,
      time_point_type const& time_point,
      std::shared_ptr<resource_map_type> const& resource_map,
      std::shared_ptr<method_map_type> const& method_map,
      regex_flag_type flags,
-     _OnAction&&... on_action)
+     _OnAction&&... on_action) -> decltype (
+        flesh_type(connection_type(std::declval<socket_type>()),
+                   std::declval<std::shared_ptr<resource_map_type>>(),
+                   std::declval<std::shared_ptr<method_map_type>>(),
+                   std::declval<regex_flag_type>(),
+                   std::declval<buffer_type>(),
+                   std::declval<_OnAction>()...),
+        std::declval<flesh_type&>())
 {
     buffer_type buffer;
     return send(std::forward<Response>(response), std::move(socket), time_point,
@@ -511,12 +612,19 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class... _OnAction>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::eof(socket_type&& socket,
     std::shared_ptr<resource_map_type> const& resource_map,
     std::shared_ptr<method_map_type> const& method_map,
     regex_flag_type flags,
-    _OnAction&&... on_action)
+    _OnAction&&... on_action) -> decltype (
+        flesh_type(connection_type(std::declval<socket_type>()),
+                   std::declval<std::shared_ptr<resource_map_type>>(),
+                   std::declval<std::shared_ptr<method_map_type>>(),
+                   std::declval<regex_flag_type>(),
+                   std::declval<buffer_type>(),
+                   std::declval<_OnAction>()...),
+        std::declval<flesh_type&>())
 {
     buffer_type buffer;
     return std::make_shared<flesh_type>(
@@ -527,12 +635,19 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::eof(socket_type&& socket,
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class... _OnAction>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh_type&
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::cls(socket_type&& socket,
     std::shared_ptr<resource_map_type> const& resource_map,
     std::shared_ptr<method_map_type> const& method_map,
     regex_flag_type flags,
-    _OnAction&&... on_action)
+    _OnAction&&... on_action) -> decltype (
+        flesh_type(connection_type(std::declval<socket_type>()),
+                   std::declval<std::shared_ptr<resource_map_type>>(),
+                   std::declval<std::shared_ptr<method_map_type>>(),
+                   std::declval<regex_flag_type>(),
+                   std::declval<buffer_type>(),
+                   std::declval<_OnAction>()...),
+        std::declval<flesh_type&>())
 {
     buffer_type buffer;
     return std::make_shared<flesh_type>(
