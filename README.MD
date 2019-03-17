@@ -48,7 +48,7 @@ Creating a new callback functions storage and route path for GET request with "/
     http::basic_router<session_type> router;
 
     router.get("^/$", [](auto request, auto context) {
-        context.get().send(make_response(request, "MAIN PAGE\n"));
+        context.send(make_response(request, "MAIN PAGE\n"));
     });
     
     // or so ...
@@ -56,7 +56,7 @@ Creating a new callback functions storage and route path for GET request with "/
     using http::literals::operator""_get;
 
     "^/$"_get.advance(router, [](auto request, auto context) {
-        context.get().send(make_response(request, "MAIN PAGE\n"));
+        context.send(make_response(request, "MAIN PAGE\n"));
     });
 
 ```
@@ -78,7 +78,9 @@ Getting a parameter from a URI. Request send example `curl localhost --request '
 
 ```cpp
 
-    router.param<int>(boost::regex::ECMAScript)
+    using pack = http::param::pack<int>;
+
+    router.param<pack>(boost::regex::ECMAScript)
             .get("^/user/param[?]y=(\\d+)$", 
        [](auto /*request*/, auto /*context*/, auto args){
         assert(std::get<0>(args) == 1992);
@@ -86,7 +88,7 @@ Getting a parameter from a URI. Request send example `curl localhost --request '
 
     // or
 
-    router.param<int>(boost::regex::ECMAScript)
+    router.param<pack>(boost::regex::ECMAScript)
             .get("^/user/param[?]y=(\\d+)$",
        [](auto /*request*/, auto /*context*/, auto _1x, auto /*args*/){
         // process /user
@@ -106,7 +108,7 @@ Getting a parameter using a string literal (as above) :
     using http::literals::value;
     using http::literals::operator""_c;
 
-    auto param = router.param<int>(boost::regex::ECMAScript);
+    auto param = router.param<pack>(boost::regex::ECMAScript);
     
     "^/user/param[?]y=(\\d+)$"_get.advance(std::move(param), 
        [](auto /*request*/, auto /*context*/, auto args){
@@ -122,19 +124,19 @@ Create modular, mounted route handlers:
     http::basic_router<session_type> animals;
 
     animals.get("^/cat$", [](auto request, auto context){ // '/animals/cat'
-        context.get().send(make_response(request, "me-ow\n"));
+        context.send(make_response(request, "me-ow\n"));
     });
 
     animals.get("^/dog$", [](auto request, auto context){ // '/animals/dog'
-        context.get().send(make_response(request, "aw! aw! Rrrrr\n"));
+        context.send(make_response(request, "aw! aw! Rrrrr\n"));
     });
 
     animals.get("^/mouse$", [](auto request, auto context){ // '/animals/mouse'
-        context.get().send(make_response(request, "...\n"));
+        context.send(make_response(request, "...\n"));
     });
 
     animals.get("^[/]??$", [](auto request, auto context){ // '/animals' or '/animals/'
-        context.get().send(make_response(request, "animals home page\n"));
+        context.send(make_response(request, "animals home page\n"));
     });
 
     router.use("^/animals$", animals);
@@ -149,13 +151,13 @@ Create handlers routes, forming a chain, for the route path:
 
     books.route("^/book$")
             .get([](auto request, auto context) {
-        context.get().send(make_response(request, "get a random book\n"));
+        context.send(make_response(request, "get a random book\n"));
     })
             .post([](auto request, auto context) {
-        context.get().send(make_response(request, "add a book\n"));
+        context.send(make_response(request, "add a book\n"));
     })
             .put([](auto request, auto context) {
-        context.get().send(make_response(request, "update the book\n"));
+        context.send(make_response(request, "update the book\n"));
     });
 
     router.use("^/books$", books);
