@@ -48,7 +48,7 @@ int main()
     using session_type = http::reactor::_default::session_type;
     using listener_type = http::reactor::_default::listener_type;
 
-    using http_context = typename session_type::reference_wrapper;
+    using http_context = typename session_type::context_type;
     using http_request = typename session_type::request_type;
     using http_socket = typename session_type::socket_type;
 
@@ -56,22 +56,22 @@ int main()
 
     router.get(R"(^/1$)", [](http_request request, http_context context) {
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response(request, "GET 1\n"));
+        context.send(make_response(request, "GET 1\n"));
     });
 
     router.get(R"(^/2$)", [](http_request request, http_context context) {
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response(request, "GET 2\n"));
+        context.send(make_response(request, "GET 2\n"));
     });
 
     router.get(R"(^/3$)", [](http_request request, http_context context) {
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response(request, "GET 3\n"));
+        context.send(make_response(request, "GET 3\n"));
     });
 
     router.all(R"(^.*$)", [](http_request request, http_context context) {
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response(request, "ALL\n"));
+        context.send(make_response(request, "ALL\n"));
     });
 
     const auto& onError = [](boost::system::error_code code, const char* from) {

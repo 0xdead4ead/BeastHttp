@@ -62,22 +62,22 @@ int main()
 
     router.get(R"(^/1$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response(request, "GET 1\n"));
+        context.send(make_response(request, "GET 1\n"));
     });
 
     router.get(R"(^/2$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response(request, "GET 2\n"));
+        context.send(make_response(request, "GET 2\n"));
     });
 
     router.get(R"(^/3$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response(request, "GET 3\n"));
+        context.send(make_response(request, "GET 3\n"));
     });
 
     router.all(R"(^.*$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
-        context.get().send(make_response(request, "ALL\n"));
+        context.send(make_response(request, "ALL\n"));
     });
 
     const auto& onError = [](auto code, auto from) {

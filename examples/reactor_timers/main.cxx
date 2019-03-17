@@ -49,7 +49,7 @@ int main()
     router.get(R"(^.*$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
         // Received customer feedback! Sending an echo target answer. Launch timer again!
-        context.get().send(make_response(request, request.target().to_string()), std::chrono::seconds(1)).launch_timer();
+        context.send(make_response(request, request.target().to_string()), std::chrono::seconds(5)).launch_timer();
     });
 
     const auto& onError = [](auto code, auto from) {
@@ -62,7 +62,7 @@ int main()
 
     const auto& onTimer = [&](auto context){
         // Send End-of-stream. Write function can no longer be issued.
-        context.get().eof();
+        context.eof();
         // Write half of the connection is closed
         // In this place connection point is closed gracefully
     };
