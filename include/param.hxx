@@ -2,6 +2,7 @@
 #define BEASTHTTP_PARAM_HXX
 
 #include <base/regex.hxx>
+#include <base/traits.hxx>
 
 #include <tuple>
 
@@ -77,44 +78,21 @@ class pack
 
     static constexpr unsigned max_count = 12;
 
-    template<unsigned Index, typename... InTypes>
-    struct px;
-
-    using Prefix = px<0, Types...>;
-    using Tuple = std::tuple<Types...>;
-
-    template<unsigned Index, class Head, class... Tail>
-    struct px<Index, Head, Tail...> : px<Index + 1, Tail...>
+    template<class T, unsigned>
+    struct Check
     {
-        using base_type = px<Index + 1, Tail...>;
-
-        using type = Head;
-
-        static_assert (std::is_default_constructible<type>::value,
+        static_assert (std::is_default_constructible<T>::value,
                        "Default structor is missing!");
+    };
 
-    }; // struct px<Index, Head, Tail...>
+    using TypeList = http::base::traits::TypeList<Types...>;
 
     template<unsigned Index>
-    struct px<Index>
-    {
-        // Empty
+    using get_ = http::base::traits::Get<TypeList, Index>;
 
-    }; // struct px<Index>
+    using Tuple = std::tuple<Types...>;
 
-    template<unsigned Index, class Px = Prefix>
-    struct get_
-    {
-        using type = typename get_<Index - 1, typename Px::base_type>::type;
-
-    }; // struct get_
-
-    template<class Px>
-    struct get_<0, Px>
-    {
-        using type = typename Px::type;
-
-    }; // struct get_<0, Px>
+    http::base::traits::ForEach<TypeList, Check> dummy;
 
     template<class, class>
     friend class base;
@@ -148,6 +126,16 @@ protected:
     using regex_type = typename pack_type::regex_type;
 
     using tuple_type = typename pack_type::Tuple;
+
+    using request_type = typename router_type::request_type;
+
+    using storage_type = typename router_type::storage_type;
+
+    using iterator_type = typename storage_type::iterator_type;
+
+    using session_type = typename router_type::session_type;
+
+    using context_type = typename session_type::context_type;
 
     struct shared_block : public std::enable_shared_from_this<shared_block>
     {
@@ -227,9 +215,8 @@ protected:
 
         BEASTHTTP_DEFINE_MEMBERS_AND_STRUCTS
 
-        template<class Request, class Session>
         void
-        operator()(Request request, Session session)
+        operator()(request_type request, context_type context)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
@@ -237,17 +224,16 @@ protected:
                 tuple_type args{
                     boost::lexical_cast<typename pack_type::template get_<0>::type>(shared_block_p_->str_args[0])
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), tuple_type{});
+                f_(std::move(request), std::move(context), tuple_type{});
             }
             shared_block_p_->reset();
         }
 
-        template<class Request, class Session, class Iterator>
         void
-        operator()(Request request, Session session, Iterator it)
+        operator()(request_type request, context_type context, iterator_type it)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
@@ -255,10 +241,10 @@ protected:
                 tuple_type args{
                     boost::lexical_cast<typename pack_type::template get_<0>::type>(shared_block_p_->str_args[0])
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), std::move(it), tuple_type{});
+                f_(std::move(request), std::move(context), std::move(it), tuple_type{});
             }
         }
 
@@ -271,9 +257,8 @@ protected:
 
         BEASTHTTP_DEFINE_MEMBERS_AND_STRUCTS
 
-        template<class Request, class Session>
         void
-        operator()(Request request, Session session)
+        operator()(request_type request, context_type context)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
@@ -282,24 +267,23 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<0>::type>(shared_block_p_->str_args[0]),
                     boost::lexical_cast<typename pack_type::template get_<1>::type>(shared_block_p_->str_args[1])
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
                     boost::lexical_cast<typename pack_type::template get_<0>::type>(shared_block_p_->str_args[0]),
                             typename pack_type::template get_<1>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), tuple_type{});
+                f_(std::move(request), std::move(context), tuple_type{});
             }
             shared_block_p_->reset();
         }
 
-        template<class Request, class Session, class Iterator>
         void
-        operator()(Request request, Session session, Iterator it)
+        operator()(request_type request, context_type context, iterator_type it)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
@@ -308,17 +292,17 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<0>::type>(shared_block_p_->str_args[0]),
                     boost::lexical_cast<typename pack_type::template get_<1>::type>(shared_block_p_->str_args[1])
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
                     boost::lexical_cast<typename pack_type::template get_<0>::type>(shared_block_p_->str_args[0]),
                             typename pack_type::template get_<1>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), std::move(it), tuple_type{});
+                f_(std::move(request), std::move(context), std::move(it), tuple_type{});
             }
         }
 
@@ -331,9 +315,8 @@ protected:
 
         BEASTHTTP_DEFINE_MEMBERS_AND_STRUCTS
 
-        template<class Request, class Session>
         void
-        operator()(Request request, Session session)
+        operator()(request_type request, context_type context)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
@@ -343,7 +326,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<1>::type>(shared_block_p_->str_args[1]),
                     boost::lexical_cast<typename pack_type::template get_<2>::type>(shared_block_p_->str_args[2])
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -351,7 +334,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<1>::type>(shared_block_p_->str_args[1]),
                             typename pack_type::template get_<2>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -359,17 +342,16 @@ protected:
                             typename pack_type::template get_<1>::type{},
                             typename pack_type::template get_<2>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), tuple_type{});
+                f_(std::move(request), std::move(context), tuple_type{});
             }
             shared_block_p_->reset();
         }
 
-        template<class Request, class Session, class Iterator>
         void
-        operator()(Request request, Session session, Iterator it)
+        operator()(request_type request, context_type context, iterator_type it)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
@@ -379,7 +361,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<1>::type>(shared_block_p_->str_args[1]),
                     boost::lexical_cast<typename pack_type::template get_<2>::type>(shared_block_p_->str_args[2])
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -387,7 +369,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<1>::type>(shared_block_p_->str_args[1]),
                             typename pack_type::template get_<2>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -395,10 +377,10 @@ protected:
                             typename pack_type::template get_<1>::type{},
                             typename pack_type::template get_<2>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), std::move(it), tuple_type{});
+                f_(std::move(request), std::move(context), std::move(it), tuple_type{});
             }
         }
 
@@ -411,9 +393,8 @@ protected:
 
         BEASTHTTP_DEFINE_MEMBERS_AND_STRUCTS
 
-        template<class Request, class Session>
         void
-        operator()(Request request, Session session)
+        operator()(request_type request, context_type context)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
@@ -424,7 +405,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<2>::type>(shared_block_p_->str_args[2]),
                     boost::lexical_cast<typename pack_type::template get_<3>::type>(shared_block_p_->str_args[3])
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -433,7 +414,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<2>::type>(shared_block_p_->str_args[2]),
                             typename pack_type::template get_<3>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -442,7 +423,7 @@ protected:
                             typename pack_type::template get_<2>::type{},
                             typename pack_type::template get_<3>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -451,17 +432,16 @@ protected:
                             typename pack_type::template get_<2>::type{},
                             typename pack_type::template get_<3>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), tuple_type{});
+                f_(std::move(request), std::move(context), tuple_type{});
             }
             shared_block_p_->reset();
         }
 
-        template<class Request, class Session, class Iterator>
         void
-        operator()(Request request, Session session, Iterator it)
+        operator()(request_type request, context_type context, iterator_type it)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
@@ -472,7 +452,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<2>::type>(shared_block_p_->str_args[2]),
                     boost::lexical_cast<typename pack_type::template get_<3>::type>(shared_block_p_->str_args[3])
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -481,7 +461,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<2>::type>(shared_block_p_->str_args[2]),
                             typename pack_type::template get_<3>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -490,7 +470,7 @@ protected:
                             typename pack_type::template get_<2>::type{},
                             typename pack_type::template get_<3>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -499,10 +479,10 @@ protected:
                             typename pack_type::template get_<2>::type{},
                             typename pack_type::template get_<3>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), std::move(it), tuple_type{});
+                f_(std::move(request), std::move(context), std::move(it), tuple_type{});
             }
         }
 
@@ -515,9 +495,8 @@ protected:
 
         BEASTHTTP_DEFINE_MEMBERS_AND_STRUCTS
 
-        template<class Request, class Session>
         void
-        operator()(Request request, Session session)
+        operator()(request_type request, context_type context)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
@@ -529,7 +508,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<3>::type>(shared_block_p_->str_args[3]),
                     boost::lexical_cast<typename pack_type::template get_<4>::type>(shared_block_p_->str_args[4])
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -539,7 +518,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<3>::type>(shared_block_p_->str_args[3]),
                             typename pack_type::template get_<4>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -549,7 +528,7 @@ protected:
                             typename pack_type::template get_<3>::type{},
                             typename pack_type::template get_<4>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -559,7 +538,7 @@ protected:
                             typename pack_type::template get_<3>::type{},
                             typename pack_type::template get_<4>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -569,17 +548,16 @@ protected:
                             typename pack_type::template get_<3>::type{},
                             typename pack_type::template get_<4>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), tuple_type{});
+                f_(std::move(request), std::move(context), tuple_type{});
             }
             shared_block_p_->reset();
         }
 
-        template<class Request, class Session, class Iterator>
         void
-        operator()(Request request, Session session, Iterator it)
+        operator()(request_type request, context_type context, iterator_type it)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
@@ -591,7 +569,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<3>::type>(shared_block_p_->str_args[3]),
                     boost::lexical_cast<typename pack_type::template get_<4>::type>(shared_block_p_->str_args[4])
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -601,7 +579,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<3>::type>(shared_block_p_->str_args[3]),
                             typename pack_type::template get_<4>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -611,7 +589,7 @@ protected:
                             typename pack_type::template get_<3>::type{},
                             typename pack_type::template get_<4>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -621,7 +599,7 @@ protected:
                             typename pack_type::template get_<3>::type{},
                             typename pack_type::template get_<4>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -631,10 +609,10 @@ protected:
                             typename pack_type::template get_<3>::type{},
                             typename pack_type::template get_<4>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), std::move(it), tuple_type{});
+                f_(std::move(request), std::move(context), std::move(it), tuple_type{});
             }
         }
 
@@ -647,9 +625,8 @@ protected:
 
         BEASTHTTP_DEFINE_MEMBERS_AND_STRUCTS
 
-        template<class Request, class Session>
         void
-        operator()(Request request, Session && session)
+        operator()(request_type request, context_type context)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
@@ -662,7 +639,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<4>::type>(shared_block_p_->str_args[4]),
                     boost::lexical_cast<typename pack_type::template get_<5>::type>(shared_block_p_->str_args[5])
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -673,7 +650,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<4>::type>(shared_block_p_->str_args[4]),
                             typename pack_type::template get_<5>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -684,7 +661,7 @@ protected:
                             typename pack_type::template get_<4>::type{},
                             typename pack_type::template get_<5>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -695,7 +672,7 @@ protected:
                             typename pack_type::template get_<4>::type{},
                             typename pack_type::template get_<5>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -706,7 +683,7 @@ protected:
                             typename pack_type::template get_<4>::type{},
                             typename pack_type::template get_<5>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 5) {
                 tuple_type args{
@@ -717,17 +694,16 @@ protected:
                             typename pack_type::template get_<4>::type{},
                             typename pack_type::template get_<5>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), tuple_type{});
+                f_(std::move(request), std::move(context), tuple_type{});
             }
             shared_block_p_->reset();
         }
 
-        template<class Request, class Session, class Iterator>
         void
-        operator()(Request request, Session session, Iterator it)
+        operator()(request_type request, context_type context, iterator_type it)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
@@ -740,7 +716,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<4>::type>(shared_block_p_->str_args[4]),
                     boost::lexical_cast<typename pack_type::template get_<5>::type>(shared_block_p_->str_args[5])
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -751,7 +727,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<4>::type>(shared_block_p_->str_args[4]),
                             typename pack_type::template get_<5>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -762,7 +738,7 @@ protected:
                             typename pack_type::template get_<4>::type{},
                             typename pack_type::template get_<5>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -773,7 +749,7 @@ protected:
                             typename pack_type::template get_<4>::type{},
                             typename pack_type::template get_<5>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -784,7 +760,7 @@ protected:
                             typename pack_type::template get_<4>::type{},
                             typename pack_type::template get_<5>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 5) {
                 tuple_type args{
@@ -795,10 +771,10 @@ protected:
                             typename pack_type::template get_<4>::type{},
                             typename pack_type::template get_<5>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), std::move(it), tuple_type{});
+                f_(std::move(request), std::move(context), std::move(it), tuple_type{});
             }
         }
 
@@ -811,9 +787,8 @@ protected:
 
         BEASTHTTP_DEFINE_MEMBERS_AND_STRUCTS
 
-        template<class Request, class Session>
         void
-        operator()(Request request, Session && session)
+        operator()(request_type request, context_type context)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
@@ -827,7 +802,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<5>::type>(shared_block_p_->str_args[5]),
                     boost::lexical_cast<typename pack_type::template get_<6>::type>(shared_block_p_->str_args[6])
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -839,7 +814,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<5>::type>(shared_block_p_->str_args[5]),
                             typename pack_type::template get_<6>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -851,7 +826,7 @@ protected:
                             typename pack_type::template get_<5>::type{},
                             typename pack_type::template get_<6>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -863,7 +838,7 @@ protected:
                             typename pack_type::template get_<5>::type{},
                             typename pack_type::template get_<6>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -875,7 +850,7 @@ protected:
                             typename pack_type::template get_<5>::type{},
                             typename pack_type::template get_<6>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 5) {
                 tuple_type args{
@@ -887,7 +862,7 @@ protected:
                             typename pack_type::template get_<5>::type{},
                             typename pack_type::template get_<6>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 6) {
                 tuple_type args{
@@ -899,17 +874,16 @@ protected:
                             typename pack_type::template get_<5>::type{},
                             typename pack_type::template get_<6>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), tuple_type{});
+                f_(std::move(request), std::move(context), tuple_type{});
             }
             shared_block_p_->reset();
         }
 
-        template<class Request, class Session, class Iterator>
         void
-        operator()(Request request, Session session, Iterator it)
+        operator()(request_type request, context_type context, iterator_type it)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
@@ -923,7 +897,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<5>::type>(shared_block_p_->str_args[5]),
                     boost::lexical_cast<typename pack_type::template get_<6>::type>(shared_block_p_->str_args[6])
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -935,7 +909,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<5>::type>(shared_block_p_->str_args[5]),
                             typename pack_type::template get_<6>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -947,7 +921,7 @@ protected:
                             typename pack_type::template get_<5>::type{},
                             typename pack_type::template get_<6>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -959,7 +933,7 @@ protected:
                             typename pack_type::template get_<5>::type{},
                             typename pack_type::template get_<6>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -971,7 +945,7 @@ protected:
                             typename pack_type::template get_<5>::type{},
                             typename pack_type::template get_<6>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 5) {
                 tuple_type args{
@@ -983,7 +957,7 @@ protected:
                             typename pack_type::template get_<5>::type{},
                             typename pack_type::template get_<6>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 6) {
                 tuple_type args{
@@ -995,10 +969,10 @@ protected:
                             typename pack_type::template get_<5>::type{},
                             typename pack_type::template get_<6>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), std::move(it), tuple_type{});
+                f_(std::move(request), std::move(context), std::move(it), tuple_type{});
             }
         }
 
@@ -1011,9 +985,8 @@ protected:
 
         BEASTHTTP_DEFINE_MEMBERS_AND_STRUCTS
 
-        template<class Request, class Session>
         void
-        operator()(Request request, Session && session)
+        operator()(request_type request, context_type context)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
@@ -1028,7 +1001,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<6>::type>(shared_block_p_->str_args[6]),
                     boost::lexical_cast<typename pack_type::template get_<7>::type>(shared_block_p_->str_args[7])
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -1041,7 +1014,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<6>::type>(shared_block_p_->str_args[6]),
                             typename pack_type::template get_<7>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -1054,7 +1027,7 @@ protected:
                             typename pack_type::template get_<6>::type{},
                             typename pack_type::template get_<7>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -1067,7 +1040,7 @@ protected:
                             typename pack_type::template get_<6>::type{},
                             typename pack_type::template get_<7>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -1080,7 +1053,7 @@ protected:
                             typename pack_type::template get_<6>::type{},
                             typename pack_type::template get_<7>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 5) {
                 tuple_type args{
@@ -1093,7 +1066,7 @@ protected:
                             typename pack_type::template get_<6>::type{},
                             typename pack_type::template get_<7>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 6) {
                 tuple_type args{
@@ -1106,7 +1079,7 @@ protected:
                             typename pack_type::template get_<6>::type{},
                             typename pack_type::template get_<7>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 7) {
                 tuple_type args{
@@ -1119,17 +1092,16 @@ protected:
                             typename pack_type::template get_<6>::type{},
                             typename pack_type::template get_<7>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), tuple_type{});
+                f_(std::move(request), std::move(context), tuple_type{});
             }
             shared_block_p_->reset();
         }
 
-        template<class Request, class Session, class Iterator>
         void
-        operator()(Request request, Session session, Iterator it)
+        operator()(request_type request, context_type context, iterator_type it)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
@@ -1144,7 +1116,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<6>::type>(shared_block_p_->str_args[6]),
                     boost::lexical_cast<typename pack_type::template get_<7>::type>(shared_block_p_->str_args[7])
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -1157,7 +1129,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<6>::type>(shared_block_p_->str_args[6]),
                             typename pack_type::template get_<7>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -1170,7 +1142,7 @@ protected:
                             typename pack_type::template get_<6>::type{},
                             typename pack_type::template get_<7>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -1183,7 +1155,7 @@ protected:
                             typename pack_type::template get_<6>::type{},
                             typename pack_type::template get_<7>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -1196,7 +1168,7 @@ protected:
                             typename pack_type::template get_<6>::type{},
                             typename pack_type::template get_<7>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 5) {
                 tuple_type args{
@@ -1209,7 +1181,7 @@ protected:
                             typename pack_type::template get_<6>::type{},
                             typename pack_type::template get_<7>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 6) {
                 tuple_type args{
@@ -1222,7 +1194,7 @@ protected:
                             typename pack_type::template get_<6>::type{},
                             typename pack_type::template get_<7>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 7) {
                 tuple_type args{
@@ -1235,10 +1207,10 @@ protected:
                             typename pack_type::template get_<6>::type{},
                             typename pack_type::template get_<7>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), std::move(it), tuple_type{});
+                f_(std::move(request), std::move(context), std::move(it), tuple_type{});
             }
         }
 
@@ -1251,9 +1223,8 @@ protected:
 
         BEASTHTTP_DEFINE_MEMBERS_AND_STRUCTS
 
-        template<class Request, class Session>
         void
-        operator()(Request request, Session && session)
+        operator()(request_type request, context_type context)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
@@ -1269,7 +1240,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<7>::type>(shared_block_p_->str_args[7]),
                     boost::lexical_cast<typename pack_type::template get_<8>::type>(shared_block_p_->str_args[8])
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -1283,7 +1254,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<7>::type>(shared_block_p_->str_args[7]),
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -1297,7 +1268,7 @@ protected:
                             typename pack_type::template get_<7>::type{},
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -1311,7 +1282,7 @@ protected:
                             typename pack_type::template get_<7>::type{},
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -1325,7 +1296,7 @@ protected:
                             typename pack_type::template get_<7>::type{},
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 5) {
                 tuple_type args{
@@ -1339,7 +1310,7 @@ protected:
                             typename pack_type::template get_<7>::type{},
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 6) {
                 tuple_type args{
@@ -1353,7 +1324,7 @@ protected:
                             typename pack_type::template get_<7>::type{},
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 7) {
                 tuple_type args{
@@ -1367,7 +1338,7 @@ protected:
                             typename pack_type::template get_<7>::type{},
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 8) {
                 tuple_type args{
@@ -1381,17 +1352,16 @@ protected:
                             typename pack_type::template get_<7>::type{},
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), tuple_type{});
+                f_(std::move(request), std::move(context), tuple_type{});
             }
             shared_block_p_->reset();
         }
 
-        template<class Request, class Session, class Iterator>
         void
-        operator()(Request request, Session session, Iterator it)
+        operator()(request_type request, context_type context, iterator_type it)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
@@ -1407,7 +1377,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<7>::type>(shared_block_p_->str_args[7]),
                     boost::lexical_cast<typename pack_type::template get_<8>::type>(shared_block_p_->str_args[8])
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -1421,7 +1391,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<7>::type>(shared_block_p_->str_args[7]),
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -1435,7 +1405,7 @@ protected:
                             typename pack_type::template get_<7>::type{},
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -1449,7 +1419,7 @@ protected:
                             typename pack_type::template get_<7>::type{},
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -1463,7 +1433,7 @@ protected:
                             typename pack_type::template get_<7>::type{},
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 5) {
                 tuple_type args{
@@ -1477,7 +1447,7 @@ protected:
                             typename pack_type::template get_<7>::type{},
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 6) {
                 tuple_type args{
@@ -1491,7 +1461,7 @@ protected:
                             typename pack_type::template get_<7>::type{},
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 7) {
                 tuple_type args{
@@ -1505,7 +1475,7 @@ protected:
                             typename pack_type::template get_<7>::type{},
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 8) {
                 tuple_type args{
@@ -1519,10 +1489,10 @@ protected:
                             typename pack_type::template get_<7>::type{},
                             typename pack_type::template get_<8>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), std::move(it), tuple_type{});
+                f_(std::move(request), std::move(context), std::move(it), tuple_type{});
             }
         }
 
@@ -1535,9 +1505,8 @@ protected:
 
         BEASTHTTP_DEFINE_MEMBERS_AND_STRUCTS
 
-        template<class Request, class Session>
         void
-        operator()(Request request, Session && session)
+        operator()(request_type request, context_type context)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
@@ -1554,7 +1523,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<8>::type>(shared_block_p_->str_args[8]),
                     boost::lexical_cast<typename pack_type::template get_<9>::type>(shared_block_p_->str_args[9])
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -1569,7 +1538,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<8>::type>(shared_block_p_->str_args[8]),
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -1584,7 +1553,7 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -1599,7 +1568,7 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -1614,7 +1583,7 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 5) {
                 tuple_type args{
@@ -1629,7 +1598,7 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 6) {
                 tuple_type args{
@@ -1644,7 +1613,7 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 7) {
                 tuple_type args{
@@ -1659,7 +1628,7 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 8) {
                 tuple_type args{
@@ -1674,7 +1643,7 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 9) {
                 tuple_type args{
@@ -1689,17 +1658,16 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), tuple_type{});
+                f_(std::move(request), std::move(context), tuple_type{});
             }
             shared_block_p_->reset();
         }
 
-        template<class Request, class Session, class Iterator>
         void
-        operator()(Request request, Session session, Iterator it)
+        operator()(request_type request, context_type context, iterator_type it)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
@@ -1716,7 +1684,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<8>::type>(shared_block_p_->str_args[8]),
                     boost::lexical_cast<typename pack_type::template get_<9>::type>(shared_block_p_->str_args[9])
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -1731,7 +1699,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<8>::type>(shared_block_p_->str_args[8]),
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -1746,7 +1714,7 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -1761,7 +1729,7 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -1776,7 +1744,7 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 5) {
                 tuple_type args{
@@ -1791,7 +1759,7 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 6) {
                 tuple_type args{
@@ -1806,7 +1774,7 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 7) {
                 tuple_type args{
@@ -1821,7 +1789,7 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 8) {
                 tuple_type args{
@@ -1836,7 +1804,7 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 9) {
                 tuple_type args{
@@ -1851,10 +1819,10 @@ protected:
                             typename pack_type::template get_<8>::type{},
                             typename pack_type::template get_<9>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), std::move(it), tuple_type{});
+                f_(std::move(request), std::move(context), std::move(it), tuple_type{});
             }
         }
 
@@ -1867,9 +1835,8 @@ protected:
 
         BEASTHTTP_DEFINE_MEMBERS_AND_STRUCTS
 
-        template<class Request, class Session>
         void
-        operator()(Request request, Session && session)
+        operator()(request_type request, context_type context)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
@@ -1887,7 +1854,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<9>::type>(shared_block_p_->str_args[9]),
                     boost::lexical_cast<typename pack_type::template get_<10>::type>(shared_block_p_->str_args[10])
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -1903,7 +1870,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<9>::type>(shared_block_p_->str_args[9]),
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -1919,7 +1886,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -1935,7 +1902,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -1951,7 +1918,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 5) {
                 tuple_type args{
@@ -1967,7 +1934,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 6) {
                 tuple_type args{
@@ -1983,7 +1950,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 7) {
                 tuple_type args{
@@ -1999,7 +1966,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 8) {
                 tuple_type args{
@@ -2015,7 +1982,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 9) {
                 tuple_type args{
@@ -2031,7 +1998,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 10) {
                 tuple_type args{
@@ -2047,17 +2014,16 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), tuple_type{});
+                f_(std::move(request), std::move(context), tuple_type{});
             }
             shared_block_p_->reset();
         }
 
-        template<class Request, class Session, class Iterator>
         void
-        operator()(Request request, Session session, Iterator it)
+        operator()(request_type request, context_type context, iterator_type it)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
@@ -2075,7 +2041,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<9>::type>(shared_block_p_->str_args[9]),
                     boost::lexical_cast<typename pack_type::template get_<10>::type>(shared_block_p_->str_args[10])
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -2091,7 +2057,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<9>::type>(shared_block_p_->str_args[9]),
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -2107,7 +2073,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -2123,7 +2089,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -2139,7 +2105,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 5) {
                 tuple_type args{
@@ -2155,7 +2121,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 6) {
                 tuple_type args{
@@ -2171,7 +2137,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 7) {
                 tuple_type args{
@@ -2187,7 +2153,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 8) {
                 tuple_type args{
@@ -2203,7 +2169,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 9) {
                 tuple_type args{
@@ -2219,7 +2185,7 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 10) {
                 tuple_type args{
@@ -2235,10 +2201,10 @@ protected:
                             typename pack_type::template get_<9>::type{},
                             typename pack_type::template get_<10>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), std::move(it), tuple_type{});
+                f_(std::move(request), std::move(context), std::move(it), tuple_type{});
             }
         }
 
@@ -2251,9 +2217,8 @@ protected:
 
         BEASTHTTP_DEFINE_MEMBERS_AND_STRUCTS
 
-        template<class Request, class Session>
         void
-        operator()(Request request, Session && session)
+        operator()(request_type request, context_type context)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
@@ -2272,7 +2237,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<10>::type>(shared_block_p_->str_args[10]),
                     boost::lexical_cast<typename pack_type::template get_<11>::type>(shared_block_p_->str_args[11])
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -2289,7 +2254,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<10>::type>(shared_block_p_->str_args[10]),
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -2306,7 +2271,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -2323,7 +2288,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -2340,7 +2305,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 5) {
                 tuple_type args{
@@ -2357,7 +2322,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 6) {
                 tuple_type args{
@@ -2374,7 +2339,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 7) {
                 tuple_type args{
@@ -2391,7 +2356,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 8) {
                 tuple_type args{
@@ -2408,7 +2373,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 9) {
                 tuple_type args{
@@ -2425,7 +2390,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 10) {
                 tuple_type args{
@@ -2442,7 +2407,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 11) {
                 tuple_type args{
@@ -2459,17 +2424,16 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(args));
+                f_(std::move(request), std::move(context), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), tuple_type{});
+                f_(std::move(request), std::move(context), tuple_type{});
             }
             shared_block_p_->reset();
         }
 
-        template<class Request, class Session, class Iterator>
         void
-        operator()(Request request, Session session, Iterator it)
+        operator()(request_type request, context_type context, iterator_type it)
         {
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
@@ -2488,7 +2452,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<10>::type>(shared_block_p_->str_args[10]),
                     boost::lexical_cast<typename pack_type::template get_<11>::type>(shared_block_p_->str_args[11])
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 1) {
                 tuple_type args{
@@ -2505,7 +2469,7 @@ protected:
                     boost::lexical_cast<typename pack_type::template get_<10>::type>(shared_block_p_->str_args[10]),
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 2) {
                 tuple_type args{
@@ -2522,7 +2486,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 3) {
                 tuple_type args{
@@ -2539,7 +2503,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 4) {
                 tuple_type args{
@@ -2556,7 +2520,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 5) {
                 tuple_type args{
@@ -2573,7 +2537,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 6) {
                 tuple_type args{
@@ -2590,7 +2554,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 7) {
                 tuple_type args{
@@ -2607,7 +2571,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 8) {
                 tuple_type args{
@@ -2624,7 +2588,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 9) {
                 tuple_type args{
@@ -2641,7 +2605,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 10) {
                 tuple_type args{
@@ -2658,7 +2622,7 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else if (shared_block_p_->str_args.size() == count - 11) {
                 tuple_type args{
@@ -2675,10 +2639,10 @@ protected:
                             typename pack_type::template get_<10>::type{},
                             typename pack_type::template get_<11>::type{}
                 };
-                f_(std::move(request), std::move(session), std::move(it), std::move(args));
+                f_(std::move(request), std::move(context), std::move(it), std::move(args));
             }
             else {
-                f_(std::move(request), std::move(session), std::move(it), tuple_type{});
+                f_(std::move(request), std::move(context), std::move(it), tuple_type{});
             }
         }
 
@@ -2691,14 +2655,13 @@ protected:
 
 template<
         class Session,
-        template <typename...> class Pack,
         class... Types>
-class impl<basic_router<Session>, Pack<Types...>>
-        : private base<basic_router<Session>, Pack<Types...>>
+class impl<basic_router<Session>, pack<Types...>>
+        : private base<basic_router<Session>, pack<Types...>>
 {
     using self_type = impl;
 
-    using base_type = base<basic_router<Session>, Pack<Types...>>;
+    using base_type = base<basic_router<Session>, pack<Types...>>;
 
 public:
 
@@ -2708,14 +2671,27 @@ public:
 
     using regex_type = typename base_type::regex_type;
 
+    using request_type = typename base_type::request_type;
+
+    using iterator_type = typename base_type::iterator_type;
+
+    using context_type = typename base_type::context_type;
+
+    using tuple_type = typename base_type::tuple_type;
+
     explicit
-    impl(router_type& router, typename regex_type::flag_type flags)
+    impl(router_type& router, typename regex_type::flag_type flags,
+         typename std::enable_if<http::base::traits::Conjunction<std::is_default_constructible<Types>...>::value, int>::type = 0)
         : base_type{std::make_shared<typename base_type::shared_block_type>(router, flags)}
-    {}
+    {
+    }
 
     template<class... OnRequest>
-    void
+    auto
     get(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.get(
@@ -2724,8 +2700,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     post(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.post(
@@ -2734,8 +2713,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     put(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.put(
@@ -2744,8 +2726,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     head(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.head(
@@ -2754,8 +2739,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     delete_(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.delete_(
@@ -2764,8 +2752,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     options(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.options(
@@ -2774,8 +2765,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     connect(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.connect(
@@ -2784,8 +2778,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     trace(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.trace(
@@ -2794,8 +2791,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     copy(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.copy(
@@ -2804,8 +2804,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     lock(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.lock(
@@ -2814,8 +2817,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     mkcol(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.mkcol(
@@ -2824,8 +2830,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     move(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.move(
@@ -2834,8 +2843,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     propfind(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.propfind(
@@ -2844,8 +2856,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     proppatch(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.proppatch(
@@ -2854,8 +2869,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     search(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.search(
@@ -2864,8 +2882,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     unlock(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.unlock(
@@ -2874,8 +2895,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     bind(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.bind(
@@ -2884,8 +2908,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     rebind(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.rebind(
@@ -2894,8 +2921,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     unbind(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.unbind(
@@ -2904,8 +2934,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     acl(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.acl(
@@ -2914,8 +2947,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     report(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.report(
@@ -2924,8 +2960,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     mkactivity(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.mkactivity(
@@ -2934,8 +2973,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     checkout(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.checkout(
@@ -2944,8 +2986,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     merge(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.merge(
@@ -2954,8 +2999,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     msearch(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.msearch(
@@ -2964,8 +3012,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     notify(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.notify(
@@ -2974,8 +3025,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     subscribe(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.subscribe(
@@ -2984,8 +3038,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     unsubscribe(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.unsubscribe(
@@ -2994,8 +3051,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     patch(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.patch(
@@ -3004,8 +3064,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     purge(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.purge(
@@ -3014,8 +3077,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     mkcalendar(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.mkcalendar(
@@ -3024,8 +3090,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     link(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.link(
@@ -3034,8 +3103,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     unlink(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.unlink(
@@ -3044,8 +3116,11 @@ public:
     }
 
     template<class... OnRequest>
-    void
+    auto
     all(const resource_regex_type& path_to_resource, OnRequest&&... on_request) &&
+    -> decltype (void(typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                      sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                 void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}))
     {
         base_type::split_regex(path_to_resource);
         base_type::shared_block_p_->router_.all(
@@ -3057,14 +3132,13 @@ public:
 
 template<
         class Session,
-        template <typename...> class Pack,
         class... Types>
-class impl<chain_router<Session>, Pack<Types...>>
-        : private base<chain_router<Session>, Pack<Types...>>
+class impl<chain_router<Session>, pack<Types...>>
+        : private base<chain_router<Session>, pack<Types...>>
 {
     using self_type = impl;
 
-    using base_type = base<chain_router<Session>, Pack<Types...>>;
+    using base_type = base<chain_router<Session>, pack<Types...>>;
 
 public:
 
@@ -3076,6 +3150,14 @@ public:
 
     using chain_node_type = typename router_type::chain_node_type;
 
+    using request_type = typename base_type::request_type;
+
+    using iterator_type = typename base_type::iterator_type;
+
+    using context_type = typename base_type::context_type;
+
+    using tuple_type = typename base_type::tuple_type;
+
     struct node : private chain_node_type
     {
         using self_type = node;
@@ -3086,8 +3168,11 @@ public:
         {}
 
         template<class... OnRequest>
-        node&
+        auto
         get(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::get(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3095,8 +3180,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         post(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::post(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3104,8 +3192,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         put(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::put(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3113,8 +3204,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         head(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::head(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3122,8 +3216,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         delete_(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::delete_(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3131,8 +3228,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         options(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::options(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3140,8 +3240,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         connect(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::connect(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3149,8 +3252,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         trace(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::trace(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3158,8 +3264,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         copy(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::copy(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3167,8 +3276,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         lock(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::lock(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3176,8 +3288,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         mkcol(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::mkcol(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3185,8 +3300,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         move(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::move(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3194,8 +3312,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         propfind(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::propfind(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3203,8 +3324,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         proppatch(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::proppatch(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3212,8 +3336,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         search(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::search(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3221,8 +3348,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         unlock(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::unlock(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3230,8 +3360,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         bind(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::bind(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3239,8 +3372,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         rebind(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::rebind(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3248,8 +3384,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         unbind(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::unbind(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3257,8 +3396,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         acl(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::acl(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3266,8 +3408,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         report(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::report(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3275,8 +3420,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         mkactivity(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::mkactivity(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3284,8 +3432,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         checkout(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::checkout(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3293,8 +3444,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         merge(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::merge(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3302,8 +3456,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         msearch(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::msearch(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3311,8 +3468,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         notify(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::notify(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3320,8 +3480,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         subscribe(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::subscribe(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3329,8 +3492,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         unsubscribe(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::unsubscribe(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3338,8 +3504,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         patch(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::patch(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3347,8 +3516,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         purge(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::purge(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3356,8 +3528,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         mkcalendar(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::mkcalendar(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3365,8 +3540,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         link(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::link(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3374,8 +3552,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         unlink(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::unlink(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);
@@ -3383,8 +3564,11 @@ public:
         }
 
         template<class... OnRequest>
-        node&
+        auto
         all(OnRequest&&... on_request)
+        -> decltype (typename std::enable_if<http::base::traits::TryInvokeConjunction<
+                          sizeof... (OnRequest) - 1, void (request_type, context_type, iterator_type, tuple_type),
+                     void (request_type, context_type, tuple_type), OnRequest...>::value, int>::type{}, std::declval<node&>())
         {
             chain_node_type::all(typename base_type::template paramcb_type<OnRequest, sizeof... (Types)>
                                     {shared_block_p_, std::forward<OnRequest>(on_request)}...);

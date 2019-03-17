@@ -87,11 +87,9 @@ public:
 
     using session_context = typename session_type::context_type;
 
-    using session_wrapper = std::reference_wrapper<session_context const>;
-
     using request_type = typename session_type::request_type;
 
-    using entry_type = Entry<void (request_type, session_wrapper, iterator_type)>;
+    using entry_type = Entry<void (request_type, session_context, iterator_type)>;
 
     using container_type = Container<entry_type>;
 
@@ -110,7 +108,7 @@ public:
                    and traits::HasFleshType<session_type, void>::value,
                    "Invalid session type");
 
-    static_assert (traits::TryInvoke<entry_type, void(request_type, session_wrapper, iterator_type)>::value,
+    static_assert (traits::TryInvoke<entry_type, void(request_type, session_context, iterator_type)>::value,
                    "Invalid entry type!");
 
     BEASTHTTP_DECLARE_FRIEND_BASE_CB_EXECUTOR_CLASS
@@ -119,14 +117,15 @@ public:
 
     storage() = default;
 
-    template<class Head, class... Tail,
+    template<class F, class... Fn,
              typename = typename std::enable_if<
-                 not std::is_same<
-                     typename std::decay<Head>::type, self_type
-                     >::value
+                 not std::is_same<typename std::decay<F>::type, self_type>::value
+                 and traits::TryInvokeConjunction<
+                     sizeof... (Fn), void (request_type, session_context, iterator_type),
+                     void (request_type, session_context), F, Fn...>::value
                  >::type
              >
-    storage(Head&&, Tail&&...);
+    storage(F&&, Fn&&...);
 
 private:
 

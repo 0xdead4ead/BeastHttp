@@ -38,13 +38,16 @@ protected:
 
     using regex_type = typename session_type::regex_type;
 
+    using request_type = typename session_type::request_type;
+
     static_assert (base::traits::HasStorageType<session_type, void>::value
                    and base::traits::HasResourceMapType<session_type, void>::value
                    and base::traits::HasMethodMapType<session_type, void>::value
                    and base::traits::HasResourceRegexType<session_type, void>::value
                    and base::traits::HasResourceType<session_type, void>::value
                    and base::traits::HasMethodType<session_type, void>::value
-                   and base::traits::HasRegexType<session_type, void>::value,
+                   and base::traits::HasRegexType<session_type, void>::value
+                   and base::traits::HasRequestType<session_type, void>::value,
                    "Invalid session type!");
 
     explicit
@@ -64,11 +67,6 @@ protected:
     use(resource_regex_type const&,
         self_type const&);
 
-    template<class DerivedRouter, class Pack>
-    auto
-    param(DerivedRouter& router, typename regex_type::flag_type flags)
-    -> decltype (BEASTHTTP_PACK_PROVIDE_CALL(router, flags));
-
 public:
 
     std::shared_ptr<resource_map_type> const&
@@ -76,6 +74,11 @@ public:
 
     std::shared_ptr<method_map_type> const&
     method_map() const;
+
+    template<class DerivedRouter, class Pack>
+    auto
+    param(DerivedRouter& router, typename regex_type::flag_type flags)
+    -> decltype (BEASTHTTP_PACK_PROVIDE_CALL(router, flags));
 
 private:
 

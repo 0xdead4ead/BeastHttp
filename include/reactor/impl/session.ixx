@@ -175,7 +175,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         void(boost::system::error_code,
              const char*)>::value and
         base::traits::TryInvoke<_OnTimer,
-        void(reference_wrapper)>::value, int>::type)
+        void(context_type)>::value, int>::type)
     : base_type{resource_map, method_map, flags},
       connection_{std::move(connection)},
       timer_{connection.stream().get_executor(), (time_point_type::max)()},
@@ -204,7 +204,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_timer(
         bool is_alive = connection_.stream().is_open();
 
         if (on_timer_ and is_alive) {
-            on_timer_(std::cref(_self));
+            on_timer_(std::move(_self));
             return;
         }
 

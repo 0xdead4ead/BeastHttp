@@ -32,6 +32,8 @@ public:
 
     using regex_type = typename base_type::regex_type;
 
+    using request_type = typename base_type::request_type;
+
     using chain_node_type = chain_node;
 
     chain_router() noexcept
@@ -56,15 +58,15 @@ public:
     {
         base_type::use("", other);
     }
-#if defined BEASTHTTP_PARAM_HXX
-    template<class... Types>
+
+    template<class Pack>
     auto
     param(typename regex_type::flag_type flags)
-    -> param::impl<self_type, param::pack<Types...>>
+    -> decltype (static_cast<base_type*>(this)->template param<self_type, Pack>(*this, flags))
     {
-        return base_type::template param<self_type, param::pack<Types...>>(*this, flags);
+        return base_type::template param<self_type, Pack>(*this, flags);
     }
-#endif
+
 private:
 
     class chain_node
@@ -81,64 +83,72 @@ private:
         {}
 
         template<class... OnRequest>
-        node_type&
+        auto
         get(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::get, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         post(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::post, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         put(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::put, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         head(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::head, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         delete_(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::delete_, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         options(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::options, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         connect(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::connect, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         trace(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::trace, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
@@ -147,96 +157,108 @@ private:
         //Webdav
 
         template<class... OnRequest>
-        node_type&
+        auto
         copy(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::copy, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         lock(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::lock, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         mkcol(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::mkcol, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         move(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::move, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         propfind(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::propfind, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         proppatch(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::proppatch, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         search(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::search, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         unlock(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::unlock, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         bind(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::bind, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         rebind(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::rebind, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         unbind(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::unbind, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         acl(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::acl, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
@@ -245,32 +267,36 @@ private:
         // subversion
 
         template<class... OnRequest>
-        node_type&
+        auto
         report(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::report, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         mkactivity(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::mkactivity, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         checkout(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::checkout, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         merge(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::merge, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
@@ -279,32 +305,36 @@ private:
         // upnp
 
         template<class... OnRequest>
-        node_type&
+        auto
         msearch(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::msearch, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         notify(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::notify, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         subscribe(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::subscribe, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         unsubscribe(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::unsubscribe, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
@@ -313,16 +343,18 @@ private:
         // RFC-5789
 
         template<class... OnRequest>
-        node_type&
+        auto
         patch(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::patch, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         purge(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::purge, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
@@ -331,8 +363,9 @@ private:
         // CalDAV
 
         template<class... OnRequest>
-        node_type&
+        auto
         mkcalendar(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::mkcalendar, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
@@ -341,24 +374,27 @@ private:
         // RFC-2068, section 19.6.1.2
 
         template<class... OnRequest>
-        node_type&
+        auto
         link(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::link, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         unlink(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb(router_.tmp_res_regex_, method_type::unlink, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;
         }
 
         template<class... OnRequest>
-        node_type&
+        auto
         all(OnRequest&&... on_request)
+        -> decltype (storage_type(std::declval<OnRequest>()...), std::declval<node_type&>())
         {
             router_.add_resource_cb_without_method(router_.tmp_res_regex_, storage_type{std::forward<OnRequest>(on_request)...});
             return *this;

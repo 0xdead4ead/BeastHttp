@@ -59,8 +59,6 @@ public:
 
     using context_type = context<flesh_type>;
 
-    using reference_wrapper = std::reference_wrapper<context_type const>;
-
     using resource_regex_type = std::string;
 
     using resource_type = boost::beast::string_view;
@@ -95,9 +93,9 @@ public:
 
     using on_error_type = OnError<void (boost::system::error_code, const char*)>;
 
-    using on_handshake_type = OnHandshake<void (reference_wrapper)>;
+    using on_handshake_type = OnHandshake<void (context_type)>;
 
-    using on_timer_type = OnTimer<void (reference_wrapper)>;
+    using on_timer_type = OnTimer<void (context_type)>;
 
     using storage_type = base::cb::storage<self_type, Entry, Container>;
 
@@ -107,10 +105,10 @@ public:
 
     using shutdown_type = typename socket_type::shutdown_type;
 
-    static_assert (base::traits::TryInvoke<on_timer_type, void(reference_wrapper)>::value,
+    static_assert (base::traits::TryInvoke<on_timer_type, void(context_type)>::value,
                    "Invalid OnTimer handler type!");
 
-    static_assert (base::traits::TryInvoke<on_handshake_type, void(reference_wrapper)>::value,
+    static_assert (base::traits::TryInvoke<on_handshake_type, void(context_type)>::value,
                    "Invalid OnHandshake handler type!");
 
     static_assert (base::traits::TryInvoke<on_error_type, void(boost::system::error_code, const char*)>::value,
@@ -187,7 +185,7 @@ public:
               _OnHandshake&&,
               typename std::enable_if<
               base::traits::TryInvoke<_OnHandshake,
-              void(reference_wrapper)>::value, int>::type = 0);
+              void(context_type)>::value, int>::type = 0);
 
         template<class _OnHandshake, class _OnError>
         explicit
@@ -201,7 +199,7 @@ public:
               _OnError&&,
               typename std::enable_if<
               base::traits::TryInvoke<_OnHandshake,
-              void(reference_wrapper)>::value and
+              void(context_type)>::value and
               base::traits::TryInvoke<_OnError,
               void(boost::system::error_code,
                    const char*)>::value, int>::type = 0);
@@ -219,12 +217,12 @@ public:
               _OnTimer&&,
               typename std::enable_if<
               base::traits::TryInvoke<_OnHandshake,
-              void(reference_wrapper)>::value and
+              void(context_type)>::value and
               base::traits::TryInvoke<_OnError,
               void(boost::system::error_code,
                    const char*)>::value and
               base::traits::TryInvoke<_OnTimer,
-              void(reference_wrapper)>::value, int>::type = 0);
+              void(context_type)>::value, int>::type = 0);
 
     private:
 

@@ -18,11 +18,15 @@
         const char* s_; \
         std::size_t n_; \
         template<class Router, class... OnRequest> \
-        auto advance(Router& router, OnRequest&&... on_request) && { \
+        auto advance(Router& router, OnRequest&&... on_request) && \
+        -> decltype (router. x({s_, n_}, std::forward<OnRequest>(on_request)...)) \
+        { \
             return router. x({s_, n_}, std::forward<OnRequest>(on_request)...); \
         } \
         template<class Param, class... OnRequest> \
-        auto advance(Param&& param, OnRequest&&... on_request) && { \
+        auto advance(Param&& param, OnRequest&&... on_request) && \
+        -> decltype (std::move(param). x({s_, n_}, std::forward<OnRequest>(on_request)...)) \
+        { \
             return std::move(param). x({s_, n_}, std::forward<OnRequest>(on_request)...); \
         } \
     };
@@ -33,11 +37,11 @@
         const char* s_; \
         std::size_t n_; \
         template<class Router> \
-        auto advance(Router& router) && { \
+        auto advance(Router& router) && -> decltype (router.route({s_, n_})) { \
             return router.route({s_, n_}); \
         } \
         template<class Param> \
-        auto advance(Param&& param) && { \
+        auto advance(Param&& param) && -> decltype (std::move(param).route({s_, n_})) { \
             return std::move(param).route({s_, n_}); \
         } \
     };

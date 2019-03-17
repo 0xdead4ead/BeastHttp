@@ -197,7 +197,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         _OnHandshake&& on_handshake,
         typename std::enable_if<
         base::traits::TryInvoke<_OnHandshake,
-        void(reference_wrapper)>::value, int>::type)
+        void(context_type)>::value, int>::type)
     : base_type{resource_map, method_map, flags},
       connection_{std::move(socket), ctx},
       timer_{socket.get_executor(), (time_point_type::max)()},
@@ -220,7 +220,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         _OnError&& on_error,
         typename std::enable_if<
         base::traits::TryInvoke<_OnHandshake,
-        void(reference_wrapper)>::value and
+        void(context_type)>::value and
         base::traits::TryInvoke<_OnError,
         void(boost::system::error_code,
              const char*)>::value, int>::type)
@@ -247,12 +247,12 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         _OnError&& on_error, _OnTimer&& on_timer,
         typename std::enable_if<
         base::traits::TryInvoke<_OnHandshake,
-        void(reference_wrapper)>::value and
+        void(context_type)>::value and
         base::traits::TryInvoke<_OnError,
         void(boost::system::error_code,
              const char*)>::value and
         base::traits::TryInvoke<_OnTimer,
-        void(reference_wrapper)>::value, int>::type)
+        void(context_type)>::value, int>::type)
     : base_type{resource_map, method_map, flags},
       connection_{std::move(socket), ctx},
       timer_{socket.get_executor(), (time_point_type::max)()},
@@ -282,7 +282,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::on_timer(
         bool is_alive = connection_.stream().next_layer().is_open();
 
         if (on_timer_ and is_alive) {
-            on_timer_(std::cref(_self));
+            on_timer_(std::move(_self));
             return;
         }
 
@@ -307,7 +307,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::on_handshake(
 
     buffer_.consume(bytes_used);
 
-    on_handshake_(std::cref(_self));
+    on_handshake_(std::move(_self));
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE

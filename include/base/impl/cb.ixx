@@ -185,10 +185,10 @@ iterator<Session, Entry, Container>::pos() const
 }
 
 BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-template<class Head, class... Tail, typename>
-storage<Session, Entry, Container>::storage(Head&& head, Tail&&... tail)
-    : container_{prepare(std::forward<Head>(head),
-                         std::forward<Tail>(tail)...)},
+template<class F, class... Fn, typename>
+storage<Session, Entry, Container>::storage(F&& f, Fn&&... fn)
+    : container_{prepare(std::forward<F>(f),
+                         std::forward<Fn>(fn)...)},
       it_next_{container_.cbegin()},
       request_{nullptr},
       session_flesh_{nullptr},
@@ -284,7 +284,7 @@ void
 storage<Session, Entry, Container>::do_exec<_Self>::operator()(_Self& self)
 {
     session_context _ctx{*self.session_flesh_};
-    (*self.it_next_) (*self.request_, std::cref(_ctx), iterator_type{self});
+    (*self.it_next_) (*self.request_, std::move(_ctx), iterator_type{self});
 }
 
 BEASTHTTP_DECLARE_STORAGE_TEMPLATE
