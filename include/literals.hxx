@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <tuple>
 
-// TODO Temporary!...
 #if __cplusplus >= 201402L
 #define BEASTHTTP_LITERALS_DETECT_CXX14
 #endif
@@ -46,12 +45,12 @@
         } \
     };
 
-#if defined BEASTHTTP_LITERALS_DETECT_CXX14
 namespace _0xdead4ead {
 namespace http {
 namespace literals {
 namespace details {
 
+#if defined BEASTHTTP_LITERALS_DETECT_CXX14
 constexpr int toInt(char c)
 {
     if (c >= 'A' and c <= 'F') {
@@ -98,6 +97,7 @@ constexpr int parseInt(char const (&array)[N])
   }
   return value;
 }
+#endif // defined BEASTHTTP_LITERALS_DETECT_CXX14
 
 namespace symbol {
 
@@ -178,6 +178,7 @@ BEASTHTTP_LITERALS_DECLARE_ROUTE_STRUCT
 
 } // namespace details
 
+#if defined BEASTHTTP_LITERALS_DETECT_CXX14
 template<char... cs>
 constexpr auto operator"" _c()
 {
@@ -197,178 +198,214 @@ value(const std::tuple<Types...>& tpl, std::integral_constant<int, Index>)
 {
     return std::get<Index>(tpl);
 }
+#endif // defined BEASTHTTP_LITERALS_DETECT_CXX14
 
-inline auto operator "" _get(const char* s, std::size_t n)
+inline details::__verb<details::symbol::get>
+operator "" _get(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::get>{s, n};
 }
 
-inline auto operator "" _post(const char* s, std::size_t n)
+inline details::__verb<details::symbol::post>
+operator "" _post(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::post>{s, n};
 }
 
-inline auto operator "" _put(const char* s, std::size_t n)
+inline details::__verb<details::symbol::put>
+operator "" _put(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::put>{s, n};
 }
 
-inline auto operator "" _head(const char* s, std::size_t n)
+inline details::__verb<details::symbol::head>
+operator "" _head(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::head>{s, n};
 }
 
-inline auto operator "" _delete(const char* s, std::size_t n)
+inline details::__verb<details::symbol::delete_>
+operator "" _delete(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::delete_>{s, n};
 }
 
-inline auto operator "" _options(const char* s, std::size_t n)
+inline details::__verb<details::symbol::options>
+operator "" _options(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::options>{s, n};
 }
 
-inline auto operator "" _connect(const char* s, std::size_t n)
+inline details::__verb<details::symbol::connect>
+operator "" _connect(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::connect>{s, n};
 }
 
-inline auto operator "" _trace(const char* s, std::size_t n)
+inline details::__verb<details::symbol::trace>
+operator "" _trace(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::trace>{s, n};
 }
 
-inline auto operator "" _copy(const char* s, std::size_t n)
+inline details::__verb<details::symbol::copy>
+operator "" _copy(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::copy>{s, n};
 }
 
-inline auto operator "" _lock(const char* s, std::size_t n)
+inline details::__verb<details::symbol::lock>
+operator "" _lock(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::lock>{s, n};
 }
 
-inline auto operator "" _mkcol(const char* s, std::size_t n)
+inline details::__verb<details::symbol::mkcol>
+operator "" _mkcol(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::mkcol>{s, n};
 }
 
-inline auto operator "" _move(const char* s, std::size_t n)
+inline details::__verb<details::symbol::move>
+operator "" _move(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::move>{s, n};
 }
 
-inline auto operator "" _propfind(const char* s, std::size_t n)
+inline details::__verb<details::symbol::propfind>
+operator "" _propfind(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::propfind>{s, n};
 }
 
-inline auto operator "" _proppatch(const char* s, std::size_t n)
+inline details::__verb<details::symbol::proppatch>
+operator "" _proppatch(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::proppatch>{s, n};
 }
 
-inline auto operator "" _search(const char* s, std::size_t n)
+inline details::__verb<details::symbol::search>
+operator "" _search(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::search>{s, n};
 }
 
-inline auto operator "" _unlock(const char* s, std::size_t n)
+inline details::__verb<details::symbol::unlock>
+operator "" _unlock(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::unlock>{s, n};
 }
 
-inline auto operator "" _bind(const char* s, std::size_t n)
+inline details::__verb<details::symbol::bind>
+operator "" _bind(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::bind>{s, n};
 }
 
-inline auto operator "" _rebind(const char* s, std::size_t n)
+inline details::__verb<details::symbol::rebind>
+operator "" _rebind(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::rebind>{s, n};
 }
 
-inline auto operator "" _unbind(const char* s, std::size_t n)
+inline details::__verb<details::symbol::unbind>
+operator "" _unbind(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::unbind>{s, n};
 }
 
-inline auto operator "" _acl(const char* s, std::size_t n)
+inline details::__verb<details::symbol::acl>
+operator "" _acl(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::acl>{s, n};
 }
 
-inline auto operator "" _report(const char* s, std::size_t n)
+inline details::__verb<details::symbol::report>
+operator "" _report(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::report>{s, n};
 }
 
-inline auto operator "" _mkactivity(const char* s, std::size_t n)
+inline details::__verb<details::symbol::mkactivity>
+operator "" _mkactivity(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::mkactivity>{s, n};
 }
 
-inline auto operator "" _checkout(const char* s, std::size_t n)
+inline details::__verb<details::symbol::checkout>
+operator "" _checkout(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::checkout>{s, n};
 }
 
-inline auto operator "" _merge(const char* s, std::size_t n)
+inline details::__verb<details::symbol::merge>
+operator "" _merge(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::merge>{s, n};
 }
 
-inline auto operator "" _msearch(const char* s, std::size_t n)
+inline details::__verb<details::symbol::msearch>
+operator "" _msearch(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::msearch>{s, n};
 }
 
-inline auto operator "" _notify(const char* s, std::size_t n)
+inline details::__verb<details::symbol::notify>
+operator "" _notify(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::notify>{s, n};
 }
 
-inline auto operator "" _subscribe(const char* s, std::size_t n)
+inline details::__verb<details::symbol::subscribe>
+operator "" _subscribe(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::subscribe>{s, n};
 }
 
-inline auto operator "" _unsubscribe(const char* s, std::size_t n)
+inline details::__verb<details::symbol::unsubscribe>
+operator "" _unsubscribe(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::unsubscribe>{s, n};
 }
 
-inline auto operator "" _patch(const char* s, std::size_t n)
+inline details::__verb<details::symbol::patch>
+operator "" _patch(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::patch>{s, n};
 }
 
-inline auto operator "" _purge(const char* s, std::size_t n)
+inline details::__verb<details::symbol::purge>
+operator "" _purge(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::purge>{s, n};
 }
 
-inline auto operator "" _mkcalendar(const char* s, std::size_t n)
+inline details::__verb<details::symbol::mkcalendar>
+operator "" _mkcalendar(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::mkcalendar>{s, n};
 }
 
-inline auto operator "" _link(const char* s, std::size_t n)
+inline details::__verb<details::symbol::link>
+operator "" _link(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::link>{s, n};
 }
 
-inline auto operator "" _unlink(const char* s, std::size_t n)
+inline details::__verb<details::symbol::unlink>
+operator "" _unlink(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::unlink>{s, n};
 }
 
-inline auto operator "" _all(const char* s, std::size_t n)
+inline details::__verb<details::symbol::all>
+operator "" _all(const char* s, std::size_t n)
 {
     return details::__verb<details::symbol::all>{s, n};
 }
 
-inline auto operator "" _route(const char* s, std::size_t n)
+inline details::__route
+operator "" _route(const char* s, std::size_t n)
 {
     return details::__route{s, n};
 }
@@ -376,6 +413,5 @@ inline auto operator "" _route(const char* s, std::size_t n)
 } // namespace literals
 } // namespace http
 } // namespace _0xdead4ead
-#endif // #if defined BEASTHTTP_LITERALS_DETECT_CXX14
 
 #endif // not defined BEASTHTTP_LITERALS_HXX
