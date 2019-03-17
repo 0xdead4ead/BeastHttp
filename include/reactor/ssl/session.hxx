@@ -535,6 +535,6 @@ using session_type = session<>;
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <reactor/ssl/impl/session.ixx>
+#include <reactor/ssl/impl/session.hxx>
 
 #endif // not defined BEASTHTTP_REACTOR_SSL_SESSION_HXX

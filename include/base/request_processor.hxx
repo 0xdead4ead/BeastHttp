@@ -75,6 +75,6 @@ private:
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <base/impl/request_processor.ixx>
+#include <base/impl/request_processor.hxx>
 
 #endif // BEASTHTTP_BASE_REQUEST_PROCESSOR_HXX

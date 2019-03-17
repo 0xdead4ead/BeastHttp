@@ -44,6 +44,6 @@ public:
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <base/impl/queue.ixx>
+#include <base/impl/queue.hxx>
 
 #endif // not defined BEASTHTTP_BASE_QUEUE_HXX

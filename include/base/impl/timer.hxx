@@ -1,5 +1,5 @@
-#if not defined BEASTHTTP_BASE_TIMER_IXX
-#define BEASTHTTP_BASE_TIMER_IXX
+#if not defined BEASTHTTP_BASE_IMPL_TIMER_HXX
+#define BEASTHTTP_BASE_IMPL_TIMER_HXX
 
 #include <boost/asio/bind_executor.hpp>
 
@@ -40,4 +40,4 @@ timer<Clock, Timer>::async_wait(F&& f)
 } // namespace http
 } // namespace _0xdead4ead
 
-#endif // not defined BEASTHTTP_BASE_TIMER_IXX
+#endif // not defined BEASTHTTP_BASE_IMPL_TIMER_HXX

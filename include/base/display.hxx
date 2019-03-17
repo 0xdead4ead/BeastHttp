@@ -65,6 +65,6 @@ printline(Stream& stream, Arg const& arg, Args const&... args)
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <base/impl/display.ixx>
+#include <base/impl/display.hxx>
 
 #endif // not defined BEASTHTTP_BASE_DISPLAY_HXX

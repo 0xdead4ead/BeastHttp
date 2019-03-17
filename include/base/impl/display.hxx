@@ -1,5 +1,5 @@
-#if not defined BEASTHTTP_BASE_DISPLAY_IXX
-#define BEASTHTTP_BASE_DISPLAY_IXX
+#if not defined BEASTHTTP_BASE_IMPL_DISPLAY_HXX
+#define BEASTHTTP_BASE_IMPL_DISPLAY_HXX
 
 namespace _0xdead4ead {
 namespace http {
@@ -127,4 +127,4 @@ printline(Stream& stream, Arg const& arg, Args const&... args)
 } // namespace http
 } // namespace _0xdead4ead
 
-#endif // not defined BEASTHTTP_BASE_DISPLAY_IXX
+#endif // not defined BEASTHTTP_BASE_IMPL_DISPLAY_HXX

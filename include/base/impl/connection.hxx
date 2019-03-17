@@ -1,5 +1,5 @@
-#if not defined BEASTHTTP_BASE_CONNECTION_IXX
-#define BEASTHTTP_BASE_CONNECTION_IXX
+#if not defined BEASTHTTP_BASE_IMPL_CONNECTION_HXX
+#define BEASTHTTP_BASE_IMPL_CONNECTION_HXX
 
 #include <boost/asio/bind_executor.hpp>
 #include <boost/beast/http/write.hpp>
@@ -63,4 +63,4 @@ connection<Derived>::read(B& buf, R& msg)
 } // namespace http
 } // namespace _0xdead4ead
 
-#endif // not defined BEASTHTTP_BASE_CONNECTION_IXX
+#endif // not defined BEASTHTTP_BASE_IMPL_CONNECTION_HXX

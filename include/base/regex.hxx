@@ -39,6 +39,6 @@ private:
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <base/impl/regex.ixx>
+#include <base/impl/regex.hxx>
 
 #endif // not defined BEASTHTTP_BASE_REGEX_HXX

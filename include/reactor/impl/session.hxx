@@ -1,5 +1,5 @@
-#if not defined BEASTHTTP_REACTOR_SESSION_IXX
-#define BEASTHTTP_REACTOR_SESSION_IXX
+#if not defined BEASTHTTP_REACTOR_IMPL_SESSION_HXX
+#define BEASTHTTP_REACTOR_IMPL_SESSION_HXX
 
 #define BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE \
     template<class Body, \
@@ -660,4 +660,4 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::cls(socket_type&& socket,
 } // namespace http
 } // namespace _0xdead4ead
 
-#endif // not defined BEASTHTTP_REACTOR_SESSION_IXX
+#endif // not defined BEASTHTTP_REACTOR_IMPL_SESSION_HXX

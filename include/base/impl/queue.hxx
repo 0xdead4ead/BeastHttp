@@ -1,5 +1,5 @@
-#if not defined BEASTHTTP_BASE_QUEUE_IXX
-#define BEASTHTTP_BASE_QUEUE_IXX
+#if not defined BEASTHTTP_BASE_IMPL_QUEUE_HXX
+#define BEASTHTTP_BASE_IMPL_QUEUE_HXX
 
 namespace _0xdead4ead {
 namespace http {
@@ -69,4 +69,4 @@ queue<Flesh>::operator()(Response&& response)
 } // namespace http
 } // namespace _0xdead4ead
 
-#endif // not defined BEASTHTTP_BASE_QUEUE_IXX
+#endif // not defined BEASTHTTP_BASE_IMPL_QUEUE_HXX

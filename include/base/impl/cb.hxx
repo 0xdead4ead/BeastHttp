@@ -1,5 +1,5 @@
-#if not defined BEASTHTTP_BASE_CB_IXX
-#define BEASTHTTP_BASE_CB_IXX
+#if not defined BEASTHTTP_BASE_IMPL_CB_HXX
+#define BEASTHTTP_BASE_IMPL_CB_HXX
 
 #include <functional>
 
@@ -316,4 +316,4 @@ storage<Session, Entry, Container>::skip_target()
 } // namespace http
 } // namespace _0xdead4ead
 
-#endif // not defined BEASTHTTP_BASE_CB_IXX
+#endif // not defined BEASTHTTP_BASE_IMPL_CB_HXX

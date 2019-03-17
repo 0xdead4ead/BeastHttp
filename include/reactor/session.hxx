@@ -549,6 +549,6 @@ using session_type = session<>;
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <reactor/impl/session.ixx>
+#include <reactor/impl/session.hxx>
 
 #endif // not defined BEASTHTTP_REACTOR_SESSION_HXX

@@ -1,5 +1,5 @@
-#if not defined BEASTHTTP_REACTOR_LISTENER_IXX
-#define BEASTHTTP_REACTOR_LISTENER_IXX
+#if not defined BEASTHTTP_REACTOR_IMPL_LISTENER_HXX
+#define BEASTHTTP_REACTOR_IMPL_LISTENER_HXX
 
 #define BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE \
     template<template<typename> class OnAccept, \
@@ -148,4 +148,4 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::do_loop(
 } // namespace http
 } // namespace _0xdead4ead
 
-#endif // not defined BEASTHTTP_REACTOR_LISTENER_IXX
+#endif // not defined BEASTHTTP_REACTOR_IMPL_LISTENER_HXX

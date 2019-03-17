@@ -1,5 +1,5 @@
-#if not defined BEASTHTTP_BASE_ROUTER_IXX
-#define BEASTHTTP_BASE_ROUTER_IXX
+#if not defined BEASTHTTP_BASE_IMPL_ROUTER_HXX
+#define BEASTHTTP_BASE_IMPL_ROUTER_HXX
 
 namespace _0xdead4ead {
 namespace http {
@@ -142,4 +142,4 @@ router<Session>::concat(const resource_regex_type& resource1,
 } // namespace http
 } // namespace _0xdead4ead
 
-#endif // not defined BEASTHTTP_BASE_ROUTER_IXX
+#endif // not defined BEASTHTTP_BASE_IMPL_ROUTER_HXX

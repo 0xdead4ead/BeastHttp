@@ -1,5 +1,5 @@
-#if not defined BEASTHTTP_BASE_SOCKET_IXX
-#define BEASTHTTP_BASE_SOCKET_IXX
+#if not defined BEASTHTTP_BASE_IMPL_SOCKET_HXX
+#define BEASTHTTP_BASE_IMPL_SOCKET_HXX
 
 namespace _0xdead4ead {
 namespace http {
@@ -46,4 +46,4 @@ socket<Protocol, Socket>::socket(Sock&& sock)
 } // namespace http
 } // namespace _0xdead4ead
 
-#endif // not defined BEASTHTTP_BASE_SOCKET_IXX
+#endif // not defined BEASTHTTP_BASE_IMPL_SOCKET_HXX

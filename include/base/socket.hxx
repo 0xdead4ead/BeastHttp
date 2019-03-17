@@ -49,6 +49,6 @@ protected:
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <base/impl/socket.ixx>
+#include <base/impl/socket.hxx>
 
 #endif // BEASTHTTP_BASE_SOCKET_HXX

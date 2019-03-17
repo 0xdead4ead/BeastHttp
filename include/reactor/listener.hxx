@@ -116,6 +116,6 @@ using listener_type = listener<>;
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <reactor/impl/listener.ixx>
+#include <reactor/impl/listener.hxx>
 
 #endif // not defined BEASTHTTP_REACTOR_LISTENER_HXX

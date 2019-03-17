@@ -58,6 +58,6 @@ public:
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <base/impl/connection.ixx>
+#include <base/impl/connection.hxx>
 
 #endif // not defined BEASTHTTP_BASE_CONNECTION_HXX

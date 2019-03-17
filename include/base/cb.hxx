@@ -172,6 +172,6 @@ private:
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <base/impl/cb.ixx>
+#include <base/impl/cb.hxx>
 
 #endif // not defined BEASTHTTP_BASE_CB_HXX

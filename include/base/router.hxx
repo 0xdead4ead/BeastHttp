@@ -94,6 +94,6 @@ private:
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <base/impl/router.ixx>
+#include <base/impl/router.hxx>
 
 #endif // not defined BEASTHTTP_BASE_ROUTER_HXX

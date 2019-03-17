@@ -1,5 +1,5 @@
-#if not defined BEASTHTTP_BASE_REGEX_IXX
-#define BEASTHTTP_BASE_REGEX_IXX
+#if not defined BEASTHTTP_BASE_IMPL_REGEX_HXX
+#define BEASTHTTP_BASE_IMPL_REGEX_HXX
 
 namespace _0xdead4ead {
 namespace http {
@@ -29,4 +29,4 @@ regex::match(const std::string& regx, const std::string& str,
 } // namespace http
 } // namespace _0xdead4ead
 
-#endif // not defined BEASTHTTP_BASE_REGEX_IXX
+#endif // not defined BEASTHTTP_BASE_IMPL_REGEX_HXX

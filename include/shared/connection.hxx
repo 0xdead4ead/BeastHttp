@@ -1,5 +1,5 @@
-#if not defined BEASTHTTP_REACTOR_CONNECTION_HXX
-#define BEASTHTTP_REACTOR_CONNECTION_HXX
+#if not defined BEASTHTTP_SHARED_CONNECTION_HXX
+#define BEASTHTTP_SHARED_CONNECTION_HXX
 
 #include <base/connection.hxx>
 #include <base/socket.hxx>
@@ -52,6 +52,6 @@ public:
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <shared/impl/connection.ixx>
+#include <shared/impl/connection.hxx>
 
-#endif // not defined BEASTHTTP_REACTOR_CONNECTION_HXX
+#endif // not defined BEASTHTTP_SHARED_CONNECTION_HXX

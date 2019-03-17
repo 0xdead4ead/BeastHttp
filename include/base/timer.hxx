@@ -60,6 +60,6 @@ private:
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <base/impl/timer.ixx>
+#include <base/impl/timer.hxx>
 
 #endif // not defined BEASTHTTP_BASE_TIMER_HXX

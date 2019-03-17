@@ -1,5 +1,5 @@
-#if not defined BEASTHTTP_REACTOR_CONNECTION_IXX
-#define BEASTHTTP_REACTOR_CONNECTION_IXX
+#if not defined BEASTHTTP_SHARED_IMPL_CONNECTION_HXX
+#define BEASTHTTP_SHARED_IMPL_CONNECTION_HXX
 
 namespace _0xdead4ead {
 namespace http {
@@ -49,4 +49,4 @@ connection<Protocol, Socket>::release_socket()
 } // namespace http
 } // namespace _0xdead4ead
 
-#endif // not defined BEASTHTTP_REACTOR_CONNECTION_IXX
+#endif // not defined BEASTHTTP_SHARED_IMPL_CONNECTION_HXX
