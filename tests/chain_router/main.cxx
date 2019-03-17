@@ -29,8 +29,6 @@ public:
 
     using context_type = context<flesh_type>;
 
-    using reference_wrapper = std::reference_wrapper<context_type const>;
-
     using resource_regex_type = std::string;
 
     using resource_type = boost::beast::string_view;
