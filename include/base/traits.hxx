@@ -49,6 +49,88 @@ struct is_invocable<F, R(Args...)>
 {
 };
 
+namespace typelist {
+
+template<class...>
+struct instance
+{
+};
+
+template<class>
+struct front;
+
+template<class Head, class... Tail>
+struct front<instance<Head, Tail...>>
+{
+    using type = Head;
+};
+
+template<class>
+struct pop_front;
+
+template<class Head, class... Tail>
+struct pop_front<instance<Head, Tail...>>
+{
+    using type = instance<Tail...>;
+};
+
+template<unsigned, class, template<class, unsigned> class>
+struct for_each;
+
+template<unsigned Index, template<class, unsigned> class Pred, class... Elements>
+struct for_each<Index, instance<Elements...>, Pred>
+        : Pred<typename front<instance<Elements...>>::type, Index>,
+        for_each<Index + 1, typename pop_front<instance<Elements...>>::type, Pred>
+{
+};
+
+template<unsigned Index, template<class, unsigned> class Pred>
+struct for_each<Index, instance<>, Pred>
+{
+};
+
+template<class, unsigned>
+struct get;
+
+template<unsigned Index, class... Elements>
+struct get<instance<Elements...>, Index>
+        : get<typename pop_front<instance<Elements...>>::type, Index - 1>
+{
+};
+
+template<class... Elements>
+struct get<instance<Elements...>, 0>
+        : front<instance<Elements...>>
+{
+};
+
+} // namespace typelist
+
+template<class...>
+struct conjunction;
+
+template<>
+struct conjunction<> : std::true_type
+{
+};
+
+template<class B1>
+struct conjunction<B1> : B1
+{
+};
+
+template<class B1, class B2>
+struct conjunction<B1, B2>
+        : std::conditional<B1::value, B2, B1>::type
+{
+};
+
+template<class B1, class B2, class B3, class... Bn>
+struct conjunction<B1, B2, B3, Bn...>
+        : std::conditional<B1::value, conjunction<B2, B3, Bn...>, B1>::type
+{
+};
+
 #if not defined __cpp_generic_lambdas
 #define BEASTHTTP_CXX11_TRAITS
 
@@ -652,6 +734,20 @@ struct TryInvoke<F, R(Args...)>
 {
 };
 
+template<unsigned FnCount, class Sig1, class Sig2, class F, class... Fn>
+struct TryInvokeConjunction
+        : TryInvokeConjunction<FnCount - 1, Sig1, Sig2, Fn...>
+{
+    static constexpr bool value =
+            TryInvoke<F, Sig1>::value and TryInvokeConjunction<FnCount - 1, Sig1, Sig2, Fn...>::value;
+};
+
+template<class Sig1, class Sig2, class F>
+struct TryInvokeConjunction<0, Sig1, Sig2, F>
+{
+    static constexpr bool value = TryInvoke<F, Sig2>::value;
+};
+
 template<class, class>
 struct TryCbegin;
 
@@ -771,6 +867,18 @@ using HasCbExecutorType = decltype (hasCbExecutorType<R>(std::declval<X>()));
 
 template<class X, class R>
 using HasRegexType = decltype (hasRegexType<R>(std::declval<X>()));
+
+template<class... Elements>
+using TypeList = details::typelist::instance<Elements...>;
+
+template<class TypeList, template<class, unsigned> class Pred>
+using ForEach = details::typelist::for_each<0, TypeList, Pred>;
+
+template<class TypeList, unsigned Index>
+using Get = details::typelist::get<TypeList, Index>;
+
+template<class... Bn>
+using Conjunction = details::conjunction<Bn...>;
 
 } // namespace traits
 } // namespace base
