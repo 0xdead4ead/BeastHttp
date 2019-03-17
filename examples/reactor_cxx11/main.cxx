@@ -74,7 +74,7 @@ int main()
         context.send(make_response(request, "ALL\n"));
     });
 
-    const auto& onError = [](boost::system::error_code code, const char* from) {
+    const auto& onError = [](boost::system::error_code code, boost::string_view from) {
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, "From:", from, "Info:", code.message());
 

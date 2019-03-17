@@ -73,7 +73,7 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::listener(
         typename std::enable_if<base::traits::TryInvoke<
         _OnAccept, void(socket_type)>::value and
         base::traits::TryInvoke<_OnError, void(
-            boost::system::error_code, const char*)>::value, int>::type)
+            boost::system::error_code, boost::string_view)>::value, int>::type)
     : acceptor_{ioc},
       socket_{ioc},
       on_accept_{std::forward<_OnAccept>(on_accept)},

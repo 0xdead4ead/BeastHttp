@@ -223,7 +223,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         void(context_type)>::value and
         base::traits::TryInvoke<_OnError,
         void(boost::system::error_code,
-             const char*)>::value, int>::type)
+             boost::string_view)>::value, int>::type)
     : base_type{resource_map, method_map, flags},
       connection_{std::move(socket), ctx},
       timer_{socket.get_executor(), (time_point_type::max)()},
@@ -250,7 +250,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         void(context_type)>::value and
         base::traits::TryInvoke<_OnError,
         void(boost::system::error_code,
-             const char*)>::value and
+             boost::string_view)>::value and
         base::traits::TryInvoke<_OnTimer,
         void(context_type)>::value, int>::type)
     : base_type{resource_map, method_map, flags},

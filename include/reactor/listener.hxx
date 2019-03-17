@@ -7,8 +7,8 @@
 #include <boost/asio/socket_base.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/asio/coroutine.hpp>
-
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/utility/string_view.hpp>
 
 #define BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES \
     OnAccept, OnError, Protocol, Acceptor, Socket, Endpoint
@@ -42,7 +42,7 @@ public:
 
     using on_accept_type = OnAccept<void (socket_type)>;
 
-    using on_error_type = OnError<void (boost::system::error_code, const char*)>;
+    using on_error_type = OnError<void (boost::system::error_code, boost::string_view)>;
 
     static_assert (std::is_base_of<boost::asio::socket_base, socket_type>::value,
                    "Socket type is not supported!");
@@ -56,7 +56,7 @@ public:
     static_assert (base::traits::TryInvoke<on_accept_type, void(socket_type)>::value,
                    "Invalid OnAccept handler type!");
 
-    static_assert (base::traits::TryInvoke<on_error_type, void(boost::system::error_code, const char*)>::value,
+    static_assert (base::traits::TryInvoke<on_error_type, void(boost::system::error_code, boost::string_view)>::value,
                    "Invalid OnError handler type!");
 
     listener(self_type&&) = default;
@@ -89,7 +89,7 @@ public:
              typename std::enable_if<base::traits::TryInvoke<
              _OnAccept, void(socket_type)>::value and
              base::traits::TryInvoke<_OnError, void(
-                 boost::system::error_code, const char*)>::value, int>::type = 0);
+                 boost::system::error_code, boost::string_view)>::value, int>::type = 0);
 
 private:
 

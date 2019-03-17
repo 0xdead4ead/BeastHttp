@@ -151,7 +151,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         typename std::enable_if<
         base::traits::TryInvoke<_OnError,
         void(boost::system::error_code,
-             const char*)>::value, int>::type)
+             boost::string_view)>::value, int>::type)
     : base_type{resource_map, method_map, flags},
       connection_{std::move(connection)},
       timer_{connection.stream().get_executor(), (time_point_type::max)()},
@@ -173,7 +173,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         typename std::enable_if<
         base::traits::TryInvoke<_OnError,
         void(boost::system::error_code,
-             const char*)>::value and
+             boost::string_view)>::value and
         base::traits::TryInvoke<_OnTimer,
         void(context_type)>::value, int>::type)
     : base_type{resource_map, method_map, flags},

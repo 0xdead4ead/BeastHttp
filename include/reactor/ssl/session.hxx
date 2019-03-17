@@ -91,7 +91,7 @@ public:
 
     using regex_flag_type = typename regex_type::flag_type;
 
-    using on_error_type = OnError<void (boost::system::error_code, const char*)>;
+    using on_error_type = OnError<void (boost::system::error_code, boost::string_view)>;
 
     using on_handshake_type = OnHandshake<void (context_type)>;
 
@@ -111,7 +111,7 @@ public:
     static_assert (base::traits::TryInvoke<on_handshake_type, void(context_type)>::value,
                    "Invalid OnHandshake handler type!");
 
-    static_assert (base::traits::TryInvoke<on_error_type, void(boost::system::error_code, const char*)>::value,
+    static_assert (base::traits::TryInvoke<on_error_type, void(boost::system::error_code, boost::string_view)>::value,
                    "Invalid OnError handler type!");
 
     class flesh : private base::request_processor<self_type>,
@@ -202,7 +202,7 @@ public:
               void(context_type)>::value and
               base::traits::TryInvoke<_OnError,
               void(boost::system::error_code,
-                   const char*)>::value, int>::type = 0);
+                   boost::string_view)>::value, int>::type = 0);
 
         template<class _OnHandshake, class _OnError, class _OnTimer>
         explicit
@@ -220,7 +220,7 @@ public:
               void(context_type)>::value and
               base::traits::TryInvoke<_OnError,
               void(boost::system::error_code,
-                   const char*)>::value and
+                   boost::string_view)>::value and
               base::traits::TryInvoke<_OnTimer,
               void(context_type)>::value, int>::type = 0);
 

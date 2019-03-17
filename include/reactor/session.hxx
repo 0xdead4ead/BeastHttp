@@ -56,8 +56,6 @@ public:
 
     using context_type = context<flesh_type>;
 
-    //using reference_wrapper = std::reference_wrapper<context_type const>;
-
     using resource_regex_type = std::string;
 
     using resource_type = boost::beast::string_view;
@@ -90,7 +88,7 @@ public:
 
     using regex_flag_type = typename regex_type::flag_type;
 
-    using on_error_type = OnError<void (boost::system::error_code, const char*)>;
+    using on_error_type = OnError<void (boost::system::error_code, boost::string_view)>;
 
     using on_timer_type = OnTimer<void (context_type)>;
 
@@ -105,7 +103,7 @@ public:
     static_assert (base::traits::TryInvoke<on_timer_type, void(context_type)>::value,
                    "Invalid OnTimer handler type!");
 
-    static_assert (base::traits::TryInvoke<on_error_type, void(boost::system::error_code, const char*)>::value,
+    static_assert (base::traits::TryInvoke<on_error_type, void(boost::system::error_code, boost::string_view)>::value,
                    "Invalid OnError handler type!");
 
     class flesh : private base::request_processor<self_type>,
@@ -168,7 +166,7 @@ public:
               typename std::enable_if<
               base::traits::TryInvoke<_OnError,
               void(boost::system::error_code,
-                   const char*)>::value, int>::type = 0);
+                   boost::string_view)>::value, int>::type = 0);
 
         template<class _OnError, class _OnTimer>
         explicit
@@ -182,7 +180,7 @@ public:
               typename std::enable_if<
               base::traits::TryInvoke<_OnError,
               void(boost::system::error_code,
-                   const char*)>::value and
+                   boost::string_view)>::value and
               base::traits::TryInvoke<_OnTimer,
               void(context_type)>::value, int>::type = 0);
 
