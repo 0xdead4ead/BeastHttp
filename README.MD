@@ -8,16 +8,15 @@
 
 Easy HTTP (Header-only) library implemented using minimum C++11 and Boost.Beast. Allows you to get or provide REST resources available from an application in C ++. Use all the features of the Boost.Beast when constructing queries and answers.
 
-## Work in progress...
-
 # FEATURES
 
 * HTTP 1.0 / 1.1
 * TLS/SSL
-* Pipeline
-* Asynchronous/Synchronous request, response handling
+* Pipeline request
+* Used I/O multiplexing model (Asio library implementation)
 * Timer manage (default action: Closing connection)
 * Simple way to dynamic add REST resources using regex for path, and anonymous functions
+* Support accepted plain and SSL session on the same port
 
 # DEPENDENCIES
 
@@ -30,7 +29,7 @@ Easy HTTP (Header-only) library implemented using minimum C++11 and Boost.Beast.
 More examples is [`here...`](https://github.com/0xdead4ead/BeastHttp/tree/dev/examples)
 The following notes show the standard syntax for setting up routes and starting a server!
 
-Alias's represent instances of default classes for reactive design.
+Alias's represent instances of default classes for reactive (select/epool) design.
 
 ```cpp
 
@@ -189,7 +188,13 @@ Start listening on 127.0.0.1:80
     auto const address = boost::asio::ip::make_address("127.0.0.1");
     auto const port = static_cast<unsigned short>(80);
 
-    listener_type::loop(ioc, {address, port}, onAccept, onError);
+    listener_type::launch(ioc, {address, port}, onAccept, onError);
+    
+    // Note: 
+    // After starting the listener instance, 
+    // it is not recommended to add new handlers from other threads, 
+    // except those that are in a loop io_context::run, to the router 
+    // used for processing client requests.
 
 ```
 
@@ -204,4 +209,4 @@ Run the I/O service on the requested number of threads:
     t.join();
 
 ```
-Note: In the future, it is planned to introduce preforked/prethreated server design, also support HTTP 2.
+Copyright (c) Evgeny Tixonow #0xdead4ead 2018-2019
