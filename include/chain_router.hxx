@@ -62,7 +62,7 @@ public:
     template<class Pack>
     auto
     param(typename regex_type::flag_type flags)
-    -> decltype (static_cast<base_type*>(this)->template param<self_type, Pack>(*this, flags))
+    -> decltype (std::declval<base_type>().template param<self_type, Pack>(*this, flags))
     {
         return base_type::template param<self_type, Pack>(*this, flags);
     }

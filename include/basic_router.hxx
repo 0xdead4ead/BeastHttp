@@ -43,7 +43,7 @@ public:
     auto
     get(resource_regex_type const& path_to_resource,
         OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::get, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -52,7 +52,7 @@ public:
     auto
     post(resource_regex_type const& path_to_resource,
          OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::post, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -61,7 +61,7 @@ public:
     auto
     put(resource_regex_type const& path_to_resource,
         OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::put, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -70,7 +70,7 @@ public:
     auto
     head(resource_regex_type const& path_to_resource,
          OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::head, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -79,7 +79,7 @@ public:
     auto
     delete_(resource_regex_type const& path_to_resource,
             OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::delete_, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -88,7 +88,7 @@ public:
     auto
     options(resource_regex_type const& path_to_resource,
             OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::options, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -97,7 +97,7 @@ public:
     auto
     connect(resource_regex_type const& path_to_resource,
             OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::connect, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -106,7 +106,7 @@ public:
     auto
     trace(resource_regex_type const& path_to_resource,
           OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::trace, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -117,7 +117,7 @@ public:
     auto
     copy(resource_regex_type const& path_to_resource,
          OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::copy, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -126,7 +126,7 @@ public:
     auto
     lock(resource_regex_type const & path_to_resource,
          OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::lock, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -135,7 +135,7 @@ public:
     auto
     mkcol(resource_regex_type const& path_to_resource,
           OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::mkcol, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -144,7 +144,7 @@ public:
     auto
     move(resource_regex_type const& path_to_resource,
          OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::move, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -153,7 +153,7 @@ public:
     auto
     propfind(resource_regex_type const& path_to_resource,
              OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::propfind, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -162,7 +162,7 @@ public:
     auto
     proppatch(resource_regex_type const& path_to_resource,
               OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::proppatch, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -171,7 +171,7 @@ public:
     auto
     search(resource_regex_type const& path_to_resource,
            OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::search, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -180,7 +180,7 @@ public:
     auto
     unlock(resource_regex_type const& path_to_resource,
            OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::unlock, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -189,7 +189,7 @@ public:
     auto
     bind(resource_regex_type const& path_to_resource,
          OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::bind, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -198,7 +198,7 @@ public:
     auto
     rebind(resource_regex_type const& path_to_resource,
            OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::rebind, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -207,7 +207,7 @@ public:
     auto
     unbind(resource_regex_type const& path_to_resource,
            OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::unbind, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -216,7 +216,7 @@ public:
     auto
     acl(resource_regex_type const& path_to_resource,
         OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::acl, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -227,7 +227,7 @@ public:
     auto
     report(resource_regex_type const& path_to_resource,
            OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::report, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -236,7 +236,7 @@ public:
     auto
     mkactivity(resource_regex_type const& path_to_resource,
                OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::mkactivity, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -245,7 +245,7 @@ public:
     auto
     checkout(resource_regex_type const& path_to_resource,
              OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::checkout, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -254,7 +254,7 @@ public:
     auto
     merge(resource_regex_type const& path_to_resource,
           OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::merge, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -265,7 +265,7 @@ public:
     auto
     msearch(resource_regex_type const& path_to_resource,
             OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::msearch, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -274,7 +274,7 @@ public:
     auto
     notify(resource_regex_type const& path_to_resource,
            OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::notify, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -283,7 +283,7 @@ public:
     auto
     subscribe(resource_regex_type const& path_to_resource,
               OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::subscribe, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -292,7 +292,7 @@ public:
     auto
     unsubscribe(resource_regex_type const& path_to_resource,
                 OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::unsubscribe, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -303,7 +303,7 @@ public:
     auto
     patch(resource_regex_type const& path_to_resource,
           OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::patch, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -312,7 +312,7 @@ public:
     auto
     purge(resource_regex_type const& path_to_resource,
           OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::purge, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -323,7 +323,7 @@ public:
     auto
     mkcalendar(resource_regex_type const& path_to_resource,
                OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::mkcalendar, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -334,7 +334,7 @@ public:
     auto
     link(resource_regex_type const& path_to_resource,
          OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::link, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -343,7 +343,7 @@ public:
     auto
     unlink(resource_regex_type const& path_to_resource,
            OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb(path_to_resource, method_type::unlink, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -352,7 +352,7 @@ public:
     auto
     all(resource_regex_type const& path_to_resource,
         OnRequest&&... on_request) &
-    -> decltype (storage_type(std::declval<OnRequest>()...), void())
+    -> decltype (void(storage_type(std::declval<OnRequest>()...)))
     {
         add_resource_cb_without_method(path_to_resource, storage_type{std::forward<OnRequest>(on_request)...});
     }
@@ -373,7 +373,7 @@ public:
     template<class Pack>
     auto
     param(typename regex_type::flag_type flags)
-    -> decltype (static_cast<base_type*>(this)->template param<self_type, Pack>(*this, flags))
+    -> decltype (std::declval<base_type>().template param<self_type, Pack>(*this, flags))
     {
         return base_type::template param<self_type, Pack>(*this, flags);
     }

@@ -48,7 +48,7 @@
 namespace _0xdead4ead {
 namespace http {
 namespace literals {
-namespace details {
+namespace detail {
 
 #if defined BEASTHTTP_LITERALS_DETECT_CXX14
 constexpr int toInt(char c)
@@ -176,13 +176,13 @@ BEASTHTTP_LITERALS_DECLARE_VERB_STRUCT(all)
 
 BEASTHTTP_LITERALS_DECLARE_ROUTE_STRUCT
 
-} // namespace details
+} // namespace detail
 
 #if defined BEASTHTTP_LITERALS_DETECT_CXX14
 template<char... cs>
 constexpr auto operator"" _c()
 {
-  return std::integral_constant<int, details::parseInt<sizeof...(cs)>({cs...})>{};
+  return std::integral_constant<int, detail::parseInt<sizeof...(cs)>({cs...})>{};
 }
 
 template<int Index, class... Types>
@@ -200,214 +200,214 @@ value(const std::tuple<Types...>& tpl, std::integral_constant<int, Index>)
 }
 #endif // defined BEASTHTTP_LITERALS_DETECT_CXX14
 
-inline details::__verb<details::symbol::get>
+inline detail::__verb<detail::symbol::get>
 operator "" _get(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::get>{s, n};
+    return detail::__verb<detail::symbol::get>{s, n};
 }
 
-inline details::__verb<details::symbol::post>
+inline detail::__verb<detail::symbol::post>
 operator "" _post(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::post>{s, n};
+    return detail::__verb<detail::symbol::post>{s, n};
 }
 
-inline details::__verb<details::symbol::put>
+inline detail::__verb<detail::symbol::put>
 operator "" _put(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::put>{s, n};
+    return detail::__verb<detail::symbol::put>{s, n};
 }
 
-inline details::__verb<details::symbol::head>
+inline detail::__verb<detail::symbol::head>
 operator "" _head(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::head>{s, n};
+    return detail::__verb<detail::symbol::head>{s, n};
 }
 
-inline details::__verb<details::symbol::delete_>
+inline detail::__verb<detail::symbol::delete_>
 operator "" _delete(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::delete_>{s, n};
+    return detail::__verb<detail::symbol::delete_>{s, n};
 }
 
-inline details::__verb<details::symbol::options>
+inline detail::__verb<detail::symbol::options>
 operator "" _options(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::options>{s, n};
+    return detail::__verb<detail::symbol::options>{s, n};
 }
 
-inline details::__verb<details::symbol::connect>
+inline detail::__verb<detail::symbol::connect>
 operator "" _connect(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::connect>{s, n};
+    return detail::__verb<detail::symbol::connect>{s, n};
 }
 
-inline details::__verb<details::symbol::trace>
+inline detail::__verb<detail::symbol::trace>
 operator "" _trace(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::trace>{s, n};
+    return detail::__verb<detail::symbol::trace>{s, n};
 }
 
-inline details::__verb<details::symbol::copy>
+inline detail::__verb<detail::symbol::copy>
 operator "" _copy(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::copy>{s, n};
+    return detail::__verb<detail::symbol::copy>{s, n};
 }
 
-inline details::__verb<details::symbol::lock>
+inline detail::__verb<detail::symbol::lock>
 operator "" _lock(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::lock>{s, n};
+    return detail::__verb<detail::symbol::lock>{s, n};
 }
 
-inline details::__verb<details::symbol::mkcol>
+inline detail::__verb<detail::symbol::mkcol>
 operator "" _mkcol(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::mkcol>{s, n};
+    return detail::__verb<detail::symbol::mkcol>{s, n};
 }
 
-inline details::__verb<details::symbol::move>
+inline detail::__verb<detail::symbol::move>
 operator "" _move(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::move>{s, n};
+    return detail::__verb<detail::symbol::move>{s, n};
 }
 
-inline details::__verb<details::symbol::propfind>
+inline detail::__verb<detail::symbol::propfind>
 operator "" _propfind(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::propfind>{s, n};
+    return detail::__verb<detail::symbol::propfind>{s, n};
 }
 
-inline details::__verb<details::symbol::proppatch>
+inline detail::__verb<detail::symbol::proppatch>
 operator "" _proppatch(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::proppatch>{s, n};
+    return detail::__verb<detail::symbol::proppatch>{s, n};
 }
 
-inline details::__verb<details::symbol::search>
+inline detail::__verb<detail::symbol::search>
 operator "" _search(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::search>{s, n};
+    return detail::__verb<detail::symbol::search>{s, n};
 }
 
-inline details::__verb<details::symbol::unlock>
+inline detail::__verb<detail::symbol::unlock>
 operator "" _unlock(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::unlock>{s, n};
+    return detail::__verb<detail::symbol::unlock>{s, n};
 }
 
-inline details::__verb<details::symbol::bind>
+inline detail::__verb<detail::symbol::bind>
 operator "" _bind(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::bind>{s, n};
+    return detail::__verb<detail::symbol::bind>{s, n};
 }
 
-inline details::__verb<details::symbol::rebind>
+inline detail::__verb<detail::symbol::rebind>
 operator "" _rebind(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::rebind>{s, n};
+    return detail::__verb<detail::symbol::rebind>{s, n};
 }
 
-inline details::__verb<details::symbol::unbind>
+inline detail::__verb<detail::symbol::unbind>
 operator "" _unbind(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::unbind>{s, n};
+    return detail::__verb<detail::symbol::unbind>{s, n};
 }
 
-inline details::__verb<details::symbol::acl>
+inline detail::__verb<detail::symbol::acl>
 operator "" _acl(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::acl>{s, n};
+    return detail::__verb<detail::symbol::acl>{s, n};
 }
 
-inline details::__verb<details::symbol::report>
+inline detail::__verb<detail::symbol::report>
 operator "" _report(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::report>{s, n};
+    return detail::__verb<detail::symbol::report>{s, n};
 }
 
-inline details::__verb<details::symbol::mkactivity>
+inline detail::__verb<detail::symbol::mkactivity>
 operator "" _mkactivity(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::mkactivity>{s, n};
+    return detail::__verb<detail::symbol::mkactivity>{s, n};
 }
 
-inline details::__verb<details::symbol::checkout>
+inline detail::__verb<detail::symbol::checkout>
 operator "" _checkout(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::checkout>{s, n};
+    return detail::__verb<detail::symbol::checkout>{s, n};
 }
 
-inline details::__verb<details::symbol::merge>
+inline detail::__verb<detail::symbol::merge>
 operator "" _merge(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::merge>{s, n};
+    return detail::__verb<detail::symbol::merge>{s, n};
 }
 
-inline details::__verb<details::symbol::msearch>
+inline detail::__verb<detail::symbol::msearch>
 operator "" _msearch(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::msearch>{s, n};
+    return detail::__verb<detail::symbol::msearch>{s, n};
 }
 
-inline details::__verb<details::symbol::notify>
+inline detail::__verb<detail::symbol::notify>
 operator "" _notify(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::notify>{s, n};
+    return detail::__verb<detail::symbol::notify>{s, n};
 }
 
-inline details::__verb<details::symbol::subscribe>
+inline detail::__verb<detail::symbol::subscribe>
 operator "" _subscribe(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::subscribe>{s, n};
+    return detail::__verb<detail::symbol::subscribe>{s, n};
 }
 
-inline details::__verb<details::symbol::unsubscribe>
+inline detail::__verb<detail::symbol::unsubscribe>
 operator "" _unsubscribe(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::unsubscribe>{s, n};
+    return detail::__verb<detail::symbol::unsubscribe>{s, n};
 }
 
-inline details::__verb<details::symbol::patch>
+inline detail::__verb<detail::symbol::patch>
 operator "" _patch(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::patch>{s, n};
+    return detail::__verb<detail::symbol::patch>{s, n};
 }
 
-inline details::__verb<details::symbol::purge>
+inline detail::__verb<detail::symbol::purge>
 operator "" _purge(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::purge>{s, n};
+    return detail::__verb<detail::symbol::purge>{s, n};
 }
 
-inline details::__verb<details::symbol::mkcalendar>
+inline detail::__verb<detail::symbol::mkcalendar>
 operator "" _mkcalendar(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::mkcalendar>{s, n};
+    return detail::__verb<detail::symbol::mkcalendar>{s, n};
 }
 
-inline details::__verb<details::symbol::link>
+inline detail::__verb<detail::symbol::link>
 operator "" _link(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::link>{s, n};
+    return detail::__verb<detail::symbol::link>{s, n};
 }
 
-inline details::__verb<details::symbol::unlink>
+inline detail::__verb<detail::symbol::unlink>
 operator "" _unlink(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::unlink>{s, n};
+    return detail::__verb<detail::symbol::unlink>{s, n};
 }
 
-inline details::__verb<details::symbol::all>
+inline detail::__verb<detail::symbol::all>
 operator "" _all(const char* s, std::size_t n)
 {
-    return details::__verb<details::symbol::all>{s, n};
+    return detail::__verb<detail::symbol::all>{s, n};
 }
 
-inline details::__route
+inline detail::__route
 operator "" _route(const char* s, std::size_t n)
 {
-    return details::__route{s, n};
+    return detail::__route{s, n};
 }
 
 } // namespace literals
