@@ -209,4 +209,4 @@ Run the I/O service on the requested number of threads:
     t.join();
 
 ```
-Copyright (c) Evgeny Tixonow #0xdead4ead 2018-2019
+* Copyright (c) [@Evgeny Tixonow #0xdead4ead](https://github.com/0xdead4ead) 2018-2019
