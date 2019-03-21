@@ -16,7 +16,7 @@ namespace reactor {
 BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
 template<class... _OnAction>
 auto
-listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::loop(io_context& ioc,
+listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::launch(io_context& ioc,
      endpoint_type const& endpoint,
      _OnAction&&... on_action) -> decltype (
         self_type{std::declval<io_context&>(), std::declval<_OnAction>()...},

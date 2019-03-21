@@ -64,7 +64,7 @@ public:
 
     template<class... _OnAction>
     static auto
-    loop(io_context&, endpoint_type const&, _OnAction&&...) -> decltype (
+    launch(io_context&, endpoint_type const&, _OnAction&&...) -> decltype (
             self_type{std::declval<io_context&>(), std::declval<_OnAction>()...},
             std::declval<self_type&>());
 
