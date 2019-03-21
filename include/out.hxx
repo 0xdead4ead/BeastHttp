@@ -24,7 +24,7 @@ auto push(Destination& destination, Args const&... args)
 {
     boost::asio::streambuf buffer{};
     Stream stream{std::addressof(buffer)};
-    base::display::print(stream, "BeastHttp/", BEAST_HTTP_VERSION_VALUE, whitespace,
+    base::display::print(stream, "BeastHttp/", BEASTHTTP_VERSION_VALUE, whitespace,
                          '[', BOOST_BEAST_VERSION_STRING, ']', whitespace);
     base::display::print<whitespace>(stream, args...);
     return boost::asio::write(destination, buffer);
@@ -36,7 +36,7 @@ auto pushn(Destination& destination, Args const&... args)
 {
     boost::asio::streambuf buffer{};
     Stream stream{std::addressof(buffer)};
-    base::display::print(stream, "BeastHttp/", BEAST_HTTP_VERSION_VALUE, whitespace,
+    base::display::print(stream, "BeastHttp/", BEASTHTTP_VERSION_VALUE, whitespace,
                          '[', BOOST_BEAST_VERSION_STRING, ']', whitespace);
     base::display::printline<whitespace>(stream, args...);
     return boost::asio::write(destination, buffer);
@@ -50,7 +50,7 @@ auto push(Destination& destination, Args const&... args)
 {
     boost::asio::streambuf buffer{};
     Stream stream{std::addressof(buffer)};
-    base::display::print(stream, "BeastHttp/", BEAST_HTTP_VERSION_VALUE, whitespace,
+    base::display::print(stream, "BeastHttp/", BEASTHTTP_VERSION_VALUE, whitespace,
                          '[', BOOST_BEAST_VERSION_STRING, ']', whitespace,
                          '(', boost::posix_time::second_clock::local_time(), ')', whitespace);
     base::display::print<whitespace>(stream, args...);
@@ -63,7 +63,7 @@ auto pushn(Destination& destination, Args const&... args)
 {
     boost::asio::streambuf buffer{};
     Stream stream{std::addressof(buffer)};
-    base::display::print(stream, "BeastHttp/", BEAST_HTTP_VERSION_VALUE, whitespace,
+    base::display::print(stream, "BeastHttp/", BEASTHTTP_VERSION_VALUE, whitespace,
                          '[', BOOST_BEAST_VERSION_STRING, ']', whitespace,
                          '(', boost::posix_time::second_clock::local_time(), ')', whitespace);
     base::display::printline<whitespace>(stream, args...);
