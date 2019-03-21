@@ -24,11 +24,14 @@ message("CMAKE_BUILD_TYPE=" ${CMAKE_BUILD_TYPE})
 
 set(BEASTHTTP_INCLUDE_PATH ${PROJECT_SOURCE_DIR}/include)
 
+set(BEASTHTTP_COMMON_PATH ${PROJECT_SOURCE_DIR}/common)
+
 add_subdirectory("${PROJECT_SOURCE_DIR}/examples/reactor")
 add_subdirectory("${PROJECT_SOURCE_DIR}/examples/reactor_extented")
 add_subdirectory("${PROJECT_SOURCE_DIR}/examples/reactor_ssl")
 add_subdirectory("${PROJECT_SOURCE_DIR}/examples/reactor_cxx11")
 add_subdirectory("${PROJECT_SOURCE_DIR}/examples/reactor_timers")
+add_subdirectory("${PROJECT_SOURCE_DIR}/examples/reactor_flex")
 enable_testing ()
 add_subdirectory("${PROJECT_SOURCE_DIR}/tests/display")
 add_subdirectory("${PROJECT_SOURCE_DIR}/tests/basic_router")
