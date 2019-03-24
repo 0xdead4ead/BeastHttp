@@ -42,6 +42,7 @@ int main()
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/1'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/2'
 //    root@x0x0:~# curl localhost --request 'GET' --request-target '/3'
+//    root@x0x0:~# top -H -p <pid>
 
     using namespace _0xdead4ead;
 
