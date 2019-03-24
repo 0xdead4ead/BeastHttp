@@ -193,9 +193,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_timer(
 {
     context_type _self{*this};
 
-    if (ec and ec != boost::asio::error::operation_aborted
-            and on_error_) {
-        on_error_(ec, "async_wait/on_timer");
+    if (ec and ec != boost::asio::error::operation_aborted) {
+        if (on_error_)
+            on_error_(ec, "async_wait/on_timer");
+
         return;
     }
 
@@ -227,8 +228,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_read(
         return;
     }
 
-    if (ec and on_error_) {
-        on_error_(ec, "async_read/on_read");
+    if (ec) {
+        if (on_error_)
+            on_error_(ec, "async_read/on_read");
+
         return;
     }
 
@@ -242,8 +245,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_write(
 {
     boost::ignore_unused(bytes_transferred);
 
-    if (ec and on_error_) {
-        on_error_(ec, "async_write/on_write");
+    if (ec) {
+        if (on_error_)
+            on_error_(ec, "async_write/on_write");
+
         return;
     }
 
