@@ -89,30 +89,38 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::loop(
     auto ec = boost::system::error_code{};
     // Open the acceptor
     acceptor_.open(endpoint.protocol(), ec);
-    if (ec and on_error_) {
-        on_error_(ec, "open/loop");
+    if (ec) {
+        if (on_error_)
+            on_error_(ec, "open/loop");
+
         return *this;
     }
 
     // Allow address reuse
     acceptor_.set_option(boost::asio::socket_base::reuse_address(false));
-    if (ec and on_error_) {
-        on_error_(ec, "set_option/loop");
+    if (ec) {
+        if (on_error_)
+            on_error_(ec, "set_option/loop");
+
         return *this;
     }
 
     // Bind to the server address
     acceptor_.bind(endpoint, ec);
-    if (ec and on_error_) {
-        on_error_(ec, "bind/loop");
+    if (ec) {
+        if (on_error_)
+            on_error_(ec, "bind/loop");
+
         return *this;
     }
 
     // Start listening for connections
     acceptor_.listen(
         boost::asio::socket_base::max_listen_connections, ec);
-    if (ec and on_error_) {
-        on_error_(ec, "listen/loop");
+    if (ec) {
+        if (on_error_)
+            on_error_(ec, "listen/loop");
+
         return *this;
     }
 
