@@ -20,38 +20,10 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::launch(io_context& ioc,
      endpoint_type const& endpoint,
      _OnAction&&... on_action) -> decltype (
         self_type{std::declval<io_context&>(), std::declval<_OnAction>()...},
-        std::declval<self_type&>())
+        void())
 {
     return std::make_shared<self_type>
             (ioc, std::forward<_OnAction>(on_action)...)->loop(endpoint);
-}
-
-BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
-boost::system::error_code
-listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::close()
-{
-    auto ec = boost::system::error_code{};
-    acceptor_.close(ec);
-
-    if (ec and on_error_)
-        on_error_(ec, "close");
-
-    return ec;
-}
-
-BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
-typename listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>
-         ::endpoint_type const&
-listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::endpoint() const
-{
-    return endpoint_;
-}
-
-BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
-typename listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::socket_type
-listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::socket()
-{
-    return std::move(socket_);
 }
 
 BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
@@ -82,52 +54,40 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::listener(
 }
 
 BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
-typename listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::self_type&
+void
 listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::loop(
         endpoint_type const& endpoint)
 {
     auto ec = boost::system::error_code{};
-    // Open the acceptor
+
     acceptor_.open(endpoint.protocol(), ec);
     if (ec) {
         if (on_error_)
             on_error_(ec, "open/loop");
-
-        return *this;
     }
 
-    // Allow address reuse
     acceptor_.set_option(boost::asio::socket_base::reuse_address(false));
     if (ec) {
         if (on_error_)
             on_error_(ec, "set_option/loop");
-
-        return *this;
     }
 
-    // Bind to the server address
     acceptor_.bind(endpoint, ec);
     if (ec) {
         if (on_error_)
             on_error_(ec, "bind/loop");
-
-        return *this;
     }
 
-    // Start listening for connections
     acceptor_.listen(
         boost::asio::socket_base::max_listen_connections, ec);
     if (ec) {
         if (on_error_)
             on_error_(ec, "listen/loop");
-
-        return *this;
     }
 
     endpoint_ = endpoint;
 
     do_loop();
-    return *this;
 }
 
 BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE

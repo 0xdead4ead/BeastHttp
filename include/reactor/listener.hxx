@@ -65,17 +65,7 @@ public:
     template<class... _OnAction>
     static auto
     launch(io_context&, endpoint_type const&, _OnAction&&...) -> decltype (
-            self_type{std::declval<io_context&>(), std::declval<_OnAction>()...},
-            std::declval<self_type&>());
-
-    boost::system::error_code
-    close();
-
-    endpoint_type const&
-    endpoint() const;
-
-    socket_type
-    socket();
+            self_type{std::declval<io_context&>(), std::declval<_OnAction>()...}, void());
 
     template<class _OnAccept>
     explicit
@@ -93,7 +83,7 @@ public:
 
 private:
 
-    self_type&
+    void
     loop(endpoint_type const& endpoint);
 
     void
