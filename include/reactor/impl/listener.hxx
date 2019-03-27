@@ -64,18 +64,24 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::loop(
     if (ec) {
         if (on_error_)
             on_error_(ec, "open/loop");
+
+        return;
     }
 
     acceptor_.set_option(boost::asio::socket_base::reuse_address(false));
     if (ec) {
         if (on_error_)
             on_error_(ec, "set_option/loop");
+
+        return;
     }
 
     acceptor_.bind(endpoint, ec);
     if (ec) {
         if (on_error_)
             on_error_(ec, "bind/loop");
+
+        return;
     }
 
     acceptor_.listen(
@@ -83,6 +89,8 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::loop(
     if (ec) {
         if (on_error_)
             on_error_(ec, "listen/loop");
+
+        return;
     }
 
     endpoint_ = endpoint;
