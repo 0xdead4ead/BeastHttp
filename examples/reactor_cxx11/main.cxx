@@ -45,31 +45,31 @@ int main()
 
     using namespace _0xdead4ead;
 
-    using session_type = http::reactor::_default::session_type;
-    using listener_type = http::reactor::_default::listener_type;
+    using HttpSession = http::reactor::_default::session_type;
+    using HttpListener = http::reactor::_default::listener_type;
 
-    using http_context = typename session_type::context_type;
-    using http_request = typename session_type::request_type;
-    using http_socket = typename session_type::socket_type;
+    using HttpContext = typename HttpSession::context_type;
+    using HttpRequest = typename HttpSession::request_type;
+    using AsioSocket = typename HttpSession::socket_type;
 
-    http::basic_router<session_type> router;
+    http::basic_router<HttpSession> router;
 
-    router.get(R"(^/1$)", [](http_request request, http_context context) {
+    router.get(R"(^/1$)", [](HttpRequest request, HttpContext context) {
         http::out::pushn<std::ostream>(out, request);
         context.send(make_response(request, "GET 1\n"));
     });
 
-    router.get(R"(^/2$)", [](http_request request, http_context context) {
+    router.get(R"(^/2$)", [](HttpRequest request, HttpContext context) {
         http::out::pushn<std::ostream>(out, request);
         context.send(make_response(request, "GET 2\n"));
     });
 
-    router.get(R"(^/3$)", [](http_request request, http_context context) {
+    router.get(R"(^/3$)", [](HttpRequest request, HttpContext context) {
         http::out::pushn<std::ostream>(out, request);
         context.send(make_response(request, "GET 3\n"));
     });
 
-    router.all(R"(^.*$)", [](http_request request, http_context context) {
+    router.all(R"(^.*$)", [](HttpRequest request, HttpContext context) {
         http::out::pushn<std::ostream>(out, request);
         context.send(make_response(request, "ALL\n"));
     });
@@ -82,12 +82,12 @@ int main()
             ioc.stop();
     };
 
-    const auto& onAccept = [&](http_socket socket) {
+    const auto& onAccept = [&](AsioSocket socket) {
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, socket.remote_endpoint().address().to_string(), "connected!");
 
-        session_type::recv(std::move(socket), router.resource_map(),
-                           router.method_map(), boost::regex::ECMAScript, onError);
+        HttpSession::recv(std::move(socket), router.resource_map(),
+                          router.method_map(), boost::regex::ECMAScript, onError);
     };
 
     auto const address = boost::asio::ip::make_address("127.0.0.1");
@@ -96,7 +96,7 @@ int main()
     // Start accepting
     http::out::prefix::version::time::pushn<std::ostream>(
                 out, "Start accepting on", address.to_string());
-    listener_type::launch(ioc, {address, port}, onAccept, onError);
+    HttpListener::launch(ioc, {address, port}, onAccept, onError);
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
     sig_set.async_wait([](boost::system::error_code const&, int sig) {

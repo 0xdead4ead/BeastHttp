@@ -46,20 +46,20 @@ int main()
 
     using namespace _0xdead4ead;
 
-    using session_type = http::reactor::_default::session_type;
-    using listener_type = http::reactor::_default::listener_type;
-    using session_array = std::vector<std::weak_ptr<session_type::flesh>>;
+    using HttpSession = http::reactor::_default::session_type;
+    using HttpListener = http::reactor::_default::listener_type;
+    using HttpSessionFleshVector = std::vector<std::weak_ptr<HttpSession::flesh>>;
 
     const uint32_t max_clients = 100;
     const uint32_t max_threads = std::thread::hardware_concurrency() * 4;
 
-    session_array clients;
+    HttpSessionFleshVector clients;
     std::vector<std::thread> threads;
 
     clients.reserve(max_clients);
     threads.reserve(max_threads);
 
-    http::basic_router<session_type> router;
+    http::basic_router<HttpSession> router;
 
     router.get(R"(^/1$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
@@ -89,9 +89,9 @@ int main()
             ioc.stop();
     };
 
-    const auto& onAccept = [&](auto socket) {
+    const auto& onAccept = [&](auto asioSocket) {
         http::out::prefix::version::time::pushn<std::ostream>(
-                    out, socket.remote_endpoint().address().to_string(), "connected!");
+                    out, asioSocket.remote_endpoint().address().to_string(), "connected!");
 
         bool eof = false;
 
@@ -99,11 +99,11 @@ int main()
             http::out::prefix::version::time::pushn<std::ostream>(
                         out, "Achieved maximum connections!", "Limit", max_clients);
 
-            session_type::eof(std::move(socket), {}, {}, {}, onError);
+            HttpSession::eof(std::move(asioSocket), {}, {}, {}, onError);
             eof = true;
         }
 
-        std::vector<session_array::const_iterator> expireds_;
+        std::vector<HttpSessionFleshVector::const_iterator> expireds_;
 
         for (auto client = clients.cbegin(); client != clients.cend();) {
             if (client->expired())
@@ -117,9 +117,9 @@ int main()
         }
 
         if (!eof) {
-            std::weak_ptr<session_type::flesh> cl
-                    = session_type::recv(std::move(socket), std::chrono::seconds(10), router.resource_map(),
-                               router.method_map(), boost::regex::ECMAScript, onError).launch_timer().shared_from_this();
+            std::weak_ptr<HttpSession::flesh> cl
+                    = HttpSession::recv(std::move(asioSocket), std::chrono::seconds(10), router.resource_map(),
+                               router.method_map(), boost::regex::ECMAScript, onError).shared_from_this();
 
             clients.emplace_back(cl);
         }
@@ -135,7 +135,7 @@ int main()
     // Start accepting
     http::out::prefix::version::time::pushn<std::ostream>(
                 out, "Start accepting on", address.to_string());
-    listener_type::launch(ioc, {address, port}, onAccept, onError);
+    HttpListener::launch(ioc, {address, port}, onAccept, onError);
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
     sig_set.async_wait([](boost::system::error_code const&, int sig) {

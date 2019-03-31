@@ -41,15 +41,15 @@ int main()
 
     using namespace _0xdead4ead;
 
-    using session_type = http::reactor::_default::session_type;
-    using listener_type = http::reactor::_default::listener_type;
+    using SessionType = http::reactor::_default::session_type;
+    using ListenerType = http::reactor::_default::listener_type;
 
-    http::basic_router<session_type> router;
+    http::basic_router<SessionType> router;
 
     router.get(R"(^.*$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
         // Received customer feedback! Sending an echo target answer. Launch timer again!
-        context.send(make_response(request, request.target().to_string()), std::chrono::seconds(5)).launch_timer();
+        context.send(make_response(request, request.target().to_string()), std::chrono::seconds(3));
     });
 
     const auto& onError = [](auto code, auto from) {
@@ -71,9 +71,9 @@ int main()
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, socket.remote_endpoint().address().to_string(), "connected!");
 
-        // The client must send data no later than one seconds.
-        session_type::recv(std::move(socket), std::chrono::seconds(1), router.resource_map(),
-                           router.method_map(), boost::regex::ECMAScript, onError, onTimer).launch_timer();
+        // The client must send data no later than three seconds.
+        SessionType::recv(std::move(socket), std::chrono::seconds(3), router.resource_map(),
+                           router.method_map(), boost::regex::ECMAScript, onError, onTimer);
     };
 
     auto const address = boost::asio::ip::make_address("127.0.0.1");
@@ -82,7 +82,7 @@ int main()
     // Start accepting
     http::out::prefix::version::time::pushn<std::ostream>(
                 out, "Start accepting on", address.to_string());
-    listener_type::launch(ioc, {address, port}, onAccept, onError);
+    ListenerType::launch(ioc, {address, port}, onAccept, onError);
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
     sig_set.async_wait([](boost::system::error_code const&, int sig) {

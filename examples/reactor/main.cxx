@@ -43,10 +43,10 @@ int main()
 
     using namespace _0xdead4ead;
 
-    using session_type = http::reactor::_default::session_type;
-    using listener_type = http::reactor::_default::listener_type;
+    using HttpSession = http::reactor::_default::session_type;
+    using HttpListener = http::reactor::_default::listener_type;
 
-    http::basic_router<session_type> router;
+    http::basic_router<HttpSession> router;
 
     router.get(R"(^/1$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
@@ -76,12 +76,12 @@ int main()
             ioc.stop();
     };
 
-    const auto& onAccept = [&](auto socket) {
+    const auto& onAccept = [&](auto asioSocket) {
         http::out::prefix::version::time::pushn<std::ostream>(
-                    out, socket.remote_endpoint().address().to_string(), "connected!");
+                    out, asioSocket.remote_endpoint().address().to_string(), "connected!");
 
-        session_type::recv(std::move(socket), router.resource_map(),
-                           router.method_map(), boost::regex::ECMAScript, onError);
+        HttpSession::recv(std::move(asioSocket), router.resource_map(),
+                          router.method_map(), boost::regex::ECMAScript, onError);
     };
 
     auto const address = boost::asio::ip::make_address("127.0.0.1");
@@ -90,7 +90,7 @@ int main()
     // Start accepting
     http::out::prefix::version::time::pushn<std::ostream>(
                 out, "Start accepting on", address.to_string());
-    listener_type::launch(ioc, {address, port}, onAccept, onError);
+    HttpListener::launch(ioc, {address, port}, onAccept, onError);
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
     sig_set.async_wait([](boost::system::error_code const&, int sig) {
