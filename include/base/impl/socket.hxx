@@ -29,14 +29,6 @@ socket<Protocol, Socket>::close()
 
 template<class Protocol,
          template<typename> class Socket>
-typename socket<Protocol, Socket>::Sock
-socket<Protocol, Socket>::release()
-{
-    return std::move(instance_);
-}
-
-template<class Protocol,
-         template<typename> class Socket>
 socket<Protocol, Socket>::socket(Sock&& sock)
     : instance_{std::move(sock)}
 {

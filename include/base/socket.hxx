@@ -35,9 +35,6 @@ protected:
     boost::system::error_code
     close();
 
-    Sock
-    release();
-
     explicit
     socket(Sock&& sock);
 
