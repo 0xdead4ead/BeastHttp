@@ -90,14 +90,14 @@ class pack
     template<unsigned Index>
     using get_ = http::base::traits::Get<TypeList, Index>;
 
-    using Tuple = std::tuple<Types...>;
-
     http::base::traits::ForEach<TypeList, Check> dummy;
 
     template<class, class>
     friend class base;
 
 public:
+
+    using Tuple = std::tuple<Types...>;
 
     template<class Router>
     static impl<Router, self_type>
