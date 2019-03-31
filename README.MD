@@ -35,8 +35,8 @@ Alias's represent instances of default classes for reactive (select/epool) desig
 
     using namespace _0xdead4ead;
 
-    using session_type = http::reactor::_default::session_type;
-    using listener_type = http::reactor::_default::listener_type;
+    using HttpSession = http::reactor::_default::session_type;
+    using HttpListener = http::reactor::_default::listener_type;
 
 ```
 
@@ -44,7 +44,7 @@ Creating a new callback functions storage and route path for GET request with "/
 
 ```cpp
 
-    http::basic_router<session_type> router;
+    http::basic_router<HttpSession> router;
 
     router.get("^/$", [](auto request, auto context) {
         context.send(make_response(request, "MAIN PAGE\n"));
@@ -120,7 +120,7 @@ Create modular, mounted route handlers:
 
 ```cpp
 
-    http::basic_router<session_type> animals;
+    http::basic_router<HttpSession> animals;
 
     animals.get("^/cat$", [](auto request, auto context){ // '/animals/cat'
         context.send(make_response(request, "me-ow\n"));
@@ -146,7 +146,7 @@ Create handlers routes, forming a chain, for the route path:
 
 ```cpp
 
-    http::chain_router<session_type> books;
+    http::chain_router<HttpSession> books;
 
     books.route("^/book$")
             .get([](auto request, auto context) {
@@ -188,7 +188,7 @@ Start listening on 127.0.0.1:80
     auto const address = boost::asio::ip::make_address("127.0.0.1");
     auto const port = static_cast<unsigned short>(80);
 
-    listener_type::launch(ioc, {address, port}, onAccept, onError);
+    HttpListener::launch(ioc, {address, port}, onAccept, onError);
     
     // Note: 
     // After starting the listener instance, 
