@@ -79,6 +79,8 @@ public:
 
     using socket_type = typename connection_type::socket_type;
 
+    using ssl_stream_type = typename connection_type::ssl_stream_type;
+
     using timer_type = base::timer<Clock, Timer>;
 
     using duration_type = typename timer_type::duration_type;
@@ -123,8 +125,11 @@ public:
 
     public:
 
-        connection_type&
-        getConnection();
+        socket_type&
+        asio_socket();
+
+        ssl_stream_type&
+        asio_ssl_stream();
 
         flesh&
         handshake();
@@ -170,9 +175,6 @@ public:
 
         flesh&
         force_cls();
-
-        flesh&
-        launch_timer();
 
         template<class _OnHandshake>
         explicit
@@ -264,10 +266,19 @@ public:
         do_force_cls();
 
         void
+        do_launch_timer();
+
+        void
         do_timeout();
 
         void
-        process_request();
+        do_process_request();
+
+        socket_type&
+        get_asio_socket();
+
+        ssl_stream_type&
+        get_asio_ssl_stream();
 
         bool eof_ = false;
 
@@ -295,10 +306,16 @@ public:
             : flesh_{flesh}
         {}
 
-        connection_type&
-        getConnection() const &
+        socket_type&
+        asio_socket()
         {
-            return flesh_.getConnection();
+            return flesh_.asio_socket();
+        }
+
+        ssl_stream_type&
+        asio_ssl_stream()
+        {
+            return flesh_.asio_ssl_stream();
         }
 
         context&
@@ -366,14 +383,6 @@ public:
         force_cls() const &
         {
             flesh_.force_cls();
-            return const_cast<typename std::add_lvalue_reference<
-                    context>::type>(*this);
-        }
-
-        context&
-        launch_timer() const &
-        {
-            flesh_.launch_timer();
             return const_cast<typename std::add_lvalue_reference<
                     context>::type>(*this);
         }
