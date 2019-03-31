@@ -43,9 +43,6 @@ public:
     socket_type&
     stream();
 
-    socket_type
-    release_socket();
-
 }; // class connection
 
 } // namespace shared

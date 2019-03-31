@@ -65,10 +65,10 @@ connection<Protocol, Socket>::stream()
 
 template<class Protocol,
          template<typename> class Socket>
-typename connection<Protocol, Socket>::socket_type
-connection<Protocol, Socket>::release_socket()
+typename connection<Protocol, Socket>::socket_type&
+connection<Protocol, Socket>::socket()
 {
-    return base_socket::release_socket();
+    return base_socket::instance_;
 }
 
 } // namespace ssl

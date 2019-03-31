@@ -53,8 +53,8 @@ public:
     ssl_stream_type&
     stream();
 
-    socket_type
-    release_socket();
+    socket_type&
+    socket();
 
 private:
 
