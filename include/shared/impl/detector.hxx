@@ -14,9 +14,10 @@ namespace shared {
 
 BEASTHTTP_SHARED_DETECTOR_TMPL_DECLARE
 template<class... _OnAction>
-void
+auto
 detector<BEASTHTTP_SHARED_DETECTOR_TMPL_ATTRIBUTES>::async(
-        socket_type socket, _OnAction&&... on_action)
+        socket_type socket, _OnAction&&... on_action)  -> decltype (
+        self_type(std::declval<socket_type>(), std::declval<_OnAction>()...), void())
 {
     std::make_shared<self_type>(std::move(socket), std::forward<_OnAction>(on_action)...)->do_async();
 }
@@ -30,9 +31,25 @@ detector<BEASTHTTP_SHARED_DETECTOR_TMPL_ATTRIBUTES>::sync(
 }
 
 BEASTHTTP_SHARED_DETECTOR_TMPL_DECLARE
+template<class _OnDetect>
+detector<BEASTHTTP_SHARED_DETECTOR_TMPL_ATTRIBUTES>::detector(
+        socket_type socket, _OnDetect&& on_detect,
+        typename std::enable_if<base::traits::TryInvoke<
+        _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value, int>::type)
+    : base::detector(socket.get_executor()),
+      socket_(std::move(socket)),
+      on_detect_{std::forward<_OnDetect>(on_detect)}
+{
+}
+
+BEASTHTTP_SHARED_DETECTOR_TMPL_DECLARE
 template<class _OnDetect, class _OnError>
 detector<BEASTHTTP_SHARED_DETECTOR_TMPL_ATTRIBUTES>::detector(
-        socket_type socket, _OnDetect&& on_detect, _OnError&& on_error)
+        socket_type socket, _OnDetect&& on_detect, _OnError&& on_error,
+        typename std::enable_if<base::traits::TryInvoke<
+        _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value and
+        base::traits::TryInvoke<_OnError, void(
+            boost::system::error_code, boost::string_view)>::value, int>::type)
     : base::detector(socket.get_executor()),
       socket_(std::move(socket)),
       on_detect_{std::forward<_OnDetect>(on_detect)},

@@ -1,6 +1,7 @@
 #if not defined BEASTHTTP_SHARED_DETECTOR_HXX
 #define BEASTHTTP_SHARED_DETECTOR_HXX
 
+#include <base/traits.hxx>
 #include <base/detector.hxx>
 
 #include <boost/asio/ip/tcp.hpp>
@@ -37,15 +38,26 @@ public:
     using on_error_type = OnError<void (boost::system::error_code, boost::string_view)>;
 
     template<class... _OnAction>
-    static void
-    async(socket_type, _OnAction&&...);
+    static auto
+    async(socket_type, _OnAction&&...) -> decltype (
+            self_type(std::declval<socket_type>(), std::declval<_OnAction>()...), void());
 
     static boost::system::error_code
     sync(socket_type&, buffer_type&, boost::tribool&);
 
+    template<class _OnDetect>
+    explicit
+    detector(socket_type, _OnDetect&&,
+             typename std::enable_if<base::traits::TryInvoke<
+             _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value, int>::type = 0);
+
     template<class _OnDetect, class _OnError>
     explicit
-    detector(socket_type, _OnDetect&&, _OnError&&);
+    detector(socket_type, _OnDetect&&, _OnError&&,
+             typename std::enable_if<base::traits::TryInvoke<
+             _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value and
+             base::traits::TryInvoke<_OnError, void(
+                 boost::system::error_code, boost::string_view)>::value, int>::type = 0);
 
 private:
 
