@@ -13,6 +13,15 @@
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/http/string_body.hpp>
 
+#define BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE() \
+    flesh_type(std::declval<boost::asio::ssl::context&>(), \
+               std::declval<socket_type>(), \
+               std::declval<std::shared_ptr<resource_map_type>>(), \
+               std::declval<std::shared_ptr<method_map_type>>(), \
+               std::declval<regex_flag_type>(), \
+               std::declval<buffer_type>(), \
+               std::declval<_OnAction>()...)
+
 namespace _0xdead4ead {
 namespace http {
 namespace reactor {
@@ -70,6 +79,9 @@ public:
     using cbexecutor_type = base::cb::executor;
 
     using request_type = boost::beast::http::request<body_type>;
+
+    template<class _OtherBody>
+    using response_type = boost::beast::http::response<_OtherBody>;
 
     using queue_type = base::queue<flesh>;
 
@@ -135,40 +147,52 @@ public:
         handshake();
 
         flesh&
-        handshake(duration_type const&);
+        handshake(duration_type const);
 
         flesh&
-        handshake(time_point_type const&);
+        handshake(time_point_type const);
 
         flesh&
         recv();
 
         flesh&
-        recv(duration_type const&);
+        recv(duration_type const);
 
         flesh&
-        recv(time_point_type const&);
+        recv(time_point_type const);
 
-        template<class Response>
+        template<class _OtherBody>
         flesh&
-        send(Response&&);
+        send(response_type<_OtherBody>&);
 
-        template<class Response>
+        template<class _OtherBody>
         flesh&
-        send(Response&&, duration_type const&);
+        send(response_type<_OtherBody>&&);
 
-        template<class Response>
+        template<class _OtherBody>
         flesh&
-        send(Response&&, time_point_type const&);
+        send(response_type<_OtherBody>&, duration_type const);
+
+        template<class _OtherBody>
+        flesh&
+        send(response_type<_OtherBody>&&, duration_type const);
+
+        template<class _OtherBody>
+        flesh&
+        send(response_type<_OtherBody>&, time_point_type const);
+
+        template<class _OtherBody>
+        flesh&
+        send(response_type<_OtherBody>&&, time_point_type const);
 
         flesh&
         eof();
 
         flesh&
-        eof(duration_type const&);
+        eof(duration_type const);
 
         flesh&
-        eof(time_point_type const&);
+        eof(time_point_type const);
 
         flesh&
         force_eof();
@@ -249,9 +273,9 @@ public:
         void
         do_shutdown();
 
-        template<class Response>
+        template<class _OtherBody>
         void
-        do_write(Response&);
+        do_write(response_type<_OtherBody>&);
 
         void
         do_read();
@@ -326,30 +350,76 @@ public:
                     context>::type>(*this);
         }
 
-        template<class TimeOrDuration>
         context&
-        recv(TimeOrDuration const& time_or_duration) const &
+        recv(duration_type const duration) const &
         {
-            flesh_.recv(time_or_duration);
+            flesh_.recv(duration);
             return const_cast<typename std::add_lvalue_reference<
                     context>::type>(*this);
         }
 
-        template<class Response>
         context&
-        send(Response&& response) const &
+        recv(time_point_type const time_point) const &
         {
-            flesh_.send(std::forward<Response>(response));
+            flesh_.recv(time_point);
             return const_cast<typename std::add_lvalue_reference<
                     context>::type>(*this);
         }
 
-        template<class Response, class TimeOrDuration>
+        template<class _OtherBody>
         context&
-        send(Response&& response,
-             TimeOrDuration const& time_or_duration) const &
+        send(response_type<_OtherBody>& response) const &
         {
-            flesh_.send(std::forward<Response>(response), time_or_duration);
+            flesh_.send(response);
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        template<class _OtherBody>
+        context&
+        send(response_type<_OtherBody>&& response) const &
+        {
+            flesh_.send(std::move(response));
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        template<class _OtherBody>
+        context&
+        send(response_type<_OtherBody>& response,
+             duration_type const duration) const &
+        {
+            flesh_.send(response, duration);
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        template<class _OtherBody>
+        context&
+        send(response_type<_OtherBody>&& response,
+             duration_type const duration) const &
+        {
+            flesh_.send(std::move(response), duration);
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        template<class _OtherBody>
+        context&
+        send(response_type<_OtherBody>& response,
+             time_point_type const time_point) const &
+        {
+            flesh_.send(response, time_point);
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        template<class _OtherBody>
+        context&
+        send(response_type<_OtherBody>&& response,
+             time_point_type const time_point) const &
+        {
+            flesh_.send(std::move(response), time_point);
             return const_cast<typename std::add_lvalue_reference<
                     context>::type>(*this);
         }
@@ -362,11 +432,18 @@ public:
                     context>::type>(*this);
         }
 
-        template<class TimeOrDuration>
         context&
-        eof(TimeOrDuration const& time_or_duration) const &
+        eof(duration_type const duration) const &
         {
-            flesh_.eof(time_or_duration);
+            flesh_.eof(duration);
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        context&
+        eof(time_point_type const time_point) const &
+        {
+            flesh_.eof(time_point);
             return const_cast<typename std::add_lvalue_reference<
                     context>::type>(*this);
         }
@@ -398,13 +475,7 @@ public:
               regex_flag_type,
               buffer_type&&,
               _OnAction&&...) -> decltype (
-            flesh_type(std::declval<boost::asio::ssl::context&>(),
-                       std::declval<socket_type>(),
-                       std::declval<std::shared_ptr<resource_map_type>>(),
-                       std::declval<std::shared_ptr<method_map_type>>(),
-                       std::declval<regex_flag_type>(),
-                       std::declval<buffer_type>(),
-                       std::declval<_OnAction>()...),
+            BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(),
             std::declval<flesh_type&>());
 
     template<class... _OnAction>
@@ -415,87 +486,32 @@ public:
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
               _OnAction&&...) -> decltype (
-            flesh_type(std::declval<boost::asio::ssl::context&>(),
-                       std::declval<socket_type>(),
-                       std::declval<std::shared_ptr<resource_map_type>>(),
-                       std::declval<std::shared_ptr<method_map_type>>(),
-                       std::declval<regex_flag_type>(),
-                       std::declval<buffer_type>(),
-                       std::declval<_OnAction>()...),
+            BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(),
             std::declval<flesh_type&>());
 
-    template<class... _OnAction>
+    template<class TimePointOrDuration, class... _OnAction>
     static auto
     handshake(boost::asio::ssl::context&,
               socket_type&&,
-              duration_type const&,
+              TimePointOrDuration const,
               std::shared_ptr<resource_map_type> const&,
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
               buffer_type&&,
               _OnAction&&...) -> decltype (
-            flesh_type(std::declval<boost::asio::ssl::context&>(),
-                       std::declval<socket_type>(),
-                       std::declval<std::shared_ptr<resource_map_type>>(),
-                       std::declval<std::shared_ptr<method_map_type>>(),
-                       std::declval<regex_flag_type>(),
-                       std::declval<buffer_type>(),
-                       std::declval<_OnAction>()...),
+            BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE().handshake(std::declval<TimePointOrDuration>()),
             std::declval<flesh_type&>());
 
-    template<class... _OnAction>
+    template<class TimePointOrDuration, class... _OnAction>
     static auto
     handshake(boost::asio::ssl::context&,
               socket_type&&,
-              duration_type const&,
+              TimePointOrDuration const,
               std::shared_ptr<resource_map_type> const&,
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
               _OnAction&&...) -> decltype (
-            flesh_type(std::declval<boost::asio::ssl::context&>(),
-                       std::declval<socket_type>(),
-                       std::declval<std::shared_ptr<resource_map_type>>(),
-                       std::declval<std::shared_ptr<method_map_type>>(),
-                       std::declval<regex_flag_type>(),
-                       std::declval<buffer_type>(),
-                       std::declval<_OnAction>()...),
-            std::declval<flesh_type&>());
-
-    template<class... _OnAction>
-    static auto
-    handshake(boost::asio::ssl::context&,
-              socket_type&&,
-              time_point_type const&,
-              std::shared_ptr<resource_map_type> const&,
-              std::shared_ptr<method_map_type> const&,
-              regex_flag_type,
-              buffer_type&&,
-              _OnAction&&...) -> decltype (
-            flesh_type(std::declval<boost::asio::ssl::context&>(),
-                       std::declval<socket_type>(),
-                       std::declval<std::shared_ptr<resource_map_type>>(),
-                       std::declval<std::shared_ptr<method_map_type>>(),
-                       std::declval<regex_flag_type>(),
-                       std::declval<buffer_type>(),
-                       std::declval<_OnAction>()...),
-            std::declval<flesh_type&>());
-
-    template<class... _OnAction>
-    static auto
-    handshake(boost::asio::ssl::context&,
-              socket_type&&,
-              time_point_type const&,
-              std::shared_ptr<resource_map_type> const&,
-              std::shared_ptr<method_map_type> const&,
-              regex_flag_type,
-              _OnAction&&...) -> decltype (
-            flesh_type(std::declval<boost::asio::ssl::context&>(),
-                       std::declval<socket_type>(),
-                       std::declval<std::shared_ptr<resource_map_type>>(),
-                       std::declval<std::shared_ptr<method_map_type>>(),
-                       std::declval<regex_flag_type>(),
-                       std::declval<buffer_type>(),
-                       std::declval<_OnAction>()...),
+            BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE().handshake(std::declval<TimePointOrDuration>()),
             std::declval<flesh_type&>());
 
     template<class... _OnAction>
@@ -506,13 +522,7 @@ public:
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
               _OnAction&&...) -> decltype (
-            flesh_type(std::declval<boost::asio::ssl::context&>(),
-                       std::declval<socket_type>(),
-                       std::declval<std::shared_ptr<resource_map_type>>(),
-                       std::declval<std::shared_ptr<method_map_type>>(),
-                       std::declval<regex_flag_type>(),
-                       std::declval<buffer_type>(),
-                       std::declval<_OnAction>()...),
+            BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(),
             std::declval<flesh_type&>());
 
     template<class... _OnAction>
@@ -523,13 +533,7 @@ public:
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
               _OnAction&&...) -> decltype (
-            flesh_type(std::declval<boost::asio::ssl::context&>(),
-                       std::declval<socket_type>(),
-                       std::declval<std::shared_ptr<resource_map_type>>(),
-                       std::declval<std::shared_ptr<method_map_type>>(),
-                       std::declval<regex_flag_type>(),
-                       std::declval<buffer_type>(),
-                       std::declval<_OnAction>()...),
+            BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(),
             std::declval<flesh_type&>());
 
 }; // class session

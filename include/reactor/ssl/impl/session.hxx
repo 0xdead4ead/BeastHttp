@@ -52,7 +52,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::handshake()
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::handshake(
-        duration_type const& duration)
+        duration_type const duration)
 {
     timer_.stream().expires_after(duration);
 
@@ -64,7 +64,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::handshake(
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::handshake(
-        time_point_type const& time_point)
+        time_point_type const time_point)
 {
     timer_.stream().expires_at(time_point);
 
@@ -87,7 +87,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::recv()
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::recv(
-        duration_type const& duration)
+        duration_type const duration)
 {
     timer_.stream().expires_after(duration);
 
@@ -99,7 +99,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::recv(
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::recv(
-        time_point_type const& time_point)
+        time_point_type const time_point)
 {
     timer_.stream().expires_at(time_point);
 
@@ -109,40 +109,77 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::recv(
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
-template<class Response>
+template<class _OtherBody>
 typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        Response&& response)
+        response_type<_OtherBody>& response)
 {
-    queue_(std::forward<Response>(response));
+    queue_(response);
 
     return *this;
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
-template<class Response>
+template<class _OtherBody>
 typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        Response&& response, duration_type const& duration)
+        response_type<_OtherBody>&& response)
+{
+    queue_(std::move(response));
+
+    return *this;
+}
+
+BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
+template<class _OtherBody>
+typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::send(
+        response_type<_OtherBody>& response, duration_type const duration)
 {
     timer_.stream().expires_after(duration);
 
     do_launch_timer();
 
-    return send(std::forward<Response>(response));
+    return send(response);
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
-template<class Response>
+template<class _OtherBody>
 typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        Response&& response, time_point_type const& time_point)
+        response_type<_OtherBody>&& response, duration_type const duration)
+{
+    timer_.stream().expires_after(duration);
+
+    do_launch_timer();
+
+    return send(std::move(response));
+}
+
+BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
+template<class _OtherBody>
+typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::send(
+        response_type<_OtherBody>& response, time_point_type const time_point)
 {
     timer_.stream().expires_at(time_point);
 
     do_launch_timer();
 
-    return send(std::forward<Response>(response));
+    return send(response);
+}
+
+BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
+template<class _OtherBody>
+typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::send(
+        response_type<_OtherBody>&& response, time_point_type const time_point)
+{
+    timer_.stream().expires_at(time_point);
+
+    do_launch_timer();
+
+    return send(std::move(response));
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -157,7 +194,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::eof()
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::eof(
-        duration_type const& duration)
+        duration_type const duration)
 {
     timer_.stream().expires_after(duration);
 
@@ -167,7 +204,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::eof(
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::eof(
-        time_point_type const& time_point)
+        time_point_type const time_point)
 {
     timer_.stream().expires_at(time_point);
 
@@ -191,19 +228,6 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::force_cls()
 
     return *this;
 }
-
-//BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
-//typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
-//session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::launch_timer()
-//{
-//    timer_.async_wait(
-//                std::bind(
-//                    &flesh::on_timer,
-//                    this->shared_from_this(),
-//                    std::placeholders::_1));
-
-//    return *this;
-//}
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 template<class _OnHandshake>
@@ -415,10 +439,10 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_shutdown()
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
-template<class Response>
+template<class _OtherBody>
 void
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_write(
-        Response& response)
+        response_type<_OtherBody>& response)
 {
     connection_.async_write(
                 response,
@@ -556,13 +580,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
         std::shared_ptr<method_map_type> const& method_map,
         regex_flag_type flags,
         _OnAction&&... on_action) -> decltype (
-        flesh_type(std::declval<boost::asio::ssl::context&>(),
-                   std::declval<socket_type>(),
-                   std::declval<std::shared_ptr<resource_map_type>>(),
-                   std::declval<std::shared_ptr<method_map_type>>(),
-                   std::declval<regex_flag_type>(),
-                   std::declval<buffer_type>(),
-                   std::declval<_OnAction>()...),
+        BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(),
         std::declval<flesh_type&>())
 {
     buffer_type buffer;
@@ -571,107 +589,42 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
-template<class... _OnAction>
+template<class TimePointOrDuration, class... _OnAction>
 auto
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
         boost::asio::ssl::context& ctx,
         socket_type&& socket,
-        duration_type const& duration,
+        TimePointOrDuration const timeOrDuration,
         std::shared_ptr<resource_map_type> const& resource_map,
         std::shared_ptr<method_map_type> const& method_map,
         regex_flag_type flags,
         buffer_type&& buffer,
         _OnAction&&... on_action) -> decltype (
-        flesh_type(std::declval<boost::asio::ssl::context&>(),
-                   std::declval<socket_type>(),
-                   std::declval<std::shared_ptr<resource_map_type>>(),
-                   std::declval<std::shared_ptr<method_map_type>>(),
-                   std::declval<regex_flag_type>(),
-                   std::declval<buffer_type>(),
-                   std::declval<_OnAction>()...),
+        BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE().handshake(std::declval<TimePointOrDuration>()),
         std::declval<flesh_type&>())
 {
     return std::make_shared<flesh_type>(
                 ctx, std::move(socket), resource_map, method_map, flags,
                 std::move(buffer), std::forward<_OnAction>(on_action)...)
-            ->handshake(duration);
+            ->handshake(timeOrDuration);
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
-template<class... _OnAction>
+template<class TimePointOrDuration, class... _OnAction>
 auto
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
         boost::asio::ssl::context& ctx,
         socket_type&& socket,
-        duration_type const& duration,
+        TimePointOrDuration const timeOrDuration,
         std::shared_ptr<resource_map_type> const& resource_map,
         std::shared_ptr<method_map_type> const& method_map,
         regex_flag_type flags,
         _OnAction&&... on_action) -> decltype (
-        flesh_type(std::declval<boost::asio::ssl::context&>(),
-                   std::declval<socket_type>(),
-                   std::declval<std::shared_ptr<resource_map_type>>(),
-                   std::declval<std::shared_ptr<method_map_type>>(),
-                   std::declval<regex_flag_type>(),
-                   std::declval<buffer_type>(),
-                   std::declval<_OnAction>()...),
+        BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE().handshake(std::declval<TimePointOrDuration>()),
         std::declval<flesh_type&>())
 {
     buffer_type buffer;
-    return handshake(ctx, std::move(socket), duration, resource_map, method_map,
-                     flags, std::move(buffer),
-                     std::forward<_OnAction>(on_action)...);
-}
-
-BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
-template<class... _OnAction>
-auto
-session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
-        boost::asio::ssl::context& ctx,
-        socket_type&& socket,
-        time_point_type const& time_point,
-        std::shared_ptr<resource_map_type> const& resource_map,
-        std::shared_ptr<method_map_type> const& method_map,
-        regex_flag_type flags,
-        buffer_type&& buffer,
-        _OnAction&&... on_action) -> decltype (
-        flesh_type(std::declval<boost::asio::ssl::context&>(),
-                   std::declval<socket_type>(),
-                   std::declval<std::shared_ptr<resource_map_type>>(),
-                   std::declval<std::shared_ptr<method_map_type>>(),
-                   std::declval<regex_flag_type>(),
-                   std::declval<buffer_type>(),
-                   std::declval<_OnAction>()...),
-        std::declval<flesh_type&>())
-{
-    return std::make_shared<flesh_type>(
-                ctx, std::move(socket), resource_map, method_map, flags,
-                std::move(buffer), std::forward<_OnAction>(on_action)...)
-            ->handshake(time_point);
-}
-
-BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
-template<class... _OnAction>
-auto
-session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
-        boost::asio::ssl::context& ctx,
-        socket_type&& socket,
-        time_point_type const& time_point,
-        std::shared_ptr<resource_map_type> const& resource_map,
-        std::shared_ptr<method_map_type> const& method_map,
-        regex_flag_type flags,
-        _OnAction&&... on_action) -> decltype (
-        flesh_type(std::declval<boost::asio::ssl::context&>(),
-                   std::declval<socket_type>(),
-                   std::declval<std::shared_ptr<resource_map_type>>(),
-                   std::declval<std::shared_ptr<method_map_type>>(),
-                   std::declval<regex_flag_type>(),
-                   std::declval<buffer_type>(),
-                   std::declval<_OnAction>()...),
-        std::declval<flesh_type&>())
-{
-    buffer_type buffer;
-    return handshake(ctx, std::move(socket), time_point, resource_map,
+    return handshake(ctx, std::move(socket), timeOrDuration, resource_map,
                      method_map, flags, std::move(buffer),
                      std::forward<_OnAction>(on_action)...);
 }
@@ -686,13 +639,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::force_eof(
         std::shared_ptr<method_map_type> const& method_map,
         regex_flag_type flags,
         _OnAction&&... on_action) -> decltype (
-        flesh_type(std::declval<boost::asio::ssl::context&>(),
-                   std::declval<socket_type>(),
-                   std::declval<std::shared_ptr<resource_map_type>>(),
-                   std::declval<std::shared_ptr<method_map_type>>(),
-                   std::declval<regex_flag_type>(),
-                   std::declval<buffer_type>(),
-                   std::declval<_OnAction>()...),
+        BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(),
         std::declval<flesh_type&>())
 {
     buffer_type buffer;
@@ -712,13 +659,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::force_cls(
         std::shared_ptr<method_map_type> const& method_map,
         regex_flag_type flags,
         _OnAction&&... on_action) -> decltype (
-        flesh_type(std::declval<boost::asio::ssl::context&>(),
-                   std::declval<socket_type>(),
-                   std::declval<std::shared_ptr<resource_map_type>>(),
-                   std::declval<std::shared_ptr<method_map_type>>(),
-                   std::declval<regex_flag_type>(),
-                   std::declval<buffer_type>(),
-                   std::declval<_OnAction>()...),
+        BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(),
         std::declval<flesh_type&>())
 {
     buffer_type buffer;
