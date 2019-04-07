@@ -1,18 +1,13 @@
 #if not defined BEASTHTTP_BASE_CONNECTION_HXX
 #define BEASTHTTP_BASE_CONNECTION_HXX
 
-#include <boost/asio/strand.hpp>
-#include <boost/asio/io_context.hpp>
 #include <boost/beast/core/error.hpp>
 
 namespace _0xdead4ead {
 namespace http {
 namespace base {
 
-/**
-  @brief The base connection class
-*/
-template<class Derived>
+template<class Derived, class CompletionExecutor>
 class connection
 {
     using self_type = connection;
@@ -25,14 +20,10 @@ class connection
 
 protected:
 
-    using io_context = boost::asio::io_context;
-
-    using strand_type = boost::asio::strand<io_context::executor_type>;
-
-    strand_type strand_;
+    CompletionExecutor const& completion_executor_;
 
     explicit
-    connection(io_context::executor_type);
+    connection(CompletionExecutor const&);
 
 public:
 

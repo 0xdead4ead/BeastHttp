@@ -6,33 +6,39 @@ namespace http {
 namespace shared {
 
 template<class Protocol,
-         template<typename> class Socket>
-connection<Protocol, Socket>::connection(socket_type&& socket)
-    : base_connection{socket.get_executor()},
+         template<typename> class Socket,
+         class CompletionExecutor>
+connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::connection(
+        socket_type&& socket,
+        const CompletionExecutor& completion_executor)
+    : base_connection{completion_executor},
       base_socket{std::move(socket)}
 {
 }
 
 template<class Protocol,
-         template<typename> class Socket>
+         template<typename> class Socket,
+         class CompletionExecutor>
 boost::beast::error_code
-connection<Protocol, Socket>::shutdown(shutdown_type type)
+connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::shutdown(shutdown_type type)
 {
     return base_socket::shutdown(type);
 }
 
 template<class Protocol,
-         template<typename> class Socket>
+         template<typename> class Socket,
+         class CompletionExecutor>
 boost::beast::error_code
-connection<Protocol, Socket>::close()
+connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::close()
 {
     return base_socket::close();
 }
 
 template<class Protocol,
-         template<typename> class Socket>
-typename connection<Protocol, Socket>::socket_type&
-connection<Protocol, Socket>::stream()
+         template<typename> class Socket,
+         class CompletionExecutor>
+typename connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::socket_type&
+connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::stream()
 {
     return base_socket::instance_;
 }

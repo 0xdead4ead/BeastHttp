@@ -9,36 +9,36 @@ namespace _0xdead4ead {
 namespace http {
 namespace base {
 
-template<class Derived>
-connection<Derived>::connection(io_context::executor_type executor)
-    : strand_{executor}
+template<class Derived, class CompletionExecutor>
+connection<Derived, CompletionExecutor>::connection(CompletionExecutor const& completion_executor)
+    : completion_executor_{completion_executor}
 {
 }
 
-template<class Derived>
+template<class Derived, class CompletionExecutor>
 template <class F, class R>
 void
-connection<Derived>::async_write(/*const*/ R& msg, F&& f)
+connection<Derived, CompletionExecutor>::async_write(/*const*/ R& msg, F&& f)
 {
     boost::beast::http::async_write(derived().stream(), msg,
                                boost::asio::bind_executor(
-                                       strand_, std::forward<F>(f)));
+                                       completion_executor_, std::forward<F>(f)));
 }
 
-template<class Derived>
+template<class Derived, class CompletionExecutor>
 template <class F, class B, class R>
 void
-connection<Derived>::async_read(B& buf, R& msg, F&& f)
+connection<Derived, CompletionExecutor>::async_read(B& buf, R& msg, F&& f)
 {
     boost::beast::http::async_read(derived().stream(), buf, msg,
                                boost::asio::bind_executor(
-                                       strand_, std::forward<F>(f)));
+                                       completion_executor_, std::forward<F>(f)));
 }
 
-template<class Derived>
+template<class Derived, class CompletionExecutor>
 template<class R>
 boost::beast::error_code
-connection<Derived>::write(/*const*/ R& msg)
+connection<Derived, CompletionExecutor>::write(/*const*/ R& msg)
 {
     auto ec = boost::beast::error_code{};
 
@@ -47,10 +47,10 @@ connection<Derived>::write(/*const*/ R& msg)
     return ec;
 }
 
-template<class Derived>
+template<class Derived, class CompletionExecutor>
 template<class R, class B>
 boost::beast::error_code
-connection<Derived>::read(B& buf, R& msg)
+connection<Derived, CompletionExecutor>::read(B& buf, R& msg)
 {
     auto ec = boost::beast::error_code{};
 

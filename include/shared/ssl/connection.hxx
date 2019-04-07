@@ -11,17 +11,16 @@ namespace http {
 namespace shared {
 namespace ssl {
 
-/**
-  @brief The ssl connection class
-*/
 template<class Protocol,
-         template<typename> class Socket>
+         template<typename> class Socket,
+         class CompletionExecutor>
 class connection : private base::socket<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES>,
-        public base::connection<connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES>>
+        public base::connection<connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>,
+        CompletionExecutor>
 {
     using self_type = connection;
 
-    using base_connection = base::connection<self_type>;
+    using base_connection = base::connection<self_type, CompletionExecutor>;
 
     using base_socket = base::socket<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES>;
 
@@ -34,7 +33,8 @@ public:
     using shutdown_type = typename socket_type::shutdown_type;
 
     explicit
-    connection(socket_type&&, boost::asio::ssl::context&);
+    connection(socket_type&&, boost::asio::ssl::context&,
+               const CompletionExecutor&);
 
     template <class F, class B>
     void

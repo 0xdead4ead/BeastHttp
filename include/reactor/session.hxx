@@ -6,6 +6,7 @@
 #include <base/queue.hxx>
 #include <base/timer.hxx>
 #include <base/regex.hxx>
+#include <base/strand_stream.hxx>
 
 #include <shared/connection.hxx>
 
@@ -14,7 +15,7 @@
 #include <boost/beast/http/string_body.hpp>
 
 #define BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE() \
-    flesh_type(connection_type(std::declval<socket_type>()), \
+    flesh_type(std::declval<socket_type>(), \
            std::declval<std::shared_ptr<resource_map_type>>(), \
            std::declval<std::shared_ptr<method_map_type>>(), \
            std::declval<regex_flag_type>(), \
@@ -25,10 +26,6 @@ namespace _0xdead4ead {
 namespace http {
 namespace reactor {
 
-/**
-  @brief session class. Handles an HTTP server connection
-  @tparam Type of body request message
-*/
 template</*Message's body*/
          class Body = boost::beast::http::string_body,
          /*Message's buffer*/
@@ -83,11 +80,11 @@ public:
 
     using buffer_type = Buffer;
 
-    using connection_type = shared::connection<Protocol, Socket>;
+    using connection_type = shared::connection<Protocol, Socket, base::strand_stream::asio_type>;
 
     using socket_type = typename connection_type::socket_type;
 
-    using timer_type = base::timer<Clock, Timer>;
+    using timer_type = base::timer<Clock, Timer, base::strand_stream::asio_type>;
 
     using duration_type = typename timer_type::duration_type;
 
@@ -117,7 +114,7 @@ public:
     static_assert (base::traits::TryInvoke<on_error_type, void(boost::system::error_code, boost::string_view)>::value,
                    "Invalid OnError handler type!");
 
-    class flesh : private base::request_processor<self_type>,
+    class flesh : private base::strand_stream, base::request_processor<self_type>,
             public std::enable_shared_from_this<flesh>
     {
         using base_type = base::request_processor<self_type>;
@@ -169,7 +166,7 @@ public:
         cls();
 
         explicit
-        flesh(connection_type&&,
+        flesh(socket_type&&,
               std::shared_ptr<resource_map_type> const&,
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
@@ -177,7 +174,7 @@ public:
 
         template<class _OnError>
         explicit
-        flesh(connection_type&&,
+        flesh(socket_type&&,
               std::shared_ptr<resource_map_type> const&,
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
@@ -190,7 +187,7 @@ public:
 
         template<class _OnError, class _OnTimer>
         explicit
-        flesh(connection_type&&,
+        flesh(socket_type&&,
               std::shared_ptr<resource_map_type> const&,
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,

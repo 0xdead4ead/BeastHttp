@@ -6,6 +6,7 @@
 #include <base/queue.hxx>
 #include <base/timer.hxx>
 #include <base/regex.hxx>
+#include <base/strand_stream.hxx>
 
 #include <shared/ssl/connection.hxx>
 
@@ -27,10 +28,6 @@ namespace http {
 namespace reactor {
 namespace ssl {
 
-/**
-  @brief session class. Handles an HTTP server connection
-  @tparam Type of body request message
-*/
 template</*Message's body*/
          class Body = boost::beast::http::string_body,
          /*Message's buffer*/
@@ -87,13 +84,13 @@ public:
 
     using buffer_type = Buffer;
 
-    using connection_type = shared::ssl::connection<Protocol, Socket>;
+    using connection_type = shared::ssl::connection<Protocol, Socket, base::strand_stream::asio_type>;
 
     using socket_type = typename connection_type::socket_type;
 
     using ssl_stream_type = typename connection_type::ssl_stream_type;
 
-    using timer_type = base::timer<Clock, Timer>;
+    using timer_type = base::timer<Clock, Timer, base::strand_stream::asio_type>;
 
     using duration_type = typename timer_type::duration_type;
 
@@ -128,7 +125,7 @@ public:
     static_assert (base::traits::TryInvoke<on_error_type, void(boost::system::error_code, boost::string_view)>::value,
                    "Invalid OnError handler type!");
 
-    class flesh : private base::request_processor<self_type>,
+    class flesh : private base::strand_stream, base::request_processor<self_type>,
             public std::enable_shared_from_this<flesh>
     {
         using base_type = base::request_processor<self_type>;

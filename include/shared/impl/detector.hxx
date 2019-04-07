@@ -36,7 +36,8 @@ detector<BEASTHTTP_SHARED_DETECTOR_TMPL_ATTRIBUTES>::detector(
         socket_type socket, _OnDetect&& on_detect,
         typename std::enable_if<base::traits::TryInvoke<
         _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value, int>::type)
-    : base::detector(socket.get_executor()),
+    : base::strand_stream(socket.get_executor()),
+      base_type(static_cast<base::strand_stream&>(*this)),
       socket_(std::move(socket)),
       on_detect_{std::forward<_OnDetect>(on_detect)}
 {
@@ -50,7 +51,8 @@ detector<BEASTHTTP_SHARED_DETECTOR_TMPL_ATTRIBUTES>::detector(
         _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value and
         base::traits::TryInvoke<_OnError, void(
             boost::system::error_code, boost::string_view)>::value, int>::type)
-    : base::detector(socket.get_executor()),
+    : base::strand_stream(socket.get_executor()),
+      base_type(static_cast<base::strand_stream&>(*this)),
       socket_(std::move(socket)),
       on_detect_{std::forward<_OnDetect>(on_detect)},
       on_error_{std::forward<_OnError>(on_error)}

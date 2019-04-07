@@ -158,14 +158,15 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::cls()
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
-        connection_type&& connection,
+        socket_type&& socket,
         std::shared_ptr<resource_map_type> const& resource_map,
         std::shared_ptr<method_map_type> const& method_map,
         regex_flag_type flags,
         buffer_type&& buffer)
-    : base_type{resource_map, method_map, flags},
-      connection_{std::move(connection)},
-      timer_{connection.stream().get_executor(), (time_point_type::max)()},
+    : base::strand_stream{socket.get_executor()},
+      base_type{resource_map, method_map, flags},
+      connection_{std::move(socket), static_cast<base::strand_stream&>(*this)},
+      timer_{static_cast<base::strand_stream&>(*this), (time_point_type::max)()},
       buffer_{std::move(buffer)},
       queue_{*this}
 {
@@ -174,7 +175,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class _OnError>
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
-        connection_type&& connection,
+        socket_type&& socket,
         std::shared_ptr<resource_map_type> const& resource_map,
         std::shared_ptr<method_map_type> const& method_map,
         regex_flag_type flags,
@@ -184,9 +185,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         base::traits::TryInvoke<_OnError,
         void(boost::system::error_code,
              boost::string_view)>::value, int>::type)
-    : base_type{resource_map, method_map, flags},
-      connection_{std::move(connection)},
-      timer_{connection.stream().get_executor(), (time_point_type::max)()},
+    : base::strand_stream{socket.get_executor()},
+      base_type{resource_map, method_map, flags},
+      connection_{std::move(socket), static_cast<base::strand_stream&>(*this)},
+      timer_{static_cast<base::strand_stream&>(*this), (time_point_type::max)()},
       on_error_{std::forward<_OnError>(on_error)},
       buffer_{std::move(buffer)},
       queue_{*this}
@@ -196,7 +198,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class _OnError, class _OnTimer>
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
-        connection_type&& connection,
+        socket_type&& socket,
         std::shared_ptr<resource_map_type> const& resource_map,
         std::shared_ptr<method_map_type> const& method_map,
         regex_flag_type flags,
@@ -208,9 +210,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
              boost::string_view)>::value and
         base::traits::TryInvoke<_OnTimer,
         void(context_type)>::value, int>::type)
-    : base_type{resource_map, method_map, flags},
-      connection_{std::move(connection)},
-      timer_{connection.stream().get_executor(), (time_point_type::max)()},
+    : base::strand_stream{socket.get_executor()},
+      base_type{resource_map, method_map, flags},
+      connection_{std::move(socket), static_cast<base::strand_stream&>(*this)},
+      timer_{static_cast<base::strand_stream&>(*this), (time_point_type::max)()},
       on_error_{std::forward<_OnError>(on_error)},
       on_timer_{std::forward<_OnTimer>(on_timer)},
       buffer_{std::move(buffer)},
@@ -397,7 +400,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
         std::declval<flesh_type&>())
 {
     return std::make_shared<flesh_type>(
-                connection_type{std::move(socket)}, resource_map, method_map,
+                std::move(socket), resource_map, method_map,
                 flags, std::move(buffer), std::forward<_OnAction>(on_action)...)
             ->recv();
 }
@@ -432,7 +435,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
         std::declval<flesh_type&>())
 {
     return std::make_shared<flesh_type>(
-                connection_type{std::move(socket)}, resource_map, method_map,
+                std::move(socket), resource_map, method_map,
                 flags, std::move(buffer), std::forward<_OnAction>(on_action)...)
             ->recv(timeOrDuration);
 }
@@ -468,7 +471,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
         std::declval<flesh_type&>())
 {
     return std::make_shared<flesh_type>(
-                connection_type{std::move(socket)}, resource_map, method_map,
+                std::move(socket), resource_map, method_map,
                 flags, std::move(buffer), std::forward<_OnAction>(on_action)...)
             ->send(std::forward<Response>(response));
 }
@@ -506,7 +509,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(Response&& response,
         std::declval<flesh_type&>())
 {
     return std::make_shared<flesh_type>(
-                connection_type{std::move(socket)}, resource_map, method_map,
+                std::move(socket), resource_map, method_map,
                 flags, std::move(buffer), std::forward<_OnAction>(on_action)...)
             ->send(std::forward<Response>(response), timeOrDuration);
 }
@@ -543,7 +546,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::eof(socket_type&& socket,
 {
     buffer_type buffer;
     return std::make_shared<flesh_type>(
-                connection_type{std::move(socket)}, resource_map, method_map,
+                std::move(socket), resource_map, method_map,
                 flags, std::move(buffer), std::forward<_OnAction>(on_action)...)
             ->eof();
 }
@@ -561,7 +564,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::cls(socket_type&& socket,
 {
     buffer_type buffer;
     return std::make_shared<flesh_type>(
-                connection_type{std::move(socket)}, resource_map, method_map,
+                std::move(socket), resource_map, method_map,
                 flags, std::move(buffer), std::forward<_OnAction>(on_action)...)
             ->cls();
 }

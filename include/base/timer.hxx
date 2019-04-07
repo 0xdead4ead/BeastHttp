@@ -3,22 +3,16 @@
 
 #include <base/traits.hxx>
 
-#include <boost/asio/strand.hpp>
-#include <boost/asio/io_context.hpp>
-
 namespace _0xdead4ead {
 namespace http {
 namespace base {
 
 template<class Clock,
-         template<typename, typename...> class Timer>
+         template<typename, typename...> class Timer,
+         class CompletionExecutor>
 class timer
 {
     using self_type = timer;
-
-    using io_context = boost::asio::io_context;
-
-    using strand_type = boost::asio::strand<io_context::executor_type>;
 
 public:
 
@@ -35,9 +29,9 @@ public:
                    and traits::HasClockType<timer_type, void>::value,
                    "Invalid timer type!");
 
-    template<class Time>
+    template<class TimePointOrDuration>
     explicit
-    timer(io_context::executor_type, const Time&);
+    timer(const CompletionExecutor&, const TimePointOrDuration);
 
     timer(self_type&&) = default;
     auto operator=(self_type&&) -> self_type& = default;
@@ -51,7 +45,7 @@ public:
 
 private:
 
-    strand_type strand_;
+    CompletionExecutor const& completion_executor_;
     timer_type timer_;
 
 }; // class timer

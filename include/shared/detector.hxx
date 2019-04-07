@@ -3,6 +3,7 @@
 
 #include <base/traits.hxx>
 #include <base/detector.hxx>
+#include <base/strand_stream.hxx>
 
 #include <boost/asio/ip/tcp.hpp>
 
@@ -19,11 +20,11 @@ template<template<typename> class OnDetect = std::function,
          class Protocol = boost::asio::ip::tcp,
          template<typename> class Socket = boost::asio::basic_stream_socket>
 class detector : public std::enable_shared_from_this<detector<BEASTHTTP_SHARED_DETECTOR_TMPL_ATTRIBUTES>>,
-        private base::detector, boost::asio::coroutine
+        private base::strand_stream, base::detector<base::strand_stream::asio_type>, boost::asio::coroutine
 {
     using self_type = detector;
 
-    using base_type = base::detector;
+    using base_type = base::detector<base::strand_stream::asio_type>;
 
 public:
 

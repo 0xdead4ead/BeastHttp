@@ -8,32 +8,36 @@ namespace http {
 namespace base {
 
 template<class Clock,
-         template<typename, typename...> class Timer>
-template<class Time>
-timer<Clock, Timer>::timer(io_context::executor_type executor,
-                           const Time& duration_or_time)
-    : strand_{executor},
-      timer_{executor.context(), duration_or_time}
+         template<typename, typename...> class Timer,
+         class CompletionExecutor>
+template<class TimePointOrDuration>
+timer<Clock, Timer, CompletionExecutor>::timer(
+        const CompletionExecutor& completion_executor,
+        const TimePointOrDuration duration_or_time)
+    : completion_executor_{completion_executor},
+      timer_{completion_executor.get_inner_executor().context(), duration_or_time}
 {
 }
 
 template<class Clock,
-         template<typename, typename...> class Timer>
-typename timer<Clock, Timer>::timer_type&
-timer<Clock, Timer>::stream()
+         template<typename, typename...> class Timer,
+         class CompletionExecutor>
+typename timer<Clock, Timer, CompletionExecutor>::timer_type&
+timer<Clock, Timer, CompletionExecutor>::stream()
 {
     return timer_;
 }
 
 template<class Clock,
-         template<typename, typename...> class Timer>
+         template<typename, typename...> class Timer,
+         class CompletionExecutor>
 template<class F>
 void
-timer<Clock, Timer>::async_wait(F&& f)
+timer<Clock, Timer, CompletionExecutor>::async_wait(F&& f)
 {
     timer_.async_wait(
                 boost::asio::bind_executor(
-                    strand_, std::forward<F>(f)));
+                    completion_executor_, std::forward<F>(f)));
 }
 
 } // namespace base

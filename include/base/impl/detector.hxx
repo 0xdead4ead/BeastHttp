@@ -9,21 +9,26 @@ namespace _0xdead4ead {
 namespace http {
 namespace base {
 
-detector::detector(io_context::executor_type executor)
-    : strand_{executor}
+template<class CompletionExecutor>
+detector<CompletionExecutor>::detector(CompletionExecutor const& completion_executor)
+    : completion_executor_{completion_executor}
 {
 }
 
+template<class CompletionExecutor>
 template<class S, class B, class F>
-void detector::async(S& s, B& buf, F&& f)
+void
+detector<CompletionExecutor>::async(S& s, B& buf, F&& f)
 {
     async_detect_ssl(s, buf,
                      boost::asio::bind_executor(
-                         strand_, std::forward<F>(f)));
+                         completion_executor_, std::forward<F>(f)));
 }
 
+template<class CompletionExecutor>
 template<class S, class B>
-boost::beast::error_code detector::sync(S& s, B& buf, boost::tribool& res)
+boost::beast::error_code
+detector<CompletionExecutor>::sync(S& s, B& buf, boost::tribool& res)
 {
     auto ec = boost::beast::error_code{};
 

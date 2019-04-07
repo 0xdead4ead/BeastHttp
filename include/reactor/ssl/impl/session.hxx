@@ -242,9 +242,10 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         typename std::enable_if<
         base::traits::TryInvoke<_OnHandshake,
         void(context_type)>::value, int>::type)
-    : base_type{resource_map, method_map, flags},
-      connection_{std::move(socket), ctx},
-      timer_{socket.get_executor(), (time_point_type::max)()},
+    : base::strand_stream{socket.get_executor()},
+      base_type{resource_map, method_map, flags},
+      connection_{std::move(socket), ctx, static_cast<base::strand_stream&>(*this)},
+      timer_{static_cast<base::strand_stream&>(*this), (time_point_type::max)()},
       on_handshake_{std::forward<_OnHandshake>(on_handshake)},
       buffer_{std::move(buffer)},
       queue_{*this}
@@ -268,9 +269,10 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         base::traits::TryInvoke<_OnError,
         void(boost::system::error_code,
              boost::string_view)>::value, int>::type)
-    : base_type{resource_map, method_map, flags},
-      connection_{std::move(socket), ctx},
-      timer_{socket.get_executor(), (time_point_type::max)()},
+    : base::strand_stream{socket.get_executor()},
+      base_type{resource_map, method_map, flags},
+      connection_{std::move(socket), ctx, static_cast<base::strand_stream&>(*this)},
+      timer_{static_cast<base::strand_stream&>(*this), (time_point_type::max)()},
       on_handshake_{std::forward<_OnHandshake>(on_handshake)},
       on_error_{std::forward<_OnError>(on_error)},
       buffer_{std::move(buffer)},
@@ -297,9 +299,10 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
              boost::string_view)>::value and
         base::traits::TryInvoke<_OnTimer,
         void(context_type)>::value, int>::type)
-    : base_type{resource_map, method_map, flags},
-      connection_{std::move(socket), ctx},
-      timer_{socket.get_executor(), (time_point_type::max)()},
+    : base::strand_stream{socket.get_executor()},
+      base_type{resource_map, method_map, flags},
+      connection_{std::move(socket), ctx, static_cast<base::strand_stream&>(*this)},
+      timer_{static_cast<base::strand_stream&>(*this), (time_point_type::max)()},
       on_handshake_{std::forward<_OnHandshake>(on_handshake)},
       on_error_{std::forward<_OnError>(on_error)},
       on_timer_{std::forward<_OnTimer>(on_timer)},
