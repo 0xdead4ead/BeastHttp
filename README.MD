@@ -177,11 +177,11 @@ Start listening on 127.0.0.1:80
                     out, "From:", from, "Info:", code.message());
     };
 
-    const auto& onAccept = [&](auto socket){
+    const auto& onAccept = [&](auto asioSocket){
         http::out::pushn<std::ostream>(
                     out, socket.remote_endpoint().address().to_string(), "connected!");
 
-        session_type::recv(std::move(socket), router.resource_map(),
+        session_type::recv(std::move(asioSocket), router.resource_map(),
                            router.method_map(), boost::regex::ECMAScript, onError);
     };
     
