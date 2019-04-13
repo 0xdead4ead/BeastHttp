@@ -40,6 +40,8 @@ protected:
 
     using request_type = typename session_type::request_type;
 
+    using regex_flag_type = typename session_type::regex_flag_type;
+
     static_assert (base::traits::HasStorageType<session_type, void>::value
                    and base::traits::HasResourceMapType<session_type, void>::value
                    and base::traits::HasMethodMapType<session_type, void>::value
@@ -47,6 +49,7 @@ protected:
                    and base::traits::HasResourceType<session_type, void>::value
                    and base::traits::HasMethodType<session_type, void>::value
                    and base::traits::HasRegexType<session_type, void>::value
+                   and base::traits::HasRegexFlagType<session_type, void>::value
                    and base::traits::HasRequestType<session_type, void>::value,
                    "Invalid session type!");
 

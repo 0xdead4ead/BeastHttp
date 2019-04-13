@@ -14,6 +14,7 @@ class chain_router : public base::router<Session>
     using self_type = chain_router;
 
     class chain_node;
+
     friend class chain_node;
 
 public:
@@ -32,12 +33,15 @@ public:
 
     using regex_type = typename base_type::regex_type;
 
+    using regex_flag_type = typename base_type::regex_flag_type;
+
     using request_type = typename base_type::request_type;
 
     using chain_node_type = chain_node;
 
-    chain_router() noexcept
-        : base_type{resource_map_, method_map_}
+    chain_router(regex_flag_type regex_flags) noexcept
+        : base_type{resource_map_, method_map_},
+          regex_flags_{regex_flags}
     {}
 
     chain_node
@@ -61,10 +65,17 @@ public:
 
     template<class Pack>
     auto
-    param(typename regex_type::flag_type flags)
-    -> decltype (std::declval<base_type>().template param<self_type, Pack>(*this, flags))
+    param()
+    -> decltype (std::declval<base_type>().template param<self_type, Pack>(
+                     *this, std::declval<regex_flag_type>()))
     {
-        return base_type::template param<self_type, Pack>(*this, flags);
+        return base_type::template param<self_type, Pack>(*this, regex_flags_);
+    }
+
+    regex_flag_type
+    regex_flags() const
+    {
+        return regex_flags_;
     }
 
 private:
@@ -419,6 +430,8 @@ private:
 
     std::shared_ptr<resource_map_type> resource_map_;
     std::shared_ptr<method_map_type> method_map_;
+    regex_flag_type regex_flags_;
+
 }; // class chain_router
 
 } // namespace http
