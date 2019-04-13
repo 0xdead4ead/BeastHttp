@@ -44,7 +44,7 @@ Creating a new callback functions storage and route path for GET request with "/
 
 ```cpp
 
-    http::basic_router<HttpSession> router;
+    http::basic_router<HttpSession> router{boost::regex::ECMAScript};
 
     router.get("^/$", [](auto request, auto context) {
         context.send(make_response(request, "MAIN PAGE\n"));
@@ -79,7 +79,7 @@ Getting a parameter from a URI. Request send example `curl localhost --request '
 
     using pack = http::param::pack<int>;
 
-    router.param<pack>(boost::regex::ECMAScript)
+    router.param<pack>()
             .get("^/user/param[?]y=(\\d+)$", 
        [](auto /*request*/, auto /*context*/, auto args){
         assert(std::get<0>(args) == 1992);
@@ -87,7 +87,7 @@ Getting a parameter from a URI. Request send example `curl localhost --request '
 
     // or
 
-    router.param<pack>(boost::regex::ECMAScript)
+    router.param<pack>()
             .get("^/user/param[?]y=(\\d+)$",
        [](auto /*request*/, auto /*context*/, auto _1x, auto /*args*/){
         // process /user
@@ -107,7 +107,7 @@ Getting a parameter using a string literal (as above) :
     using http::literals::value;
     using http::literals::operator""_c;
 
-    auto param = router.param<pack>(boost::regex::ECMAScript);
+    auto param = router.param<pack>();
     
     "^/user/param[?]y=(\\d+)$"_get.advance(std::move(param), 
        [](auto /*request*/, auto /*context*/, auto args){
@@ -120,7 +120,7 @@ Create modular, mounted route handlers:
 
 ```cpp
 
-    http::basic_router<HttpSession> animals;
+    http::basic_router<HttpSession> animals{boost::regex::ECMAScript};
 
     animals.get("^/cat$", [](auto request, auto context){ // '/animals/cat'
         context.send(make_response(request, "me-ow\n"));
@@ -146,7 +146,7 @@ Create handlers routes, forming a chain, for the route path:
 
 ```cpp
 
-    http::chain_router<HttpSession> books;
+    http::chain_router<HttpSession> books{boost::regex::ECMAScript};
 
     books.route("^/book$")
             .get([](auto request, auto context) {
@@ -181,20 +181,13 @@ Start listening on 127.0.0.1:80
         http::out::pushn<std::ostream>(
                     out, socket.remote_endpoint().address().to_string(), "connected!");
 
-        session_type::recv(std::move(asioSocket), router.resource_map(),
-                           router.method_map(), boost::regex::ECMAScript, onError);
+        session_type::recv(std::move(asioSocket), router, onError);
     };
     
     auto const address = boost::asio::ip::make_address("127.0.0.1");
     auto const port = static_cast<unsigned short>(80);
 
     HttpListener::launch(ioc, {address, port}, onAccept, onError);
-    
-    // Note: 
-    // After starting the listener instance, 
-    // it is not recommended to add new handlers from other threads, 
-    // except those that are in a loop io_context::run, to the router 
-    // used for processing client requests.
 
 ```
 
