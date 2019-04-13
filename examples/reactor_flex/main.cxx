@@ -145,10 +145,10 @@ int main()
         context.send(make_response(request, "not found\n"));
     };
 
-    http::basic_router<HttpSession> router;
+    http::basic_router<HttpSession> router{boost::regex::ECMAScript};
 
     // Note: For encrypted connection must be separate copy router
-    http::basic_router<SslHttpSession> ssl_router;
+    http::basic_router<SslHttpSession> ssl_router{boost::regex::ECMAScript};
 
     // Applying resource handlers
     router.get(R"(^/$)", onMainResource);
@@ -172,14 +172,12 @@ int main()
         // Is TLS handhake?
         if(result) {
             // Process handshake and launch ssl session (Used detector buffer must be moved in session instance!)
-            SslHttpSession::handshake(ctx, std::move(socket), ssl_router.resource_map(),
-                                      ssl_router.method_map(), boost::regex::ECMAScript, std::move(buffer), onHandshake, onError);
+            SslHttpSession::handshake(ctx, std::move(socket), ssl_router, std::move(buffer), onHandshake, onError);
             return;
         }
 
         // Launch plain waiting receive
-        HttpSession::recv(std::move(socket), router.resource_map(),
-                          router.method_map(), boost::regex::ECMAScript, std::move(buffer), onError);
+        HttpSession::recv(std::move(socket), router, std::move(buffer), onError);
     };
 
     const auto& onAccept = [&](auto asioSocket) {

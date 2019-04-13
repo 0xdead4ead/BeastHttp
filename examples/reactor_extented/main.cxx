@@ -59,7 +59,7 @@ int main()
     clients.reserve(max_clients);
     threads.reserve(max_threads);
 
-    http::basic_router<HttpSession> router;
+    http::basic_router<HttpSession> router{boost::regex::ECMAScript};
 
     router.get(R"(^/1$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
@@ -99,7 +99,7 @@ int main()
             http::out::prefix::version::time::pushn<std::ostream>(
                         out, "Achieved maximum connections!", "Limit", max_clients);
 
-            HttpSession::eof(std::move(asioSocket), {}, {}, {}, onError);
+            HttpSession::eof(std::move(asioSocket), onError);
             eof = true;
         }
 
@@ -118,8 +118,8 @@ int main()
 
         if (!eof) {
             std::weak_ptr<HttpSession::flesh> cl
-                    = HttpSession::recv(std::move(asioSocket), std::chrono::seconds(10), router.resource_map(),
-                               router.method_map(), boost::regex::ECMAScript, onError).shared_from_this();
+                    = HttpSession::recv(std::move(asioSocket), router, std::chrono::seconds(10),
+                                        onError).shared_from_this();
 
             clients.emplace_back(cl);
         }

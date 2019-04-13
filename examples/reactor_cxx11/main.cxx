@@ -52,7 +52,7 @@ int main()
     using HttpRequest = typename HttpSession::request_type;
     using AsioSocket = typename HttpSession::socket_type;
 
-    http::basic_router<HttpSession> router;
+    http::basic_router<HttpSession> router{boost::regex::ECMAScript};
 
     router.get(R"(^/1$)", [](HttpRequest request, HttpContext context) {
         http::out::pushn<std::ostream>(out, request);
@@ -86,8 +86,7 @@ int main()
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, socket.remote_endpoint().address().to_string(), "connected!");
 
-        HttpSession::recv(std::move(socket), router.resource_map(),
-                          router.method_map(), boost::regex::ECMAScript, onError);
+        HttpSession::recv(std::move(socket), router, onError);
     };
 
     auto const address = boost::asio::ip::make_address("127.0.0.1");

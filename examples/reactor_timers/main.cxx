@@ -44,7 +44,7 @@ int main()
     using SessionType = http::reactor::_default::session_type;
     using ListenerType = http::reactor::_default::listener_type;
 
-    http::basic_router<SessionType> router;
+    http::basic_router<SessionType> router{boost::regex::ECMAScript};
 
     router.get(R"(^.*$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
@@ -67,13 +67,12 @@ int main()
         // In this place connection point is closed gracefully
     };
 
-    const auto& onAccept = [&](auto socket) {
+    const auto& onAccept = [&](auto asioSocket) {
         http::out::prefix::version::time::pushn<std::ostream>(
-                    out, socket.remote_endpoint().address().to_string(), "connected!");
+                    out, asioSocket.remote_endpoint().address().to_string(), "connected!");
 
         // The client must send data no later than three seconds.
-        SessionType::recv(std::move(socket), std::chrono::seconds(3), router.resource_map(),
-                           router.method_map(), boost::regex::ECMAScript, onError, onTimer);
+        SessionType::recv(std::move(asioSocket), router, std::chrono::seconds(3), onError, onTimer);
     };
 
     auto const address = boost::asio::ip::make_address("127.0.0.1");

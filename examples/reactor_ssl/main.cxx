@@ -131,7 +131,7 @@ int main()
     using SslHttpSession = http::reactor::ssl::_default::session_type;
     using HttpListener = http::reactor::_default::listener_type;
 
-    http::basic_router<SslHttpSession> router;
+    http::basic_router<SslHttpSession> router{boost::regex::ECMAScript};
 
     router.get(R"(^/1$)", [](auto request, auto context) {
         http::out::pushn<std::ostream>(out, request);
@@ -169,8 +169,7 @@ int main()
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, asioSocket.remote_endpoint().address().to_string(), "connected!");
 
-        SslHttpSession::handshake(ctx, std::move(asioSocket), router.resource_map(),
-                                  router.method_map(), boost::regex::ECMAScript, onHandshake, onError);
+        SslHttpSession::handshake(ctx, std::move(asioSocket), router, onHandshake, onError);
     };
 
     auto const address = boost::asio::ip::make_address("127.0.0.1");
