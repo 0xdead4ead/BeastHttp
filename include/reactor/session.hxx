@@ -14,7 +14,15 @@
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/http/string_body.hpp>
 
-#define BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE() \
+#define BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(router) \
+    flesh_type(std::declval<socket_type>(), \
+               router.resource_map(), \
+               router.method_map(), \
+               router.regex_flags(), \
+               std::declval<buffer_type>(), \
+               std::declval<_OnAction>()...)
+
+#define BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY() \
     flesh_type(std::declval<socket_type>(), \
            std::declval<std::shared_ptr<resource_map_type>>(), \
            std::declval<std::shared_ptr<method_map_type>>(), \
@@ -367,117 +375,70 @@ public:
 
     }; // class context
 
-    template<class... _OnAction>
+    template<class Router, class... _OnAction>
     static auto
-    recv(socket_type&&,
-         std::shared_ptr<resource_map_type> const&,
-         std::shared_ptr<method_map_type> const&,
-         regex_flag_type,
-         buffer_type&&,
-         _OnAction&&...) -> decltype (
-            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(),
+    recv(socket_type&&, Router const&, buffer_type&&, _OnAction&&...) -> decltype (
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+            std::declval<flesh_type&>());
+
+    template<class Router, class... _OnAction>
+    static auto
+    recv(socket_type&&, Router const&, _OnAction&&...) -> decltype (
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+            std::declval<flesh_type&>());
+
+    template<class Router, class TimePointOrDuration, class... _OnAction>
+    static auto
+    recv(socket_type&&, Router const&, TimePointOrDuration const, buffer_type&&, _OnAction&&...) -> decltype (
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+                std::declval<Router const&>()).recv(std::declval<TimePointOrDuration>()),
+            std::declval<flesh_type&>());
+
+    template<class Router, class TimePointOrDuration, class... _OnAction>
+    static auto
+    recv(socket_type&&, Router const&, TimePointOrDuration const, _OnAction&&...) -> decltype (
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+                std::declval<Router const&>()).recv(std::declval<TimePointOrDuration>()),
+            std::declval<flesh_type&>());
+
+    template<class Router, class Response, class... _OnAction>
+    static auto
+    send(socket_type&&, Response&&, Router const&, buffer_type&&, _OnAction&&...) -> decltype (
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+                std::declval<Router const&>()).send(std::declval<Response>()),
+            std::declval<flesh_type&>());
+
+    template<class Router, class Response, class... _OnAction>
+    static auto
+    send(socket_type&&, Response&&, Router const&, _OnAction&&...) -> decltype (
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+                std::declval<Router const&>()).send(std::declval<Response>()),
+            std::declval<flesh_type&>());
+
+    template<class Router, class Response, class TimePointOrDuration, class... _OnAction>
+    static auto
+    send(socket_type&&, Response&&, Router const&, TimePointOrDuration const, buffer_type&&, _OnAction&&...) -> decltype (
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+                std::declval<Router const&>()).send(std::declval<Response>(), std::declval<TimePointOrDuration>()),
+            std::declval<flesh_type&>());
+
+    template<class Router, class Response, class TimePointOrDuration, class... _OnAction>
+    static auto
+    send(socket_type&&, Response&&, Router const&, TimePointOrDuration const, _OnAction&&...) -> decltype (
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+                std::declval<Router const&>()).send(std::declval<Response>(), std::declval<TimePointOrDuration>()),
             std::declval<flesh_type&>());
 
     template<class... _OnAction>
     static auto
-    recv(socket_type&&,
-         std::shared_ptr<resource_map_type> const&,
-         std::shared_ptr<method_map_type> const&,
-         regex_flag_type,
-         _OnAction&&...) -> decltype (
-            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(),
-            std::declval<flesh_type&>());
-
-    template<class TimePointOrDuration, class... _OnAction>
-    static auto
-    recv(socket_type&&,
-         TimePointOrDuration const,
-         std::shared_ptr<resource_map_type> const&,
-         std::shared_ptr<method_map_type> const&,
-         regex_flag_type,
-         buffer_type&&,
-         _OnAction&&...) -> decltype (
-            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE().recv(std::declval<TimePointOrDuration>()),
-            std::declval<flesh_type&>());
-
-    template<class TimePointOrDuration, class... _OnAction>
-    static auto
-    recv(socket_type&&,
-         TimePointOrDuration const,
-         std::shared_ptr<resource_map_type> const&,
-         std::shared_ptr<method_map_type> const&,
-         regex_flag_type,
-         _OnAction&&...) -> decltype (
-            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE().recv(std::declval<TimePointOrDuration>()),
-            std::declval<flesh_type&>());
-
-    template<class Response, class... _OnAction>
-    static auto
-    send(Response&&,
-         socket_type&&,
-         std::shared_ptr<resource_map_type> const&,
-         std::shared_ptr<method_map_type> const&,
-         regex_flag_type,
-         buffer_type&&,
-         _OnAction&&...) -> decltype (
-            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE().send(std::declval<Response>()),
-            std::declval<flesh_type&>());
-
-    template<class Response, class... _OnAction>
-    static auto
-    send(Response&&,
-         socket_type&&,
-         std::shared_ptr<resource_map_type> const&,
-         std::shared_ptr<method_map_type> const&,
-         regex_flag_type,
-         _OnAction&&...) -> decltype (
-            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE().send(std::declval<Response>()),
-            std::declval<flesh_type&>());
-
-    template<class Response, class TimePointOrDuration, class... _OnAction>
-    static auto
-    send(Response&&,
-         socket_type&&,
-         TimePointOrDuration const,
-         std::shared_ptr<resource_map_type> const&,
-         std::shared_ptr<method_map_type> const&,
-         regex_flag_type,
-         buffer_type&&,
-         _OnAction&&...) -> decltype (
-            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE().send(std::declval<Response>(), std::declval<TimePointOrDuration>()),
-            std::declval<flesh_type&>());
-
-    template<class Response, class TimePointOrDuration, class... _OnAction>
-    static auto
-    send(Response&&,
-         socket_type&&,
-         TimePointOrDuration const,
-         std::shared_ptr<resource_map_type> const&,
-         std::shared_ptr<method_map_type> const&,
-         regex_flag_type,
-         _OnAction&&...) -> decltype (
-            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE().send(std::declval<Response>(), std::declval<TimePointOrDuration>()),
-            std::declval<flesh_type&>());
-
-
-    template<class... _OnAction>
-    static auto
-    eof(socket_type&&,
-        std::shared_ptr<resource_map_type> const&,
-        std::shared_ptr<method_map_type> const&,
-        regex_flag_type,
-        _OnAction&&...) -> decltype (
-            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(),
+    eof(socket_type&&, _OnAction&&...) -> decltype (
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY(),
             std::declval<flesh_type&>());
 
     template<class... _OnAction>
     static auto
-    cls(socket_type&&,
-        std::shared_ptr<resource_map_type> const&,
-        std::shared_ptr<method_map_type> const&,
-        regex_flag_type,
-        _OnAction&&...) -> decltype (
-            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(),
+    cls(socket_type&&, _OnAction&&...) -> decltype (
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY(),
             std::declval<flesh_type&>());
 
 }; // class session
