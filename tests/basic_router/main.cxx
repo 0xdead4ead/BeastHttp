@@ -65,12 +65,14 @@ public:
 
 }; // class test_session
 
+static const boost::regex::flag_type regex_flags = boost::regex::ECMAScript;
+
 BOOST_AUTO_TEST_CASE(get_no_1) {
 
-    http::basic_router<test_session> router;
+    http::basic_router<test_session> router{regex_flags};
 
     http::base::request_processor<test_session>
-            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+            procs{router.resource_map(), router.method_map(), router.regex_flags()};
 
     router.get("/testpath", [](auto request, auto /*context*/){
         BOOST_CHECK(request.target() == "/testpath");
@@ -87,10 +89,10 @@ BOOST_AUTO_TEST_CASE(get_no_1) {
 
 BOOST_AUTO_TEST_CASE(get_no_2) {
 
-    http::basic_router<test_session> router;
+    http::basic_router<test_session> router{regex_flags};
 
     http::base::request_processor<test_session>
-            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+            procs{router.resource_map(), router.method_map(), router.regex_flags()};
 
     router.get("/a/b/c",
        [](auto request, auto /*context*/, auto _1x){
@@ -163,10 +165,10 @@ BOOST_AUTO_TEST_CASE(get_no_2) {
 
 BOOST_AUTO_TEST_CASE(get_no_3) {
 
-    http::basic_router<test_session> router;
+    http::basic_router<test_session> router{regex_flags};
 
     http::base::request_processor<test_session>
-            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+            procs{router.resource_map(), router.method_map(), router.regex_flags()};
 
     router.get("/1/2/3",
        [](auto request, auto /*context*/, auto _1x){
@@ -271,10 +273,10 @@ BOOST_AUTO_TEST_CASE(get_no_3) {
 
 BOOST_AUTO_TEST_CASE(post_no_1) {
 
-    http::basic_router<test_session> router;
+    http::basic_router<test_session> router{regex_flags};
 
     http::base::request_processor<test_session>
-            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+            procs{router.resource_map(), router.method_map(), router.regex_flags()};
 
     router.post("/testpath", [](auto request, auto /*context*/){
         BOOST_CHECK(request.target() == "/testpath");
@@ -293,10 +295,10 @@ BOOST_AUTO_TEST_CASE(post_no_1) {
 
 BOOST_AUTO_TEST_CASE(post_no_2) {
 
-    http::basic_router<test_session> router;
+    http::basic_router<test_session> router{regex_flags};
 
     http::base::request_processor<test_session>
-            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+            procs{router.resource_map(), router.method_map(), router.regex_flags()};
 
     router.post("/a/b/c",
        [](auto request, auto /*context*/, auto _1x){
@@ -383,10 +385,10 @@ BOOST_AUTO_TEST_CASE(post_no_2) {
 
 BOOST_AUTO_TEST_CASE(post_no_3) {
 
-    http::basic_router<test_session> router;
+    http::basic_router<test_session> router{regex_flags};
 
     http::base::request_processor<test_session>
-            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+            procs{router.resource_map(), router.method_map(), router.regex_flags()};
 
     router.post("/1/2/3",
        [](auto request, auto /*context*/, auto _1x){
@@ -510,10 +512,10 @@ BOOST_AUTO_TEST_CASE(post_no_3) {
 
 BOOST_AUTO_TEST_CASE(put_no_1) {
 
-    http::basic_router<test_session> router;
+    http::basic_router<test_session> router{regex_flags};
 
     http::base::request_processor<test_session>
-            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+            procs{router.resource_map(), router.method_map(), router.regex_flags()};
 
     std::string shared_resource;
 
@@ -532,10 +534,10 @@ BOOST_AUTO_TEST_CASE(put_no_1) {
 
 BOOST_AUTO_TEST_CASE(put_no_2) {
 
-    http::basic_router<test_session> router;
+    http::basic_router<test_session> router{regex_flags};
 
     http::base::request_processor<test_session>
-            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+            procs{router.resource_map(), router.method_map(), router.regex_flags()};
 
     std::string shared_resource[4];
 
@@ -632,10 +634,10 @@ BOOST_AUTO_TEST_CASE(put_no_2) {
 
 BOOST_AUTO_TEST_CASE(put_no_3) {
 
-    http::basic_router<test_session> router;
+    http::basic_router<test_session> router{regex_flags};
 
     http::base::request_processor<test_session>
-            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+            procs{router.resource_map(), router.method_map(), router.regex_flags()};
 
     std::string shared_resource[7];
 
@@ -777,10 +779,10 @@ BOOST_AUTO_TEST_CASE(literals_no_1) {
 
     using http::literals::operator""_get;
 
-    http::basic_router<test_session> router;
+    http::basic_router<test_session> router{regex_flags};
 
     http::base::request_processor<test_session>
-            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+            procs{router.resource_map(), router.method_map(), router.regex_flags()};
 
     "^/a$"_get.advance(router, [](auto request, auto /*context*/){
         BOOST_CHECK(request.target() == "/a");

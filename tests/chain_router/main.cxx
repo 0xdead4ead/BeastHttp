@@ -65,12 +65,14 @@ public:
 
 }; // class test_session
 
+static const boost::regex::flag_type regex_flags = boost::regex::ECMAScript;
+
 BOOST_AUTO_TEST_CASE(no_1) {
 
-    http::chain_router<test_session> router;
+    http::chain_router<test_session> router{regex_flags};
 
     http::base::request_processor<test_session>
-            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+            procs{router.resource_map(), router.method_map(), router.regex_flags()};
 
     router.route("/testpath").get(
                 [](auto request, auto /*context*/){
@@ -89,10 +91,10 @@ BOOST_AUTO_TEST_CASE(no_1) {
 
 BOOST_AUTO_TEST_CASE(no_2) {
 
-    http::chain_router<test_session> router;
+    http::chain_router<test_session> router{regex_flags};
 
     http::base::request_processor<test_session>
-            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+            procs{router.resource_map(), router.method_map(), router.regex_flags()};
 
     router.route("/a/b/c").get(
        [](auto request, auto /*context*/, auto _1x){
@@ -152,10 +154,10 @@ BOOST_AUTO_TEST_CASE(literals_no_1) {
 
     using http::literals::operator""_route;
 
-    http::chain_router<test_session> router;
+    http::chain_router<test_session> router{regex_flags};
 
     http::base::request_processor<test_session>
-            procs{router.resource_map(), router.method_map(), boost::regex::ECMAScript};
+            procs{router.resource_map(), router.method_map(), router.regex_flags()};
 
     "^/a/b/c$"_route.advance(router).get(
        [](auto request, auto /*context*/, auto _1x){
