@@ -322,13 +322,14 @@ public:
 
         mutex_type* router_mutex_;
 
+        timer_type timer_;
+
+        connection_type connection_;
+
         on_handshake_type on_handshake_;
         on_error_type on_error_;
         on_timer_type on_timer_;
 
-        timer_type timer_;
-
-        connection_type connection_;
         request_type request_;
         buffer_type buffer_;
         queue_type queue_;

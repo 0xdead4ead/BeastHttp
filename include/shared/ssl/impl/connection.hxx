@@ -12,8 +12,8 @@ template<class Protocol,
 connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::connection(
         socket_type&& socket, boost::asio::ssl::context& ctx,
         const CompletionExecutor& completion_executor)
-    : base_connection{completion_executor},
-      base_socket{std::move(socket)},
+    : base_socket{std::move(socket)},
+      base_connection{completion_executor},
       stream_{base_socket::instance_, ctx}
 {
 }

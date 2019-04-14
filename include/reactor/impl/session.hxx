@@ -167,8 +167,8 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
     : base::strand_stream{socket.get_executor()},
       base_type{resource_map, method_map, flags},
       router_mutex_{mutex},
-      connection_{std::move(socket), static_cast<base::strand_stream&>(*this)},
       timer_{static_cast<base::strand_stream&>(*this), (time_point_type::max)()},
+      connection_{std::move(socket), static_cast<base::strand_stream&>(*this)},
       buffer_{std::move(buffer)},
       queue_{*this}
 {
@@ -191,8 +191,8 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
     : base::strand_stream{socket.get_executor()},
       base_type{resource_map, method_map, flags},
       router_mutex_{mutex},
-      connection_{std::move(socket), static_cast<base::strand_stream&>(*this)},
       timer_{static_cast<base::strand_stream&>(*this), (time_point_type::max)()},
+      connection_{std::move(socket), static_cast<base::strand_stream&>(*this)},
       on_error_{std::forward<_OnError>(on_error)},
       buffer_{std::move(buffer)},
       queue_{*this}
@@ -218,8 +218,8 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
     : base::strand_stream{socket.get_executor()},
       base_type{resource_map, method_map, flags},
       router_mutex_{mutex},
-      connection_{std::move(socket), static_cast<base::strand_stream&>(*this)},
       timer_{static_cast<base::strand_stream&>(*this), (time_point_type::max)()},
+      connection_{std::move(socket), static_cast<base::strand_stream&>(*this)},
       on_error_{std::forward<_OnError>(on_error)},
       on_timer_{std::forward<_OnTimer>(on_timer)},
       buffer_{std::move(buffer)},

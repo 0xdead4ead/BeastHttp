@@ -11,8 +11,9 @@ template<class Protocol,
 connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::connection(
         socket_type&& socket,
         const CompletionExecutor& completion_executor)
-    : base_connection{completion_executor},
-      base_socket{std::move(socket)}
+    : base_socket{std::move(socket)},
+      base_connection{completion_executor}
+
 {
 }
 
