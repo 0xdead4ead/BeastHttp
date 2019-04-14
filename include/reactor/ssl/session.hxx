@@ -7,6 +7,7 @@
 #include <base/timer.hxx>
 #include <base/regex.hxx>
 #include <base/strand_stream.hxx>
+#include <base/lockable.hxx>
 
 #include <shared/ssl/connection.hxx>
 
@@ -20,6 +21,7 @@
                router.resource_map(), \
                router.method_map(), \
                router.regex_flags(), \
+               &router.mutex(), \
                std::declval<buffer_type>(), \
                std::declval<_OnAction>()...)
 
@@ -29,6 +31,7 @@
                std::declval<std::shared_ptr<resource_map_type>>(), \
                std::declval<std::shared_ptr<method_map_type>>(), \
                std::declval<regex_flag_type>(), \
+               std::declval<mutex_type*>(), \
                std::declval<buffer_type>(), \
                std::declval<_OnAction>()...)
 
@@ -79,6 +82,8 @@ public:
     using resource_type = boost::beast::string_view;
 
     using method_type = boost::beast::http::verb;
+
+    using mutex_type = base::lockable::mutex_type;
 
     using body_type = Body;
 
@@ -213,6 +218,7 @@ public:
               std::shared_ptr<resource_map_type> const&,
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
+              mutex_type*,
               buffer_type&&,
               _OnHandshake&&,
               typename std::enable_if<
@@ -226,6 +232,7 @@ public:
               std::shared_ptr<resource_map_type> const&,
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
+              mutex_type*,
               buffer_type&&,
               _OnHandshake&&,
               _OnError&&,
@@ -243,6 +250,7 @@ public:
               std::shared_ptr<resource_map_type> const&,
               std::shared_ptr<method_map_type> const&,
               regex_flag_type,
+              mutex_type*,
               buffer_type&&,
               _OnHandshake&&,
               _OnError&&,
@@ -311,6 +319,8 @@ public:
         get_asio_ssl_stream();
 
         bool eof_ = false;
+
+        mutex_type* router_mutex_;
 
         on_handshake_type on_handshake_;
         on_error_type on_error_;

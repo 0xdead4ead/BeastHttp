@@ -23,6 +23,8 @@ router<Session>::add_resource_cb(
     if (path_to_resource.empty()) // can not place callback with empty regex
         return;
 
+    auto const& dummy = base::lockable::enter_to_write(mutex_);
+
     if (not method_map_)
         method_map_ = std::make_shared<method_map_type>();
 
@@ -54,6 +56,8 @@ router<Session>::add_resource_cb_without_method(
     if (path_to_resource.empty()) // can not place callback with empty regex
         return;
 
+    auto const& dummy = base::lockable::enter_to_write(mutex_);
+
     if (not resource_map_)
         resource_map_ = std::make_shared<resource_map_type>();
 
@@ -74,6 +78,8 @@ void
 router<Session>::use(resource_regex_type const& path_to_resource,
                      self_type const& other)
 {
+    auto const& dummy = base::lockable::enter_to_read(other.mutex());
+
     if (other.resource_map_)
         for (const auto& value : *other.resource_map_) {
             auto storage = *value.second;
@@ -117,6 +123,13 @@ std::shared_ptr<typename router<Session>::method_map_type> const&
 router<Session>::method_map() const
 {
     return method_map_;
+}
+
+template<class Session>
+typename router<Session>::mutex_type&
+router<Session>::mutex() const
+{
+    return const_cast<mutex_type&>(mutex_);
 }
 
 template<class Session>

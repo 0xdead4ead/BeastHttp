@@ -2,6 +2,7 @@
 #define BEASTHTTP_BASE_ROUTER_HXX
 
 #include <base/traits.hxx>
+#include <base/lockable.hxx>
 
 #include <memory>
 
@@ -23,6 +24,8 @@ class router
 protected:
 
     using session_type = Session;
+
+    using mutex_type = base::lockable::mutex_type;
 
     using storage_type = typename session_type::storage_type;
 
@@ -78,6 +81,9 @@ public:
     std::shared_ptr<method_map_type> const&
     method_map() const;
 
+    mutex_type&
+    mutex() const;
+
     template<class DerivedRouter, class Pack>
     auto
     param(DerivedRouter& router, typename regex_type::flag_type flags)
@@ -87,6 +93,8 @@ private:
 
     resource_regex_type
     concat(const resource_regex_type&, const resource_regex_type&);
+
+    mutable mutex_type mutex_;
 
     std::shared_ptr<resource_map_type>& resource_map_;
     std::shared_ptr<method_map_type>& method_map_;

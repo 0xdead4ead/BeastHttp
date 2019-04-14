@@ -237,6 +237,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         std::shared_ptr<resource_map_type> const& resource_map,
         std::shared_ptr<method_map_type> const& method_map,
         regex_flag_type flags,
+        mutex_type* mutex,
         buffer_type&& buffer,
         _OnHandshake&& on_handshake,
         typename std::enable_if<
@@ -244,6 +245,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         void(context_type)>::value, int>::type)
     : base::strand_stream{socket.get_executor()},
       base_type{resource_map, method_map, flags},
+      router_mutex_{mutex},
       connection_{std::move(socket), ctx, static_cast<base::strand_stream&>(*this)},
       timer_{static_cast<base::strand_stream&>(*this), (time_point_type::max)()},
       on_handshake_{std::forward<_OnHandshake>(on_handshake)},
@@ -260,6 +262,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         std::shared_ptr<resource_map_type> const& resource_map,
         std::shared_ptr<method_map_type> const& method_map,
         regex_flag_type flags,
+        mutex_type* mutex,
         buffer_type&& buffer,
         _OnHandshake&& on_handshake,
         _OnError&& on_error,
@@ -271,6 +274,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
              boost::string_view)>::value, int>::type)
     : base::strand_stream{socket.get_executor()},
       base_type{resource_map, method_map, flags},
+      router_mutex_{mutex},
       connection_{std::move(socket), ctx, static_cast<base::strand_stream&>(*this)},
       timer_{static_cast<base::strand_stream&>(*this), (time_point_type::max)()},
       on_handshake_{std::forward<_OnHandshake>(on_handshake)},
@@ -288,6 +292,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         std::shared_ptr<resource_map_type> const& resource_map,
         std::shared_ptr<method_map_type> const& method_map,
         regex_flag_type flags,
+        mutex_type* mutex,
         buffer_type&& buffer,
         _OnHandshake&& on_handshake,
         _OnError&& on_error, _OnTimer&& on_timer,
@@ -301,6 +306,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         void(context_type)>::value, int>::type)
     : base::strand_stream{socket.get_executor()},
       base_type{resource_map, method_map, flags},
+      router_mutex_{mutex},
       connection_{std::move(socket), ctx, static_cast<base::strand_stream&>(*this)},
       timer_{static_cast<base::strand_stream&>(*this), (time_point_type::max)()},
       on_handshake_{std::forward<_OnHandshake>(on_handshake)},
@@ -525,7 +531,10 @@ BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 void
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_process_request()
 {
-    this->provide(request_, *this);
+    {
+        auto const& dummy = base::lockable::enter_to_read(*router_mutex_);
+        this->provide(request_, *this);
+    }
 
     if (not queue_.is_full() and connection_.stream().next_layer().is_open())
         recv();
@@ -559,7 +568,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
 {
     return std::make_shared<flesh_type>(
                 ctx, std::move(socket), router.resource_map(), router.method_map(), router.regex_flags(),
-                std::move(buffer), std::forward<_OnAction>(on_action)...)
+                &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
             ->handshake();
 }
 
@@ -590,7 +599,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
 {
     return std::make_shared<flesh_type>(
                 ctx, std::move(socket), router.resource_map(), router.method_map(), router.regex_flags(),
-                std::move(buffer), std::forward<_OnAction>(on_action)...)
+                &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
             ->handshake(timeOrDuration);
 }
 
@@ -619,7 +628,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::force_eof(
         std::declval<flesh_type&>())
 {
     buffer_type buffer;
-    return flesh_type(ctx, std::move(socket), {}, {}, {}, std::move(buffer),
+    return flesh_type(ctx, std::move(socket), {}, {}, {}, {}, std::move(buffer),
                       std::forward<_OnAction>(on_action)...).force_eof();
 }
 
@@ -633,7 +642,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::force_cls(
         std::declval<flesh_type&>())
 {
     buffer_type buffer;
-    return flesh_type(ctx, std::move(socket), {}, {}, {}, std::move(buffer),
+    return flesh_type(ctx, std::move(socket), {}, {}, {}, {}, std::move(buffer),
                       std::forward<_OnAction>(on_action)...).force_cls();
 }
 
