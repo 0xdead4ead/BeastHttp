@@ -413,39 +413,6 @@ template<class R, class X>
 struct has_regex_flag_type_cxx11 : try_invoke_cxx11<R, has_regex_flag_type_helper, X>
 {
 };
-
-struct has_resource_map_member_helper
-{
-    template<class X>
-    auto operator()(X&&) -> decltype (std::declval<X>().resource_map());
-};
-
-template<class R, class X>
-struct has_resource_map_member_cxx11 : try_invoke_cxx11<R, has_resource_map_member_helper, X>
-{
-};
-
-struct has_method_map_member_helper
-{
-    template<class X>
-    auto operator()(X&&) -> decltype (std::declval<X>().method_map());
-};
-
-template<class R, class X>
-struct has_method_map_member_cxx11 : try_invoke_cxx11<R, has_method_map_member_helper, X>
-{
-};
-
-struct has_regex_flags_member_helper
-{
-    template<class X>
-    auto operator()(X&&) -> decltype (std::declval<X>().regex_flags());
-};
-
-template<class R, class X>
-struct has_regex_flags_member_cxx11 : try_invoke_cxx11<R, has_regex_flags_member_helper, X>
-{
-};
 #else
 template <class R, class F>
 struct validity_checker
@@ -675,30 +642,6 @@ constexpr auto hasRegexFlagType(X&& x)
                 [](auto&& x) -> typename std::decay_t<decltype (x)>::regex_flag_type {})
             (std::forward<X>(x));
 }
-
-template<class R, class X>
-constexpr auto hasResourceMapMember(X&& x)
-{
-    return detail::isValid<R>(
-                [](auto&& x) -> decltype (std::declval<decltype (x)>().resource_map()) {})
-            (std::forward<X>(x));
-}
-
-template<class R, class X>
-constexpr auto hasMethodMapMember(X&& x)
-{
-    return detail::isValid<R>(
-                [](auto&& x) -> decltype (std::declval<decltype (x)>().method_map()) {})
-            (std::forward<X>(x));
-}
-
-template<class R, class X>
-constexpr auto hasRegexFlagsMember(X&& x)
-{
-    return detail::isValid<R>(
-                [](auto&& x) -> decltype (std::declval<decltype (x)>().regex_flags()) {})
-            (std::forward<X>(x));
-}
 #else
 template<class R, class F, class... Args>
 constexpr auto tryInvoke(F&&, Args&&...) -> decltype (
@@ -803,18 +746,6 @@ constexpr auto hasRegexType(X&&)
 template<class R, class X>
 constexpr auto hasRegexFlagType(X&&)
 -> decltype (detail::has_regex_flag_type_cxx11<R, X>{});
-
-template<class R, class X>
-constexpr auto hasResourceMapMember(X&&)
--> decltype (detail::has_resource_map_member_cxx11<R, X>{});
-
-template<class R, class X>
-constexpr auto hasMethodMapMember(X&&)
--> decltype (detail::has_method_map_member_cxx11<R, X>{});
-
-template<class R, class X>
-constexpr auto hasRegexFlagsMember(X&&)
--> decltype (detail::has_regex_flags_member_cxx11<R, X>{});
 #endif // not defined BEASTHTTP_CXX11_TRAITS
 
 template<class, class>
@@ -974,15 +905,6 @@ using Get = detail::typelist::get<TypeList, Index>;
 
 template<class... Bn>
 using Conjunction = detail::conjunction<Bn...>;
-
-template<class X, class R>
-using HasResourceMapMember = decltype (hasResourceMapMember<R>(std::declval<X>()));
-
-template<class X, class R>
-using HasMethodMapMember = decltype (hasMethodMapMember<R>(std::declval<X>()));
-
-template<class X, class R>
-using HasRegexFlagsMember = decltype (hasRegexFlagsMember<R>(std::declval<X>()));
 
 } // namespace traits
 } // namespace base
