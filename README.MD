@@ -44,7 +44,9 @@ Creating a new callback functions storage and route path for GET request with "/
 
 ```cpp
 
-    http::basic_router<HttpSession> router{boost::regex::ECMAScript};
+    static const boost::regex::flag_type regex_flags = boost::regex::ECMAScript;
+
+    http::basic_router<HttpSession> router{regex_flags};
 
     router.get("^/$", [](auto request, auto context) {
         context.send(make_response(request, "MAIN PAGE\n"));
@@ -79,16 +81,14 @@ Getting a parameter from a URI. Request send example `curl localhost --request '
 
     using pack = http::param::pack<int>;
 
-    router.param<pack>()
-            .get("^/user/param[?]y=(\\d+)$", 
+    router.param<pack>().get("^/user/param[?]y=(\\d+)$", 
        [](auto /*request*/, auto /*context*/, auto args){
         assert(std::get<0>(args) == 1992);
     });
 
     // or
 
-    router.param<pack>()
-            .get("^/user/param[?]y=(\\d+)$",
+    router.param<pack>().get("^/user/param[?]y=(\\d+)$",
        [](auto /*request*/, auto /*context*/, auto _1x, auto /*args*/){
         // process /user
         std::next(_1x)();
@@ -120,7 +120,7 @@ Create modular, mounted route handlers:
 
 ```cpp
 
-    http::basic_router<HttpSession> animals{boost::regex::ECMAScript};
+    http::basic_router<HttpSession> animals{regex_flags};
 
     animals.get("^/cat$", [](auto request, auto context){ // '/animals/cat'
         context.send(make_response(request, "me-ow\n"));
@@ -146,7 +146,7 @@ Create handlers routes, forming a chain, for the route path:
 
 ```cpp
 
-    http::chain_router<HttpSession> books{boost::regex::ECMAScript};
+    http::chain_router<HttpSession> books{regex_flags};
 
     books.route("^/book$")
             .get([](auto request, auto context) {
