@@ -3,6 +3,8 @@
 
 #include <base/traits.hxx>
 
+#include <boost/system/error_code.hpp>
+
 namespace _0xdead4ead {
 namespace http {
 namespace base {
@@ -42,6 +44,12 @@ public:
     template<class F>
     void
     async_wait(F&&);
+
+    boost::system::error_code
+    wait();
+
+    boost::system::error_code
+    cancel();
 
 private:
 

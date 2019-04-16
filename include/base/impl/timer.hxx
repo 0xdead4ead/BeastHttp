@@ -8,8 +8,7 @@ namespace http {
 namespace base {
 
 template<class Clock,
-         template<typename, typename...> class Timer,
-         class CompletionExecutor>
+         template<typename, typename...> class Timer, class CompletionExecutor>
 template<class TimePointOrDuration>
 timer<Clock, Timer, CompletionExecutor>::timer(
         const CompletionExecutor& completion_executor,
@@ -20,8 +19,7 @@ timer<Clock, Timer, CompletionExecutor>::timer(
 }
 
 template<class Clock,
-         template<typename, typename...> class Timer,
-         class CompletionExecutor>
+         template<typename, typename...> class Timer, class CompletionExecutor>
 typename timer<Clock, Timer, CompletionExecutor>::timer_type&
 timer<Clock, Timer, CompletionExecutor>::stream()
 {
@@ -38,6 +36,30 @@ timer<Clock, Timer, CompletionExecutor>::async_wait(F&& f)
     timer_.async_wait(
                 boost::asio::bind_executor(
                     completion_executor_, std::forward<F>(f)));
+}
+
+template<class Clock,
+         template<typename, typename...> class Timer, class CompletionExecutor>
+boost::system::error_code
+timer<Clock, Timer, CompletionExecutor>::wait()
+{
+    auto ec = boost::system::error_code{};
+
+    timer_.wait(ec);
+
+    return ec;
+}
+
+template<class Clock,
+         template<typename, typename...> class Timer, class CompletionExecutor>
+boost::system::error_code
+timer<Clock, Timer, CompletionExecutor>::cancel()
+{
+    auto ec = boost::system::error_code{};
+
+    timer_.cancel(ec);
+
+    return ec;
 }
 
 } // namespace base
