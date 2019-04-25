@@ -11,4 +11,4 @@ set(SRCS main.cxx)
 
 add_executable(${BEASTHTTP_EXAMPLE_NAME} ${SRCS})
 
-target_link_libraries(${BEASTHTTP_EXAMPLE_NAME} Boost::system Boost::thread Boost::regex pthread icui18n)
+target_link_libraries(${BEASTHTTP_EXAMPLE_NAME} Boost::system Boost::thread Boost::regex pthread)
