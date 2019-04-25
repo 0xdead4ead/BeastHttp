@@ -29,7 +29,6 @@ set(BEASTHTTP_EXAMPLES_DIR ${PROJECT_SOURCE_DIR}/examples)
 set(BEASTHTTP_TESTS_DIR ${PROJECT_SOURCE_DIR}/tests)
 
 add_subdirectory("${BEASTHTTP_EXAMPLES_DIR}/reactor")
-add_subdirectory("${BEASTHTTP_EXAMPLES_DIR}/reactor_extented")
 add_subdirectory("${BEASTHTTP_EXAMPLES_DIR}/reactor_ssl")
 add_subdirectory("${BEASTHTTP_EXAMPLES_DIR}/reactor_cxx11")
 add_subdirectory("${BEASTHTTP_EXAMPLES_DIR}/reactor_timers")
