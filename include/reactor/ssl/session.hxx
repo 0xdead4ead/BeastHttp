@@ -196,6 +196,26 @@ public:
         flesh&
         send(response_type<_OtherBody>&&, time_point_type const);
 
+        template<class _OtherBody>
+        flesh&
+        push(response_type<_OtherBody>&);
+
+        template<class _OtherBody>
+        flesh&
+        push(response_type<_OtherBody>&&);
+
+        flesh&
+        wait();
+
+        flesh&
+        wait(duration_type const);
+
+        flesh&
+        wait(time_point_type const);
+
+        flesh&
+        timer_cancel();
+
         flesh&
         eof();
 
@@ -291,6 +311,10 @@ public:
         void
         do_write(response_type<_OtherBody>&);
 
+        template<class _OtherBody>
+        void
+        do_push(response_type<_OtherBody>&);
+
         void
         do_read();
 
@@ -317,6 +341,9 @@ public:
 
         ssl_stream_type&
         get_asio_ssl_stream();
+
+        void
+        do_timer_cancel();
 
         bool eof_ = false;
 
@@ -346,6 +373,12 @@ public:
         context(Flesh& flesh)
             : flesh_{flesh}
         {}
+
+        std::shared_ptr<Flesh>
+        shared_ptr()
+        {
+            return flesh_.shared_from_this();
+        }
 
         socket_type&
         asio_socket()
@@ -437,6 +470,56 @@ public:
              time_point_type const time_point) const &
         {
             flesh_.send(std::move(response), time_point);
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        template<class _OtherBody>
+        context&
+        push(response_type<_OtherBody>& response) const &
+        {
+            flesh_.push(response);
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        template<class _OtherBody>
+        context&
+        push(response_type<_OtherBody>&& response) const &
+        {
+            flesh_.push(std::move(response));
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        context&
+        wait() const &
+        {
+            flesh_.wait();
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        context&
+        wait(duration_type const duration) const &
+        {
+            flesh_.wait(duration);
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        context&
+        wait(time_point_type const time_point) const &
+        {
+            flesh_.wait(time_point);
+            return const_cast<typename std::add_lvalue_reference<
+                    context>::type>(*this);
+        }
+
+        context&
+        timer_cancel()
+        {
+            flesh_.timer_cancel();
             return const_cast<typename std::add_lvalue_reference<
                     context>::type>(*this);
         }

@@ -139,21 +139,85 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class _OtherBody>
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::eof()
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::push(
+        response_type<_OtherBody>& response)
 {
-    do_eof();
+    do_push(response);
+
+    return *this;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class _OtherBody>
+typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::push(
+        response_type<_OtherBody>&& response)
+{
+    auto response_{std::move(response)};
+
+    do_push(response_);
 
     return *this;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::wait()
+{
+    timer_.stream().expires_at((time_point_type::max)());
+
+    do_launch_timer();
+
+    return *this;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::wait(
+        duration_type const duration)
+{
+    timer_.stream().expires_after(duration);
+
+    do_launch_timer();
+
+    return *this;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::wait(
+        time_point_type const time_point)
+{
+    timer_.stream().expires_at(time_point);
+
+    do_launch_timer();
+
+    return *this;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::timer_cancel()
+{
+    do_timer_cancel();
+
+    return *this;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+void
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::eof()
+{
+    do_eof();
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+void
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::cls()
 {
     do_cls();
-
-    return *this;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -317,6 +381,22 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_write(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class _OtherBody>
+void
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_push(
+        response_type<_OtherBody>& response)
+{
+    auto ec = connection_.write(response);
+
+    if (ec) {
+        if (on_error_)
+            on_error_(ec, "write/do_push");
+
+        return;
+    }
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 void
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_read()
 {
@@ -397,17 +477,32 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::get_asio_socket()
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+void
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_timer_cancel()
+{
+    auto ec = timer_.cancel();
+
+    if (ec) {
+        if (on_error_)
+            on_error_(ec, "cancel/do_timer_cancel");
+
+        return;
+    }
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Router, class... _OnAction>
 auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
      Router const& router, buffer_type&& buffer, _OnAction&&... on_action) -> decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
-        std::declval<flesh_type&>())
+        std::declval<context_type>())
 {
-    return std::make_shared<flesh_type>(
-                std::move(socket), router.resource_map(), router.method_map(),
-                router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
-            ->recv();
+    context_type ctx_{std::make_shared<flesh_type>(
+                    std::move(socket), router.resource_map(), router.method_map(),
+                    router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
+                ->recv()};
+    return std::move(ctx_);
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -416,7 +511,7 @@ auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
      Router const& router, _OnAction&&... on_action) -> decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
-        std::declval<flesh_type&>())
+        std::declval<context_type>())
 {
     buffer_type buffer;
     return recv(std::move(socket), router, std::move(buffer), std::forward<_OnAction>(on_action)...);
@@ -430,12 +525,14 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
      buffer_type&& buffer, _OnAction&&... on_action) -> decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
             std::declval<Router const&>()).recv(std::declval<TimePointOrDuration>()),
-        std::declval<flesh_type&>())
+        std::declval<context_type>())
 {
-    return std::make_shared<flesh_type>(
-                std::move(socket), router.resource_map(), router.method_map(),
-                router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
-            ->recv(timeOrDuration);
+    context_type ctx_{std::make_shared<flesh_type>(
+                    std::move(socket), router.resource_map(), router.method_map(),
+                    router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
+                ->recv(timeOrDuration)};
+
+    return std::move(ctx_);
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -446,7 +543,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
      _OnAction&&... on_action) -> decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
             std::declval<Router const&>()).recv(std::declval<TimePointOrDuration>()),
-        std::declval<flesh_type&>())
+        std::declval<context_type>())
 {
     buffer_type buffer;
     return recv(std::move(socket), router, timeOrDuration,
@@ -461,12 +558,14 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
      _OnAction&&... on_action) -> decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
             std::declval<Router const&>()).send(std::declval<Response>()),
-        std::declval<flesh_type&>())
+        std::declval<context_type>())
 {
-    return std::make_shared<flesh_type>(
-                std::move(socket), router.resource_map(), router.method_map(),
-                router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
-            ->send(std::forward<Response>(response));
+    context_type ctx_{std::make_shared<flesh_type>(
+                    std::move(socket), router.resource_map(), router.method_map(),
+                    router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
+                ->send(std::forward<Response>(response))};
+
+    return std::move(ctx_);
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -476,7 +575,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
      Response&& response, Router const& router, _OnAction&&... on_action) -> decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
             std::declval<Router const&>()).send(std::declval<Response>()),
-        std::declval<flesh_type&>())
+        std::declval<context_type>())
 {
     buffer_type buffer;
     return send(std::move(socket), std::forward<Response>(response), router,
@@ -491,12 +590,14 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
      buffer_type&& buffer, _OnAction&&... on_action) -> decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
             std::declval<Router const&>()).send(std::declval<Response>(), std::declval<TimePointOrDuration>()),
-        std::declval<flesh_type&>())
+        std::declval<context_type>())
 {
-    return std::make_shared<flesh_type>(
-                std::move(socket), router.resource_map(), router.method_map(),
-                router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
-            ->send(std::forward<Response>(response), timeOrDuration);
+    context_type ctx_{std::make_shared<flesh_type>(
+                    std::move(socket), router.resource_map(), router.method_map(),
+                    router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
+                ->send(std::forward<Response>(response), timeOrDuration)};
+
+    return std::move(ctx_);
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -507,7 +608,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
      _OnAction&&... on_action) -> decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
             std::declval<Router const&>()).send(std::declval<Response>(), std::declval<TimePointOrDuration>()),
-        std::declval<flesh_type&>())
+        std::declval<context_type>())
 {
     buffer_type buffer;
     return send(std::move(socket), std::forward<Response>(response), router,
@@ -515,12 +616,72 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Router, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
+     Router const& router, buffer_type&& buffer, _OnAction&&... on_action) -> decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+        std::declval<context_type>())
+{
+    context_type ctx_{std::make_shared<flesh_type>(
+                    std::move(socket), router.resource_map(), router.method_map(),
+                    router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
+                ->wait()};
+
+    return std::move(ctx_);
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Router, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
+     Router const& router, _OnAction&&... on_action) -> decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+        std::declval<context_type>())
+{
+    buffer_type buffer;
+    return wait(std::move(socket), router, std::move(buffer), std::forward<_OnAction>(on_action)...);
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Router, class TimePointOrDuration, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
+     Router const& router, TimePointOrDuration const timeOrDuration,
+     buffer_type&& buffer, _OnAction&&... on_action) -> decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+            std::declval<Router const&>()).wait(std::declval<TimePointOrDuration>()),
+        std::declval<context_type>())
+{
+    context_type ctx_{std::make_shared<flesh_type>(
+                    std::move(socket), router.resource_map(), router.method_map(),
+                    router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
+                ->wait(timeOrDuration)};
+
+    return std::move(ctx_);
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Router, class TimePointOrDuration, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
+     Router const& router, TimePointOrDuration const timeOrDuration,
+     _OnAction&&... on_action) -> decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+            std::declval<Router const&>()).wait(std::declval<TimePointOrDuration>()),
+        std::declval<context_type>())
+{
+    buffer_type buffer;
+    return wait(std::move(socket), router, timeOrDuration,
+                std::move(buffer), std::forward<_OnAction>(on_action)...);
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class... _OnAction>
 auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::eof(socket_type&& socket,
     _OnAction&&... on_action) -> decltype (
-        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY(),
-        std::declval<flesh_type&>())
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY(), void())
 {
     buffer_type buffer;
     return flesh_type(std::move(socket), {}, {}, {}, {}, std::move(buffer),
@@ -532,8 +693,7 @@ template<class... _OnAction>
 auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::cls(socket_type&& socket,
     _OnAction&&... on_action) -> decltype (
-        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY(),
-        std::declval<flesh_type&>())
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY(), void())
 {
     buffer_type buffer;
     return flesh_type(std::move(socket), {}, {}, {}, {}, std::move(buffer),

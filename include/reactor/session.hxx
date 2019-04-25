@@ -61,16 +61,20 @@ class session
 {
     using self_type = session;
 
+    enum class context_policy { shared, weak };
+
 public:
 
-    template<class>
+    template<class, context_policy>
     class context;
 
     class flesh;
 
     using flesh_type = flesh;
 
-    using context_type = context<flesh_type>;
+    using context_type = context<flesh_type, context_policy::shared>;
+
+    using weak_context = context<flesh_type, context_policy::weak>;
 
     using resource_regex_type = std::string;
 
@@ -172,10 +176,30 @@ public:
         flesh&
         send(response_type<_OtherBody>&&, time_point_type const);
 
+        template<class _OtherBody>
         flesh&
-        eof();
+        push(response_type<_OtherBody>&);
+
+        template<class _OtherBody>
+        flesh&
+        push(response_type<_OtherBody>&&);
 
         flesh&
+        wait();
+
+        flesh&
+        wait(duration_type const);
+
+        flesh&
+        wait(time_point_type const);
+
+        flesh&
+        timer_cancel();
+
+        void
+        eof();
+
+        void
         cls();
 
         explicit
@@ -232,6 +256,10 @@ public:
         void
         do_write(response_type<_OtherBody>&);
 
+        template<class _OtherBody>
+        void
+        do_push(response_type<_OtherBody>&);
+
         void
         do_read();
 
@@ -253,6 +281,9 @@ public:
         socket_type&
         get_asio_socket();
 
+        void
+        do_timer_cancel();
+
         mutex_type* router_mutex_;
 
         timer_type timer_;
@@ -268,189 +299,275 @@ public:
 
     }; // class flesh
 
-    template<class Flesh>
+    template<class Flesh, context_policy policy>
     class context
     {
-        Flesh& flesh_;
+        std::shared_ptr<Flesh> flesh_p_;
+
+        bool
+        isOk()
+        {
+            return flesh_p_.operator bool();
+        }
 
     public:
 
         context(Flesh& flesh)
-            : flesh_{flesh}
+            : flesh_p_{flesh.shared_from_this()}
         {
+        }
+
+        static context<Flesh, context_policy::shared>
+        save(context<Flesh, context_policy::shared> other, bool& is_ok)
+        {
+            is_ok = other.isOk();
+
+            return other;
+        }
+
+        context<Flesh, context_policy::weak>
+        weak()
+        {
+            return context<Flesh, context_policy::weak>(flesh_p_);
         }
 
         socket_type&
         asio_socket()
         {
-            return flesh_.asio_socket();
+            return flesh_p_->asio_socket();
         }
 
-        context&
+        void
         recv() const &
         {
-            flesh_.recv();
-            return const_cast<typename std::add_lvalue_reference<
-                    context>::type>(*this);
+            flesh_p_->recv();
         }
 
-        context&
+        void
         recv(duration_type const duration) const &
         {
-            flesh_.recv(duration);
-            return const_cast<typename std::add_lvalue_reference<
-                    context>::type>(*this);
+            flesh_p_->recv(duration);
         }
 
-        context&
+        void
         recv(time_point_type const time_point) const &
         {
-            flesh_.recv(time_point);
-            return const_cast<typename std::add_lvalue_reference<
-                    context>::type>(*this);
+            flesh_p_->recv(time_point);
         }
 
         template<class _OtherBody>
-        context&
+        void
         send(response_type<_OtherBody>& response) const &
         {
-            flesh_.send(response);
-            return const_cast<typename std::add_lvalue_reference<
-                    context>::type>(*this);
+            flesh_p_->send(response);
         }
 
         template<class _OtherBody>
-        context&
+        void
         send(response_type<_OtherBody>&& response) const &
         {
-            flesh_.send(std::move(response));
-            return const_cast<typename std::add_lvalue_reference<
-                    context>::type>(*this);
+            flesh_p_->send(std::move(response));
         }
 
         template<class _OtherBody>
-        context&
+        void
         send(response_type<_OtherBody>& response,
              duration_type const duration) const &
         {
-            flesh_.send(response, duration);
-            return const_cast<typename std::add_lvalue_reference<
-                    context>::type>(*this);
+            flesh_p_->send(response, duration);
         }
 
         template<class _OtherBody>
-        context&
+        void
         send(response_type<_OtherBody>&& response,
              duration_type const duration) const &
         {
-            flesh_.send(std::move(response), duration);
-            return const_cast<typename std::add_lvalue_reference<
-                    context>::type>(*this);
+            flesh_p_->send(std::move(response), duration);
         }
 
         template<class _OtherBody>
-        context&
+        void
         send(response_type<_OtherBody>& response,
              time_point_type const time_point) const &
         {
-            flesh_.send(response, time_point);
-            return const_cast<typename std::add_lvalue_reference<
-                    context>::type>(*this);
+            flesh_p_->send(response, time_point);
         }
 
         template<class _OtherBody>
-        context&
+        void
         send(response_type<_OtherBody>&& response,
              time_point_type const time_point) const &
         {
-            flesh_.send(std::move(response), time_point);
-            return const_cast<typename std::add_lvalue_reference<
-                    context>::type>(*this);
+            flesh_p_->send(std::move(response), time_point);
         }
 
-        context&
+        template<class _OtherBody>
+        void
+        push(response_type<_OtherBody>& response) const &
+        {
+            flesh_p_->push(response);
+        }
+
+        template<class _OtherBody>
+        void
+        push(response_type<_OtherBody>&& response) const &
+        {
+            flesh_p_->push(std::move(response));
+        }
+
+        void
+        wait() const &
+        {
+            flesh_p_->wait();
+        }
+
+        void
+        wait(duration_type const duration) const &
+        {
+            flesh_p_->wait(duration);
+        }
+
+        void
+        wait(time_point_type const time_point) const &
+        {
+            flesh_p_->wait(time_point);
+        }
+
+        void
+        timer_cancel()
+        {
+            flesh_p_->timer_cancel();
+        }
+
+        void
         eof() const &
         {
-            flesh_.eof();
-            return const_cast<typename std::add_lvalue_reference<
-                    context>::type>(*this);
+            flesh_p_->eof();
         }
 
-        context&
+        void
         cls() const &
         {
-            flesh_.cls();
-            return const_cast<typename std::add_lvalue_reference<
-                    context>::type>(*this);
+            flesh_p_->cls();
         }
 
-    }; // class context
+    }; // class context<Flesh, context_policy::shared>
+
+    template<class Flesh>
+    class context<Flesh, context_policy::weak>
+    {
+        std::weak_ptr<Flesh> flesh_p_;
+
+    public:
+
+        context(std::shared_ptr<Flesh> flesh_p)
+            : flesh_p_{flesh_p}
+        {
+        }
+
+        bool
+        expired() const
+        {
+            return flesh_p_.expired();
+        }
+
+        context<Flesh, context_policy::shared>
+        load() const
+        {
+            return context<Flesh, context_policy::shared>(flesh_p_.lock());
+        }
+
+    }; // class context<Flesh, context_policy::weak>
 
     template<class Router, class... _OnAction>
     static auto
     recv(socket_type&&, Router const&, buffer_type&&, _OnAction&&...) -> decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
-            std::declval<flesh_type&>());
+            std::declval<context_type>());
 
     template<class Router, class... _OnAction>
     static auto
     recv(socket_type&&, Router const&, _OnAction&&...) -> decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
-            std::declval<flesh_type&>());
+            std::declval<context_type>());
 
     template<class Router, class TimePointOrDuration, class... _OnAction>
     static auto
     recv(socket_type&&, Router const&, TimePointOrDuration const, buffer_type&&, _OnAction&&...) -> decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).recv(std::declval<TimePointOrDuration>()),
-            std::declval<flesh_type&>());
+            std::declval<context_type>());
 
     template<class Router, class TimePointOrDuration, class... _OnAction>
     static auto
     recv(socket_type&&, Router const&, TimePointOrDuration const, _OnAction&&...) -> decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).recv(std::declval<TimePointOrDuration>()),
-            std::declval<flesh_type&>());
+            std::declval<context_type>());
 
     template<class Router, class Response, class... _OnAction>
     static auto
     send(socket_type&&, Response&&, Router const&, buffer_type&&, _OnAction&&...) -> decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).send(std::declval<Response>()),
-            std::declval<flesh_type&>());
+            std::declval<context_type>());
 
     template<class Router, class Response, class... _OnAction>
     static auto
     send(socket_type&&, Response&&, Router const&, _OnAction&&...) -> decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).send(std::declval<Response>()),
-            std::declval<flesh_type&>());
+            std::declval<context_type>());
 
     template<class Router, class Response, class TimePointOrDuration, class... _OnAction>
     static auto
     send(socket_type&&, Response&&, Router const&, TimePointOrDuration const, buffer_type&&, _OnAction&&...) -> decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).send(std::declval<Response>(), std::declval<TimePointOrDuration>()),
-            std::declval<flesh_type&>());
+            std::declval<context_type>());
 
     template<class Router, class Response, class TimePointOrDuration, class... _OnAction>
     static auto
     send(socket_type&&, Response&&, Router const&, TimePointOrDuration const, _OnAction&&...) -> decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).send(std::declval<Response>(), std::declval<TimePointOrDuration>()),
-            std::declval<flesh_type&>());
+            std::declval<context_type>());
+
+    template<class Router, class... _OnAction>
+    static auto
+    wait(socket_type&&, Router const&, buffer_type&&, _OnAction&&...) -> decltype (
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+            std::declval<context_type>());
+
+    template<class Router, class... _OnAction>
+    static auto
+    wait(socket_type&&, Router const&, _OnAction&&...) -> decltype (
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+            std::declval<context_type>());
+
+    template<class Router, class TimePointOrDuration, class... _OnAction>
+    static auto
+    wait(socket_type&&, Router const&, TimePointOrDuration const, buffer_type&&, _OnAction&&...) -> decltype (
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+                std::declval<Router const&>()).wait(std::declval<TimePointOrDuration>()),
+            std::declval<context_type>());
+
+    template<class Router, class TimePointOrDuration, class... _OnAction>
+    static auto
+    wait(socket_type&&, Router const&, TimePointOrDuration const, _OnAction&&...) -> decltype (
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+                std::declval<Router const&>()).wait(std::declval<TimePointOrDuration>()),
+            std::declval<context_type>());
 
     template<class... _OnAction>
     static auto
     eof(socket_type&&, _OnAction&&...) -> decltype (
-            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY(),
-            std::declval<flesh_type&>());
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY(), void());
 
     template<class... _OnAction>
     static auto
     cls(socket_type&&, _OnAction&&...) -> decltype (
-            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY(),
-            std::declval<flesh_type&>());
+            BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY(), void());
 
 }; // class session
 
