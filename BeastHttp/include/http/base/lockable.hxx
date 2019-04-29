@@ -1,6 +1,8 @@
 #if not defined BEASTHTTP_BASE_LOCKABLE_HXX
 #define BEASTHTTP_BASE_LOCKABLE_HXX
 
+#include <boost/core/ignore_unused.hpp>
+
 #if __cplusplus >= 201703L
 #define BEASTHTTP_CXX17_SHARED_MUTEX
 #include <mutex>
