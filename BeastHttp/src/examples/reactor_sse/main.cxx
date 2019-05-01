@@ -76,13 +76,18 @@ int main()
     };
 
     // Timer expire handler
-    const auto& onTimer = [&](auto context) {
-        std::ostringstream os;
-        os << "event: datetime\ndata: " << boost::posix_time::second_clock::local_time() << "\n\n";
+    auto onTimer = [i = 0](auto context) mutable {
+        if (i++ < 5) {
+            std::ostringstream os;
+            os << "event: datetime\ndata: " << boost::posix_time::second_clock::local_time() << " id = " << i << "\n\n";
 
-        // Send event every 3 seconds or so forever...
-        context.push(make_200event<beast::http::string_body>(os.str(), 11));
-        context.wait(std::chrono::seconds(3));
+            // Send event every 3 seconds or so forever...
+            context.push(make_200event<beast::http::string_body>(os.str(), 11));
+            context.wait(std::chrono::seconds(3));
+            return;
+        }
+
+        context.eof();
     };
 
     // Handler incoming connections
