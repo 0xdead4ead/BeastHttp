@@ -12,25 +12,38 @@
 
 #include <thread>
 
-template<class Body>
-auto make_response(const boost::beast::http::request<Body>& req,
-                   const typename Body::value_type& user_body){
+namespace beast = boost::beast;
 
-    typename Body::value_type body(user_body);
+// Returns a success response (200)
+template<class ResponseBody, class RequestBody>
+auto make_200(const beast::http::request<RequestBody>& request,
+              typename ResponseBody::value_type body,
+              beast::string_view content)
+{
+    beast::http::response<ResponseBody> response{beast::http::status::ok, request.version()};
+    response.set(beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+    response.set(beast::http::field::content_type, content);
+    response.body() = body;
+    response.prepare_payload();
+    response.keep_alive(request.keep_alive());
 
-    auto const body_size = body.size();
+    return response;
+}
 
-    boost::beast::http::response<Body> res{
-         std::piecewise_construct,
-         std::make_tuple(std::move(body)),
-         std::make_tuple(boost::beast::http::status::ok, req.version())};
+// Returns a not found response (404)
+template<class ResponseBody, class RequestBody>
+auto make_404(const beast::http::request<RequestBody>& request,
+              typename ResponseBody::value_type body,
+              beast::string_view content)
+{
+    beast::http::response<ResponseBody> response{beast::http::status::not_found, request.version()};
+    response.set(beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+    response.set(beast::http::field::content_type, content);
+    response.body() = body;
+    response.prepare_payload();
+    response.keep_alive(request.keep_alive());
 
-    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-    res.set(boost::beast::http::field::content_type, "text/html");
-    res.content_length(body_size);
-    res.keep_alive(req.keep_alive());
-
-    return res;
+    return response;
 }
 
 static boost::asio::io_context ioc;
@@ -40,9 +53,6 @@ static boost::asio::ssl::context ctx{boost::asio::ssl::context::tlsv12};
 
 int main()
 {    
-    // root@x0x0:~# curl --insecure https://localhost:8080 --request 'GET' --cacert ./path/to/myCA.pem --cert-type PEM --tlsv1.2
-    // root@x0x0:~# curl localhost:8080 --request 'GET'
-
     // localhost.crt
     std::string const& crt =
             "-----BEGIN CERTIFICATE-----\n"
@@ -135,13 +145,12 @@ int main()
 
     // Create resource handlers
     const auto& onMainResource = [](auto request, auto context) {
-        http::out::pushn<std::ostream>(out, request);
-        context.send(make_response(request, "main page\n"));
+        // Send content message to client and wait to receive next request
+        context.send(make_200<beast::http::string_body>(request, "Main page\n", "text/html"));
     };
 
     const auto& onUnknownResource = [](auto request, auto context) {
-        http::out::pushn<std::ostream>(out, request);
-        context.send(make_response(request, "not found\n"));
+        context.send(make_404<beast::http::string_body>(request, "Resource is not found\n", "text/html"));
     };
 
     http::basic_router<HttpSession> router{boost::regex::ECMAScript};
@@ -155,15 +164,19 @@ int main()
     ssl_router.get(R"(^/$)", onMainResource);
     ssl_router.all(R"(^.*$)", onUnknownResource);
 
+    // Handshake process is success
     const auto& onHandshake = [](auto context) {
         context.recv();
     };
 
+    // Error and warning handler
     const auto& onError = [](auto code, auto from) {
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, "From:", from, "Info:", code.message());
 
-        if (code == boost::system::errc::address_in_use)
+        // I/O context will be stopped, if code value is EADDRINUSE or EACCES
+        if (code == boost::system::errc::address_in_use or
+                code == boost::system::errc::permission_denied)
             ioc.stop();
     };
 
@@ -179,6 +192,7 @@ int main()
         HttpSession::recv(std::move(socket), router, std::move(buffer), onError);
     };
 
+    // Handler incoming connections
     const auto& onAccept = [&](auto asioSocket) {
         http::out::prefix::version::time::pushn<std::ostream>(
                     out, asioSocket.remote_endpoint().address().to_string(), "connected!");
@@ -187,12 +201,15 @@ int main()
         SslDetector::async(std::move(asioSocket), onDetect, onError);
     };
 
+    // http://localhost:8080
+    // https://localhost:8080
     auto const address = boost::asio::ip::make_address("127.0.0.1");
     auto const port = static_cast<unsigned short>(8080);
 
-    // Start accepting
     http::out::prefix::version::time::pushn<std::ostream>(
-                out, "Start accepting on", address.to_string());
+                out, "Start accepting on", address.to_string() + ':' + std::to_string(port));
+
+    // Start accepting
     HttpListener::launch(ioc, {address, port}, onAccept, onError);
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
