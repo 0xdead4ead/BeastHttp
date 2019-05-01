@@ -15,6 +15,7 @@ Easy HTTP (Header-only) library implemented using minimum C++11 and Boost.Beast.
 * Pipeline request
 * Used I/O multiplexing model (Asio library implementation)
 * Timer manage (default action: Closing connection)
+* Server-Sent Events
 * Simple way to dynamic add REST resources using regex for path, and anonymous functions
 * Support accepted plain and SSL session on the same port
 
@@ -34,13 +35,14 @@ Alias's represent instances of default classes for reactive (select/epool) desig
 ```cpp
 
     using namespace _0xdead4ead;
+    namespace beast = boost::beast;
 
     using HttpSession = http::reactor::_default::session_type;
     using HttpListener = http::reactor::_default::listener_type;
 
 ```
 
-Creating a new callback functions storage and route path for GET request with "/" resource: 
+Creating a new callback functions storage and route path for GET request with "/" resource:
 
 ```cpp
 
@@ -49,16 +51,32 @@ Creating a new callback functions storage and route path for GET request with "/
     http::basic_router<HttpSession> router{regex_flags};
 
     router.get("^/$", [](auto request, auto context) {
-        context.send(make_response(request, "MAIN PAGE\n"));
+        context.send(make_200<beast::http::string_body>(request, "Main page\n", "text/html"));
     });
-    
+
+    router.all("^.*$", [](auto request, auto context) {
+        context.send(make_404<beast::http::string_body>(request, "Resource is not found\n", "text/html"));
+    });
+
     // or so ...
 
     using http::literals::operator""_get;
 
     "^/$"_get.advance(router, [](auto request, auto context) {
-        context.send(make_response(request, "MAIN PAGE\n"));
+        // as above...
     });
+
+    "^.*$"_all.advance(router, [](auto request, auto context) {
+        // as above...
+    });
+
+```
+
+
+
+```cpp
+
+
 
 ```
 
@@ -66,9 +84,9 @@ It is possible to add multiple handlers for one route. For movement on them `std
 
 ```cpp
     router.get("^/a/b$",
-       [](auto /*request*/, auto /*context*/, auto _1x){
+       [](auto /*request*/, auto /*context*/, auto iterator){
         // process /a
-        std::next(_1x)();
+        std::next(iterator)();
     }, [](auto /*request*/, auto /*context*/){
         // process /b
     });
@@ -81,7 +99,7 @@ Getting a parameter from a URI. Request send example `curl localhost --request '
 
     using pack = http::param::pack<int>;
 
-    router.param<pack>().get("^/user/param[?]y=(\\d+)$", 
+    router.param<pack>().get("^/user/param[?]y=(\\d+)$",
        [](auto /*request*/, auto /*context*/, auto args){
         assert(std::get<0>(args) == 1992);
     });
@@ -89,9 +107,9 @@ Getting a parameter from a URI. Request send example `curl localhost --request '
     // or
 
     router.param<pack>().get("^/user/param[?]y=(\\d+)$",
-       [](auto /*request*/, auto /*context*/, auto _1x, auto /*args*/){
+       [](auto /*request*/, auto /*context*/, auto iterator, auto /*args*/){
         // process /user
-        std::next(_1x)();
+        std::next(iterator)();
     }, [](auto /*request*/, auto /*context*/, auto args){
         // process /param
         assert(std::get<0>(args) == 1992);
@@ -108,8 +126,8 @@ Getting a parameter using a string literal (as above) :
     using http::literals::operator""_c;
 
     auto param = router.param<pack>();
-    
-    "^/user/param[?]y=(\\d+)$"_get.advance(std::move(param), 
+
+    "^/user/param[?]y=(\\d+)$"_get.advance(std::move(param),
        [](auto /*request*/, auto /*context*/, auto args){
         assert(value(args, 0_c) == 1992);
     });
@@ -123,19 +141,19 @@ Create modular, mounted route handlers:
     http::basic_router<HttpSession> animals{regex_flags};
 
     animals.get("^/cat$", [](auto request, auto context){ // '/animals/cat'
-        context.send(make_response(request, "me-ow\n"));
+        context.send(make_200<beast::http::string_body>(request, "me-ow\n", "text/html"));
     });
 
     animals.get("^/dog$", [](auto request, auto context){ // '/animals/dog'
-        context.send(make_response(request, "aw! aw! Rrrrr\n"));
+        context.send(make_200<beast::http::string_body>(request, "aw! aw! Rrrrr\n", "text/html"));
     });
 
     animals.get("^/mouse$", [](auto request, auto context){ // '/animals/mouse'
-        context.send(make_response(request, "...\n"));
+        context.send(make_200<beast::http::string_body>(request, "...\n", "text/html"));
     });
 
     animals.get("^[/]??$", [](auto request, auto context){ // '/animals' or '/animals/'
-        context.send(make_response(request, "animals home page\n"));
+        context.send(make_200<beast::http::string_body>(request, "animals home page\n", "text/html"));
     });
 
     router.use("^/animals$", animals);
@@ -150,20 +168,20 @@ Create handlers routes, forming a chain, for the route path:
 
     books.route("^/book$")
             .get([](auto request, auto context) {
-        context.send(make_response(request, "get a random book\n"));
+        context.send(make_200<beast::http::string_body>(request, "get a random book\n", "text/html"));
     })
             .post([](auto request, auto context) {
-        context.send(make_response(request, "add a book\n"));
+        context.send(make_200<beast::http::string_body>(request, "add a book\n", "text/html"));
     })
             .put([](auto request, auto context) {
-        context.send(make_response(request, "update the book\n"));
+        context.send(make_200<beast::http::string_body>(request, "update the book\n", "text/html"));
     });
 
     router.use("^/books$", books);
 
 ```
 
-Start listening on 127.0.0.1:80
+Start listening on 127.0.0.1:8080
 
 ```cpp
 
@@ -171,7 +189,7 @@ Start listening on 127.0.0.1:80
     static boost::asio::io_context ioc;
     static boost::asio::posix::stream_descriptor out{ioc, ::dup(STDOUT_FILENO)};
     //
-    
+
     const auto& onError = [](auto code, auto from){
         http::out::pushn<std::ostream>(
                     out, "From:", from, "Info:", code.message());
@@ -181,11 +199,11 @@ Start listening on 127.0.0.1:80
         http::out::pushn<std::ostream>(
                     out, socket.remote_endpoint().address().to_string(), "connected!");
 
-        session_type::recv(std::move(asioSocket), router, onError);
+        HttpSession::recv(std::move(asioSocket), router, onError);
     };
-    
+
     auto const address = boost::asio::ip::make_address("127.0.0.1");
-    auto const port = static_cast<unsigned short>(80);
+    auto const port = static_cast<unsigned short>(8080);
 
     HttpListener::launch(ioc, {address, port}, onAccept, onError);
 
@@ -198,7 +216,9 @@ Run the I/O service on the requested number of threads:
     std::thread t{[](){
         ioc.run();
     }};
-    
+
+    // do other work...
+
     t.join();
 
 ```
