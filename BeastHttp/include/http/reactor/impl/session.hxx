@@ -337,6 +337,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_read(
         if (on_error_)
             on_error_(ec, "async_read/on_read");
 
+        do_timer_cancel();
         return;
     }
 
@@ -354,6 +355,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_write(
         if (on_error_)
             on_error_(ec, "async_write/on_write");
 
+        do_timer_cancel();
         return;
     }
 
@@ -392,6 +394,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_push(
         if (on_error_)
             on_error_(ec, "write/do_push");
 
+        do_timer_cancel();
         return;
     }
 }
@@ -418,6 +421,8 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_eof()
     auto ec = connection_.shutdown(shutdown_type::shutdown_send);
     if (ec and on_error_)
         on_error_(ec, "shutdown/eof");
+
+    do_timer_cancel();
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -430,6 +435,8 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_cls()
     auto ec = connection_.close();
     if (ec and on_error_)
         on_error_(ec, "close/cls");
+
+    do_timer_cancel();
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -482,12 +489,8 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_timer_cancel()
 {
     auto ec = timer_.cancel();
 
-    if (ec) {
-        if (on_error_)
-            on_error_(ec, "cancel/do_timer_cancel");
-
-        return;
-    }
+    if (ec and on_error_)
+        on_error_(ec, "cancel/do_timer_cancel");
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE

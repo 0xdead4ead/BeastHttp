@@ -422,6 +422,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::on_handshake(
         if (on_error_)
             on_error_(ec, "async_handshake/on_handshake");
 
+        do_timer_cancel();
         return;
     }
 
@@ -438,10 +439,10 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::on_shutdown(
     if (ec == boost::asio::error::operation_aborted)
         return;
 
-    if (ec and on_error_) {
+    if (ec and on_error_)
         on_error_(ec, "async_shutdown/on_shutdown");
-        return;
-    }
+
+    do_timer_cancel();
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -460,6 +461,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::on_read(
         if (on_error_)
             on_error_(ec, "async_read/on_read");
 
+        do_timer_cancel();
         return;
     }
 
@@ -477,6 +479,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::on_write(
         if (on_error_)
             on_error_(ec, "async_write/on_write");
 
+        do_timer_cancel();
         return;
     }
 
@@ -537,6 +540,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_push(
         if (on_error_)
             on_error_(ec, "write/do_push");
 
+        do_timer_cancel();
         return;
     }
 }
@@ -572,6 +576,8 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_force_eof()
     auto ec = connection_.force_shutdown(shutdown_type::shutdown_send);
     if (ec and on_error_)
         on_error_(ec, "shutdown/force_eof");
+
+    do_timer_cancel();
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -584,6 +590,8 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_force_cls()
     auto ec = connection_.force_close();
     if (ec and on_error_)
         on_error_(ec, "close/force_cls");
+
+    do_timer_cancel();
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -642,12 +650,8 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_timer_cancel()
 {
     auto ec = timer_.cancel();
 
-    if (ec) {
-        if (on_error_)
-            on_error_(ec, "cancel/do_timer_cancel");
-
-        return;
-    }
+    if (ec and on_error_)
+        on_error_(ec, "cancel/do_timer_cancel");
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
