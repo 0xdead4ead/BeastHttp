@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.11)
 
 set (BEASTHTTP_VERSION_MAJOR 2)
-set (BEASTHTTP_VERSION_MINOR 1)
+set (BEASTHTTP_VERSION_MINOR 2)
 
 project(BeastHttp)
 
