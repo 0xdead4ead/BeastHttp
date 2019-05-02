@@ -21,7 +21,7 @@ Easy HTTP (Header-only) library implemented using minimum C++11 and Boost.Beast.
 
 # DEPENDENCIES
 
-* Boost Libraries >= 1.66.0v
+* Boost Libraries >= 1.67.0v
 * [`Boost.Regex`](https://github.com/boostorg/regex), [`Boost.Asio`](https://github.com/boostorg/asio), [`Boost.Beast`](https://github.com/boostorg/beast/tree/develop) & [`Boost.LexicalCast`](https://github.com/boostorg/lexical_cast) library
 * [`OpenSSL`](https://github.com/openssl/openssl) (optional)
 
