@@ -1,7 +1,7 @@
 #if not defined BEASTHTTP_BASE_IMPL_DETECTOR_HXX
 #define BEASTHTTP_BASE_IMPL_DETECTOR_HXX
 
-#include <http/base/detect_ssl.hpp>
+#include <http/base/beast/detect_ssl.hpp>
 
 #include <boost/asio/bind_executor.hpp>
 

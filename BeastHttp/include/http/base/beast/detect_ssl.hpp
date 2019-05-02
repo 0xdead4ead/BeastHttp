@@ -1,5 +1,6 @@
 //
 // Copyright (c) 2016-2017 Vinnie Falco (vinnie dot falco at gmail dot com)
+// Copyright (c) 2019 Evgeny Tixonow
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -7,118 +8,185 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
+// P.S.
+// This file has been updated to Boost.Beast version 235 for support early Boost library versions. ( >= 1.67.0 )
+
 #ifndef BOOST_BEAST_EXAMPLE_COMMON_DETECT_SSL_HPP
 #define BOOST_BEAST_EXAMPLE_COMMON_DETECT_SSL_HPP
 
-#include <boost/assert.hpp>
 #include <boost/config.hpp>
-
-//------------------------------------------------------------------------------
-//
-// Example: Detect TLS/SSL
-//
-//------------------------------------------------------------------------------
-
-//[example_core_detect_ssl_1
 
 #include <boost/beast/core.hpp>
 #include <boost/asio/coroutine.hpp>
 #include <boost/asio/executor_work_guard.hpp>
 #include <boost/logic/tribool.hpp>
 
-/** Return `true` if a buffer contains a TLS/SSL client handshake.
+//------------------------------------------------------------------------------
+//
+// Example: Detect TLS client_hello
+//
+//  This is an example and also a public interface. It implements
+//  an algorithm for determining if a "TLS client_hello" message
+//  is received. It can be used to implement a listening port that
+//  can handle both plain and TLS encrypted connections.
+//
+//------------------------------------------------------------------------------
 
-    This function returns `true` if the beginning of the buffer
-    indicates that a TLS handshake is being negotiated, and that
-    there are at least four octets in the buffer.
+//[example_core_detect_ssl_1
 
-    If the content of the buffer cannot possibly be a TLS handshake
-    request, the function returns `false`. Otherwise, if additional
-    octets are required, `boost::indeterminate` is returned.
+// By convention, the "detail" namespace means "not-public."
+// Identifiers in a detail namespace are not visible in the documentation,
+// and users should not directly use those identifiers in programs, otherwise
+// their program may break in the future.
+//
+// Using a detail namespace gives the library writer the freedom to change
+// the interface or behavior later, and maintain backward-compatibility.
 
-    @param buffer The input buffer to inspect. This type must meet
-    the requirements of @b ConstBufferSequence.
+namespace detail {
+
+/** Return `true` if the buffer contains a TLS Protocol client_hello message.
+
+    This function analyzes the bytes at the beginning of the buffer
+    and compares it to a valid client_hello message. This is the
+    message required to be sent by a client at the beginning of
+    any TLS (encrypted communication) session, including when
+    resuming a session.
+
+    The return value will be:
+
+    @li `true` if the contents of the buffer unambiguously define
+    contain a client_hello message,
+
+    @li `false` if the contents of the buffer cannot possibly
+    be a valid client_hello message, or
+
+    @li `boost::indeterminate` if the buffer contains an
+    insufficient number of bytes to determine the result. In
+    this case the caller should read more data from the relevant
+    stream, append it to the buffers, and call this function again.
+
+    @param buffers The buffer sequence to inspect.
+    This type must meet the requirements of <em>ConstBufferSequence</em>.
 
     @return `boost::tribool` indicating whether the buffer contains
     a TLS client handshake, does not contain a handshake, or needs
-    additional octets.
+    additional bytes to determine an outcome.
 
     @see
 
-    http://www.ietf.org/rfc/rfc2246.txt
-    7.4. Handshake protocol
+    <a href="https://tools.ietf.org/html/rfc2246#section-7.4">7.4. Handshake protocol</a>
+    (RFC2246: The TLS Protocol)
 */
-template<class ConstBufferSequence>
+template <class ConstBufferSequence>
 boost::tribool
-is_ssl_handshake(ConstBufferSequence const& buffers);
+is_tls_client_hello (ConstBufferSequence const& buffers);
+
+} // detail
 
 //]
 
 //[example_core_detect_ssl_2
 
-template<
-    class ConstBufferSequence>
+namespace detail {
+
+template <class ConstBufferSequence>
 boost::tribool
-is_ssl_handshake(
-    ConstBufferSequence const& buffers)
+is_tls_client_hello (ConstBufferSequence const& buffers)
 {
     // Make sure buffers meets the requirements
     static_assert(
         boost::asio::is_const_buffer_sequence<ConstBufferSequence>::value,
-        "ConstBufferSequence requirements not met");
+        "ConstBufferSequence type requirements not met");
 
-    // We need at least one byte to really do anything
-    if(boost::asio::buffer_size(buffers) < 1)
+/*
+    The first message on a TLS connection must be the client_hello,
+    which is a type of handshake record, and it cannot be compressed
+    or encrypted. A plaintext record has this format:
+
+         0      byte    record_type      // 0x16 = handshake
+         1      byte    major            // major protocol version
+         2      byte    minor            // minor protocol version
+       3-4      uint16  length           // size of the payload
+         5      byte    handshake_type   // 0x01 = client_hello
+         6      uint24  length           // size of the ClientHello
+         9      byte    major            // major protocol version
+        10      byte    minor            // minor protocol version
+        11      uint32  gmt_unix_time
+        15      byte    random_bytes[28]
+                ...
+*/
+
+    // Flatten the input buffers into a single contiguous range
+    // of bytes on the stack to make it easier to work with the data.
+    unsigned char buf[9];
+    auto const n = boost::asio::buffer_copy(
+        boost::asio::mutable_buffer(buf, sizeof(buf)), buffers);
+
+    // Can't do much without any bytes
+    if(n < 1)
         return boost::indeterminate;
 
-    // Extract the first byte, which holds the
-    // "message" type for the Handshake protocol.
-    unsigned char v;
-    boost::asio::buffer_copy(boost::asio::buffer(&v, 1), buffers);
-
-    // Check that the message type is "SSL Handshake" (rfc2246)
-    if(v != 0x16)
-    {
-        // This is definitely not a handshake
+    // Require the first byte to be 0x16, indicating a TLS handshake record
+    if(buf[0] != 0x16)
         return false;
-    }
 
-    // At least four bytes are needed for the handshake
-    // so make sure that we get them before returning `true`
-    if(boost::asio::buffer_size(buffers) < 4)
+    // We need at least 5 bytes to know the record payload size
+    if(n < 5)
         return boost::indeterminate;
 
-    // This can only be a TLS/SSL handshake
+    // Calculate the record payload size
+    std::uint32_t const length = (buf[3] << 8) + buf[4];
+
+    // A ClientHello message payload is at least 34 bytes.
+    // There can be multiple handshake messages in the same record.
+    if(length < 34)
+        return false;
+
+    // We need at least 6 bytes to know the handshake type
+    if(n < 6)
+        return boost::indeterminate;
+
+    // The handshake_type must be 0x01 == client_hello
+    if(buf[5] != 0x01)
+        return false;
+
+    // We need at least 9 bytes to know the payload size
+    if(n < 9)
+        return boost::indeterminate;
+
+    // Calculate the message payload size
+    std::uint32_t const size =
+        (buf[6] << 16) + (buf[7] << 8) + buf[8];
+
+    // The message payload can't be bigger than the enclosing record
+    if(size + 4 > length)
+        return false;
+
+    // This can only be a TLS client_hello message
     return true;
 }
+
+} // detail
 
 //]
 
 //[example_core_detect_ssl_3
 
 /** Detect a TLS/SSL handshake on a stream.
-
     This function reads from a stream to determine if a TLS/SSL
     handshake is being received. The function call will block
     until one of the following conditions is true:
-
     @li The disposition of the handshake is determined
-
     @li An error occurs
-
     Octets read from the stream will be stored in the passed dynamic
     buffer, which may be used to perform the TLS handshake if the
     detector returns true, or otherwise consumed by the caller based
     on the expected protocol.
-
     @param stream The stream to read from. This type must meet the
     requirements of @b SyncReadStream.
-
     @param buffer The dynamic buffer to use. This type must meet the
     requirements of @b DynamicBuffer.
-
     @param ec Set to the error if any occurred.
-
     @return `boost::tribool` indicating whether the buffer contains
     a TLS client handshake, does not contain a handshake, or needs
     additional octets. If an error occurs, the return value is
@@ -147,7 +215,7 @@ detect_ssl(
     {
         // There could already be data in the buffer
         // so we do this first, before reading from the stream.
-        auto const result = is_ssl_handshake(buffer.data());
+        auto const result = detail::is_tls_client_hello(buffer.data());
 
         // If we got an answer, return it
         if(! boost::indeterminate(result))
@@ -184,33 +252,25 @@ detect_ssl(
 //[example_core_detect_ssl_4
 
 /** Detect a TLS/SSL handshake asynchronously on a stream.
-
     This function is used to asynchronously determine if a TLS/SSL
     handshake is being received.
     The function call always returns immediately. The asynchronous
     operation will continue until one of the following conditions
     is true:
-
     @li The disposition of the handshake is determined
-
     @li An error occurs
-
     This operation is implemented in terms of zero or more calls to
     the next layer's `async_read_some` function, and is known as a
     <em>composed operation</em>. The program must ensure that the
     stream performs no other operations until this operation completes.
-
     Octets read from the stream will be stored in the passed dynamic
     buffer, which may be used to perform the TLS handshake if the
     detector returns true, or otherwise consumed by the caller based
     on the expected protocol.
-
     @param stream The stream to read from. This type must meet the
     requirements of @b AsyncReadStream.
-
     @param buffer The dynamic buffer to use. This type must meet the
     requirements of @b DynamicBuffer.
-
     @param handler Invoked when the operation completes.
     The handler may be moved or copied as needed.
     The equivalent function signature of the handler must be:
@@ -409,7 +469,7 @@ operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
     {
         // There could already be data in the buffer
         // so we do this first, before reading from the stream.
-        result_ = is_ssl_handshake(buffer_.data());
+        result_ = detail::is_tls_client_hello(buffer_.data());
 
         // If we got an answer, return it
         if(! boost::indeterminate(result_))
@@ -431,17 +491,9 @@ operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
             // Loop until an error occurs or we get a definitive answer
             for(;;)
             {
-                // The algorithm should never need more than 4 bytes
-                BOOST_ASSERT(buffer_.size() < 4);
-
+                // Try to fill our buffer by reading from the stream
                 BOOST_ASIO_CORO_YIELD
-                {
-                    // Prepare the buffer's output area.
-                    auto const mutable_buffer = buffer_.prepare(beast::read_size(buffer_, 1536));
-
-                    // Try to fill our buffer by reading from the stream
-                    stream_.async_read_some(mutable_buffer, std::move(*this));
-                }
+                        stream_.async_read_some(buffer_.prepare(beast::read_size(buffer_, 1536)), std::move(*this));
 
                 // Check for an error
                 if(ec)
@@ -451,7 +503,7 @@ operator()(boost::beast::error_code ec, std::size_t bytes_transferred)
                 buffer_.commit(bytes_transferred);
 
                 // See if we can detect the handshake
-                result_ = is_ssl_handshake(buffer_.data());
+                result_ = detail::is_tls_client_hello(buffer_.data());
 
                 // If it is detected, call the handler
                 if(! boost::indeterminate(result_))
