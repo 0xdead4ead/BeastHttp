@@ -2,23 +2,33 @@
 #define BEASTHTTP_COMMON_DETECTOR_HXX
 
 #include <http/base/traits.hxx>
+#include <http/base/timer.hxx>
 #include <http/base/detector.hxx>
 #include <http/base/strand_stream.hxx>
 
 #include <boost/asio/ip/tcp.hpp>
 
 #define BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES \
-    OnDetect, OnError, Buffer, Protocol, Socket
+    Buffer, Protocol, Socket, Clock, Timer, OnError, OnDetect, OnTimer
 
 namespace _0xdead4ead {
 namespace http {
 namespace common {
 
-template<template<typename> class OnDetect = std::function,
-         template<typename> class OnError = std::function,
+template</*Message's buffer*/
          class Buffer = boost::beast::flat_buffer,
+         /*connection*/
          class Protocol = boost::asio::ip::tcp,
-         template<typename> class Socket = boost::asio::basic_stream_socket>
+         template<typename> class Socket = boost::asio::basic_stream_socket,
+         /*timer*/
+         class Clock = boost::asio::chrono::steady_clock,
+         template<typename, typename...> class Timer = boost::asio::basic_waitable_timer,
+         /*On error/warning handler holder*/
+         template<typename> class OnError = std::function,
+         /*On detect tls hello packet handler holder*/
+         template<typename> class OnDetect = std::function,
+         /*On timer expired handler holder*/
+         template<typename> class OnTimer = std::function>
 class detector : public std::enable_shared_from_this<detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>>,
         private base::strand_stream, base::detector<base::strand_stream::asio_type>, boost::asio::coroutine
 {
@@ -34,14 +44,34 @@ public:
 
     using buffer_type = Buffer;
 
+    using timer_type = base::timer<Clock, Timer, base::strand_stream::asio_type>;
+
+    using duration_type = typename timer_type::duration_type;
+
+    using time_point_type = typename timer_type::time_point;
+
+    using clock_type = typename timer_type::clock_type;
+
     using on_detect_type = OnDetect<void (socket_type, buffer_type, boost::tribool)>;
+
+    using on_timer_type = OnTimer<void (std::reference_wrapper<socket_type>)>;
 
     using on_error_type = OnError<void (boost::system::error_code, boost::string_view)>;
 
     template<class... _OnAction>
     static auto
     async(socket_type, _OnAction&&...) -> decltype (
-            self_type(std::declval<socket_type>(), std::declval<_OnAction>()...), void());
+            void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)));
+
+    template<class... _OnAction>
+    static auto
+    async(socket_type, duration_type const, _OnAction&&...) -> decltype (
+            void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)));
+
+    template<class... _OnAction>
+    static auto
+    async(socket_type, time_point_type const, _OnAction&&...) -> decltype (
+            void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)));
 
     static boost::system::error_code
     sync(socket_type&, buffer_type&, boost::tribool&);
@@ -60,14 +90,42 @@ public:
              base::traits::TryInvoke<_OnError, void(
                  boost::system::error_code, boost::string_view)>::value, int>::type = 0);
 
+    template<class _OnDetect, class _OnError, class _OnTimer>
+    explicit
+    detector(socket_type, _OnDetect&&, _OnError&&, _OnTimer&&,
+             typename std::enable_if<base::traits::TryInvoke<
+             _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value and
+             base::traits::TryInvoke<_OnError, void(
+                 boost::system::error_code, boost::string_view)>::value and
+             base::traits::TryInvoke<_OnTimer, void(
+                 std::reference_wrapper<socket_type>)>::value, int>::type = 0);
+
 private:
 
     void
     do_async(boost::system::error_code = {}, boost::tribool = {});
 
+    void
+    do_async_2(duration_type, boost::system::error_code = {}, boost::tribool = {});
+
+    void
+    do_async_2(time_point_type, boost::system::error_code = {}, boost::tribool = {});
+
+    void
+    do_launch_timer();
+
+    void
+    on_timer(boost::system::error_code);
+
+    void
+    do_timer_cancel();
+
     socket_type socket_;
     buffer_type buffer_;
+    timer_type timer_;
+
     on_detect_type on_detect_;
+    on_timer_type on_timer_;
     on_error_type on_error_;
 
 };
