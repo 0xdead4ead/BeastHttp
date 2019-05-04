@@ -8,7 +8,7 @@ namespace base {
 template<class Protocol,
          template<typename> class Socket>
 boost::system::error_code
-socket<Protocol, Socket>::shutdown(typename Sock::shutdown_type type)
+socket<Protocol, Socket>::shutdown(typename socket_type::shutdown_type type)
 {
     auto ec = boost::system::error_code{};
     instance_.shutdown(type, ec);
@@ -29,8 +29,8 @@ socket<Protocol, Socket>::close()
 
 template<class Protocol,
          template<typename> class Socket>
-socket<Protocol, Socket>::socket(Sock&& sock)
-    : instance_{std::move(sock)}
+socket<Protocol, Socket>::socket(socket_type&& socket)
+    : instance_{std::move(socket)}
 {
 }
 

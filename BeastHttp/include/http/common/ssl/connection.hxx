@@ -26,7 +26,7 @@ class connection : private base::socket<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES>,
 
 public:
 
-    using socket_type = typename base_socket::Sock;
+    using socket_type = typename base_socket::socket_type;
 
     using ssl_stream_type = boost::asio::ssl::stream<socket_type&>;
 

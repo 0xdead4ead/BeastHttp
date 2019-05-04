@@ -21,24 +21,24 @@ protected:
 
     using protocol_type = Protocol;
 
-    using Sock = Socket<protocol_type>;
+    using socket_type = Socket<protocol_type>;
 
-    static_assert (std::is_base_of<boost::asio::socket_base, Sock>::value,
+    static_assert (std::is_base_of<boost::asio::socket_base, socket_type>::value,
                    "Socket type is not supported!");
 
     socket(self_type&&) = default;
     auto operator=(self_type&&) -> self_type& = default;
 
     boost::system::error_code
-    shutdown(typename Sock::shutdown_type);
+    shutdown(typename socket_type::shutdown_type);
 
     boost::system::error_code
     close();
 
     explicit
-    socket(Sock&& sock);
+    socket(socket_type&&);
 
-    Sock instance_;
+    socket_type instance_;
 
 }; // class socket
 

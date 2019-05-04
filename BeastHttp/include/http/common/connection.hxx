@@ -24,7 +24,7 @@ class connection :
 
 public:
 
-    using socket_type = typename base_socket::Sock;
+    using socket_type = typename base_socket::socket_type;
 
     using shutdown_type = typename socket_type::shutdown_type;
 
