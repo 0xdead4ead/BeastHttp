@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 
-find_package(Boost 1.66 COMPONENTS system thread regex)
+find_package(Boost 1.67 COMPONENTS system thread regex)
 find_package(OpenSSL COMPONENTS SSL Crypto)
 
 set(BEASTHTTP_EXAMPLE_NAME reactor_ssl)
