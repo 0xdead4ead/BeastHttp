@@ -72,14 +72,6 @@ Creating a new callback functions storage and route path for GET request with "/
 
 ```
 
-
-
-```cpp
-
-
-
-```
-
 It is possible to add multiple handlers for one route. For movement on them `std::next` or `std::advance` is used:
 
 ```cpp
@@ -222,4 +214,4 @@ Run the I/O service on the requested number of threads:
     t.join();
 
 ```
-* Copyright (c) [@Evgeny Tixonow #0xdead4ead](https://github.com/0xdead4ead) 2018-2019
+* Copyright (c) [@Evgeny Tixonow](https://github.com/0xdead4ead) 2018-2019
