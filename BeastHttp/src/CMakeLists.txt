@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 
-set (BEASTHTTP_VERSION_MAJOR 2)
-set (BEASTHTTP_VERSION_MINOR 2)
-
-project(BeastHttp)
+project(BeastHttp VERSION 2.3 LANGUAGES CXX)
 
 set(BEASTHTTP_INCLUDE_PATH ${PROJECT_SOURCE_DIR}/../include)
 set(BEASTHTTP_EXAMPLES_DIR ${PROJECT_SOURCE_DIR}/examples)
@@ -26,8 +23,6 @@ message("CXX=" ${CMAKE_CXX_COMPILER})
 message("CXXFLAGS=" ${CMAKE_CXX_FLAGS})
 message("CMAKE_BUILD_TYPE=" ${CMAKE_BUILD_TYPE})
 
-file(GLOB BEASTHTTP_HEADS ${BEASTHTTP_INCLUDE_PATH}/*.hxx)
-
 add_subdirectory("${BEASTHTTP_EXAMPLES_DIR}/reactor")
 add_subdirectory("${BEASTHTTP_EXAMPLES_DIR}/reactor_ssl")
 add_subdirectory("${BEASTHTTP_EXAMPLES_DIR}/reactor_cxx11")
@@ -39,3 +34,4 @@ add_subdirectory("${BEASTHTTP_TESTS_DIR}/display")
 add_subdirectory("${BEASTHTTP_TESTS_DIR}/basic_router")
 add_subdirectory("${BEASTHTTP_TESTS_DIR}/chain_router")
 add_subdirectory("${BEASTHTTP_TESTS_DIR}/param")
+add_subdirectory("${BEASTHTTP_EXAMPLES_DIR}/test_project")
