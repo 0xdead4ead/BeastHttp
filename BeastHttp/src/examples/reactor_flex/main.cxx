@@ -5,7 +5,7 @@
 #include <http/basic_router.hxx>
 #include <http/out.hxx>
 
-#include <http/common/detector.hxx>
+#include <http/common/detect.hxx>
 
 #include <boost/asio/posix/stream_descriptor.hpp>
 #include <boost/asio/signal_set.hpp>
@@ -141,7 +141,7 @@ int main()
     using HttpSession = http::reactor::_default::session_type;
     using HttpListener = http::reactor::_default::listener_type;
     using SslHttpSession = http::reactor::ssl::_default::session_type;
-    using SslDetector = http::common::_default::detector_type;
+    using SslDetect = http::common::_default::detect_type;
 
     // Create resource handlers
     const auto& onMainResource = [](auto request, auto context) {
@@ -198,7 +198,7 @@ int main()
                     out, asioSocket.remote_endpoint().address().to_string(), "connected!");
 
         // Create and run asynchronously http session detect
-        SslDetector::async(std::move(asioSocket), onDetect, onError);
+        SslDetect::async(std::move(asioSocket), onDetect, onError);
     };
 
     // http://localhost:8080

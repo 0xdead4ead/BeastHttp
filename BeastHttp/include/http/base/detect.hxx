@@ -1,5 +1,5 @@
-#if not defined BEASTHTTP_BASE_DETECTOR_HXX
-#define BEASTHTTP_BASE_DETECTOR_HXX
+#if not defined BEASTHTTP_BASE_DETECT_HXX
+#define BEASTHTTP_BASE_DETECT_HXX
 
 #include <boost/beast/core/error.hpp>
 #include <boost/logic/tribool.hpp>
@@ -9,14 +9,14 @@ namespace http {
 namespace base {
 
 template<class CompletionExecutor>
-class detector
+class detect
 {
 protected:
 
     CompletionExecutor const& completion_executor_;
 
     explicit
-    detector(CompletionExecutor const&);
+    detect(CompletionExecutor const&);
 
     template<class S, class B, class F>
     void
@@ -32,6 +32,6 @@ protected:
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <http/base/impl/detector.hxx>
+#include <http/base/impl/detect.hxx>
 
-#endif // not defined BEASTHTTP_BASE_DETECTOR_HXX
+#endif // not defined BEASTHTTP_BASE_DETECT_HXX

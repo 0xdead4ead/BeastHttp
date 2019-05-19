@@ -1,14 +1,14 @@
-#if not defined BEASTHTTP_COMMON_DETECTOR_HXX
-#define BEASTHTTP_COMMON_DETECTOR_HXX
+#if not defined BEASTHTTP_COMMON_DETECT_HXX
+#define BEASTHTTP_COMMON_DETECT_HXX
 
 #include <http/base/traits.hxx>
 #include <http/base/timer.hxx>
-#include <http/base/detector.hxx>
+#include <http/base/detect.hxx>
 #include <http/base/strand_stream.hxx>
 
 #include <boost/asio/ip/tcp.hpp>
 
-#define BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES \
+#define BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES \
     Buffer, Protocol, Socket, Clock, Timer, OnError, OnDetect, OnTimer
 
 namespace _0xdead4ead {
@@ -29,12 +29,12 @@ template</*Message's buffer*/
          template<typename> class OnDetect = std::function,
          /*On timer expired handler holder*/
          template<typename> class OnTimer = std::function>
-class detector : public std::enable_shared_from_this<detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>>,
-        private base::strand_stream, base::detector<base::strand_stream::asio_type>, boost::asio::coroutine
+class detect : public std::enable_shared_from_this<detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>>,
+        private base::strand_stream, base::detect<base::strand_stream::asio_type>, boost::asio::coroutine
 {
-    using self_type = detector;
+    using self_type = detect;
 
-    using base_type = base::detector<base::strand_stream::asio_type>;
+    using base_type = base::detect<base::strand_stream::asio_type>;
 
 public:
 
@@ -78,13 +78,13 @@ public:
 
     template<class _OnDetect>
     explicit
-    detector(socket_type, _OnDetect&&,
+    detect(socket_type, _OnDetect&&,
              typename std::enable_if<base::traits::TryInvoke<
              _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value, int>::type = 0);
 
     template<class _OnDetect, class _OnError>
     explicit
-    detector(socket_type, _OnDetect&&, _OnError&&,
+    detect(socket_type, _OnDetect&&, _OnError&&,
              typename std::enable_if<base::traits::TryInvoke<
              _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value and
              base::traits::TryInvoke<_OnError, void(
@@ -92,7 +92,7 @@ public:
 
     template<class _OnDetect, class _OnError, class _OnTimer>
     explicit
-    detector(socket_type, _OnDetect&&, _OnError&&, _OnTimer&&,
+    detect(socket_type, _OnDetect&&, _OnError&&, _OnTimer&&,
              typename std::enable_if<base::traits::TryInvoke<
              _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value and
              base::traits::TryInvoke<_OnError, void(
@@ -132,13 +132,13 @@ private:
 
 namespace _default {
 
-using detector_type = common::detector<>;
+using detect_type = common::detect<>;
 
 } // namespace _default
 } // namespace common
 } // namespace http
 } // namespace _0xdead4ead
 
-#include <http/common/impl/detector.hxx>
+#include <http/common/impl/detect.hxx>
 
-#endif // not defined BEASTHTTP_COMMON_DETECTOR_HXX
+#endif // not defined BEASTHTTP_COMMON_DETECT_HXX

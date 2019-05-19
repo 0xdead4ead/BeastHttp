@@ -1,7 +1,7 @@
-#if not defined BEASTHTTP_COMMON_IMPL_DETECTOR_HXX
-#define BEASTHTTP_COMMON_IMPL_DETECTOR_HXX
+#if not defined BEASTHTTP_COMMON_IMPL_DETECT_HXX
+#define BEASTHTTP_COMMON_IMPL_DETECT_HXX
 
-#define BEASTHTTP_COMMON_DETECTOR_TMPL_DECLARE \
+#define BEASTHTTP_COMMON_DETECT_TMPL_DECLARE \
     template<class Buffer, \
              class Protocol, \
              template<typename> class Socket, \
@@ -15,47 +15,47 @@ namespace _0xdead4ead {
 namespace http {
 namespace common {
 
-BEASTHTTP_COMMON_DETECTOR_TMPL_DECLARE
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class... _OnAction>
 auto
-detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::async(
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
         socket_type socket, _OnAction&&... on_action)  -> decltype (
         void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
 {
     std::make_shared<self_type>(std::move(socket), std::forward<_OnAction>(on_action)...)->do_async();
 }
 
-BEASTHTTP_COMMON_DETECTOR_TMPL_DECLARE
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class... _OnAction>
 auto
-detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::async(
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
         socket_type socket, duration_type const duration, _OnAction&&... on_action)  -> decltype (
         void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
 {
     std::make_shared<self_type>(std::move(socket), std::forward<_OnAction>(on_action)...)->do_async_2(duration);
 }
 
-BEASTHTTP_COMMON_DETECTOR_TMPL_DECLARE
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class... _OnAction>
 auto
-detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::async(
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
         socket_type socket, time_point_type const time_point, _OnAction&&... on_action)  -> decltype (
         void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
 {
     std::make_shared<self_type>(std::move(socket), std::forward<_OnAction>(on_action)...)->do_async_2(time_point);
 }
 
-BEASTHTTP_COMMON_DETECTOR_TMPL_DECLARE
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 boost::system::error_code
-detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::sync(
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::sync(
         socket_type& socket, buffer_type& buffer, boost::tribool& result)
 {
     return base_type::sync(socket, buffer, result);
 }
 
-BEASTHTTP_COMMON_DETECTOR_TMPL_DECLARE
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class _OnDetect>
-detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::detector(
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::detect(
         socket_type socket, _OnDetect&& on_detect,
         typename std::enable_if<base::traits::TryInvoke<
         _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value, int>::type)
@@ -67,9 +67,9 @@ detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::detector(
 {
 }
 
-BEASTHTTP_COMMON_DETECTOR_TMPL_DECLARE
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class _OnDetect, class _OnError>
-detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::detector(
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::detect(
         socket_type socket, _OnDetect&& on_detect, _OnError&& on_error,
         typename std::enable_if<base::traits::TryInvoke<
         _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value and
@@ -84,9 +84,9 @@ detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::detector(
 {
 }
 
-BEASTHTTP_COMMON_DETECTOR_TMPL_DECLARE
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class _OnDetect, class _OnError, class _OnTimer>
-detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::detector(
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::detect(
         socket_type socket, _OnDetect&& on_detect, _OnError&& on_error, _OnTimer&& on_timer,
         typename std::enable_if<base::traits::TryInvoke<
         _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value and
@@ -104,9 +104,9 @@ detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::detector(
 {
 }
 
-BEASTHTTP_COMMON_DETECTOR_TMPL_DECLARE
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 void
-detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::do_async(
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::do_async(
         boost::system::error_code ec, boost::tribool result)
 {
     BOOST_ASIO_CORO_REENTER(*this) {
@@ -129,9 +129,9 @@ detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::do_async(
     }
 }
 
-BEASTHTTP_COMMON_DETECTOR_TMPL_DECLARE
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 void
-detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::do_async_2(
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::do_async_2(
         duration_type duration, boost::system::error_code ec, boost::tribool result)
 {
     timer_.stream().expires_after(duration);
@@ -141,9 +141,9 @@ detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::do_async_2(
     do_async();
 }
 
-BEASTHTTP_COMMON_DETECTOR_TMPL_DECLARE
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 void
-detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::do_async_2(
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::do_async_2(
         time_point_type time_point, boost::system::error_code ec, boost::tribool result)
 {
     timer_.stream().expires_at(time_point);
@@ -153,9 +153,9 @@ detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::do_async_2(
     do_async();
 }
 
-BEASTHTTP_COMMON_DETECTOR_TMPL_DECLARE
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 void
-detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::do_launch_timer()
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::do_launch_timer()
 {
     timer_.async_wait(
                 std::bind(
@@ -164,9 +164,9 @@ detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::do_launch_timer()
                     std::placeholders::_1));
 }
 
-BEASTHTTP_COMMON_DETECTOR_TMPL_DECLARE
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 void
-detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::on_timer(
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::on_timer(
         boost::system::error_code ec)
 {
     if (ec and ec != boost::asio::error::operation_aborted) {
@@ -181,9 +181,9 @@ detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::on_timer(
         on_timer_(std::ref(socket_));
 }
 
-BEASTHTTP_COMMON_DETECTOR_TMPL_DECLARE
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 void
-detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::do_timer_cancel()
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::do_timer_cancel()
 {
     auto ec = timer_.cancel();
 
@@ -195,4 +195,4 @@ detector<BEASTHTTP_COMMON_DETECTOR_TMPL_ATTRIBUTES>::do_timer_cancel()
 } // namespace http
 } // namespace _0xdead4ead
 
-#endif // not defined BEASTHTTP_COMMON_IMPL_DETECTOR_HXX
+#endif // not defined BEASTHTTP_COMMON_IMPL_DETECT_HXX
