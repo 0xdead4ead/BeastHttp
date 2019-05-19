@@ -37,17 +37,18 @@ namespace _0xdead4ead {
 namespace http {
 namespace reactor {
 
-template</*Message's body*/
+template</*Prototype request message*/
          class Body = boost::beast::http::string_body,
+         class Fields = boost::beast::http::basic_fields<std::allocator<char>>,
          /*Message's buffer*/
          class Buffer = boost::beast::flat_buffer,
-         /*connection*/
+         /*Connection param's*/
          class Protocol = boost::asio::ip::tcp,
          template<typename> class Socket = boost::asio::basic_stream_socket,
-         /*timer*/
+         /*Timer param's*/
          class Clock = boost::asio::chrono::steady_clock,
          template<typename, typename...> class Timer = boost::asio::basic_waitable_timer,
-         /*Callback list*/
+         /*Callback list container*/
          template<typename> class Entry = std::function,
          template<typename, typename...> class Container = std::vector,
          /*Resources container*/
@@ -86,12 +87,14 @@ public:
 
     using body_type = Body;
 
+    using fields_type = Fields;
+
     using cbexecutor_type = base::cb::executor;
 
-    using request_type = boost::beast::http::request<body_type>;
+    using request_type = boost::beast::http::request<body_type, fields_type>;
 
-    template<class _Body>
-    using response_type = boost::beast::http::response<_Body>;
+    template<class _Body, class _Fields>
+    using response_type = boost::beast::http::response<_Body, _Fields>;
 
     using queue_type = base::queue<flesh>;
 
@@ -152,37 +155,37 @@ public:
         flesh&
         recv(time_point_type const);
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         flesh&
-        send(response_type<_OtherBody>&);
+        send(response_type<_Body, _Fields>&);
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         flesh&
-        send(response_type<_OtherBody>&&);
+        send(response_type<_Body, _Fields>&&);
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         flesh&
-        send(response_type<_OtherBody>&, duration_type const);
+        send(response_type<_Body, _Fields>&, duration_type const);
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         flesh&
-        send(response_type<_OtherBody>&&, duration_type const);
+        send(response_type<_Body, _Fields>&&, duration_type const);
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         flesh&
-        send(response_type<_OtherBody>&, time_point_type const);
+        send(response_type<_Body, _Fields>&, time_point_type const);
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         flesh&
-        send(response_type<_OtherBody>&&, time_point_type const);
+        send(response_type<_Body, _Fields>&&, time_point_type const);
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         flesh&
-        push(response_type<_OtherBody>&);
+        push(response_type<_Body, _Fields>&);
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         flesh&
-        push(response_type<_OtherBody>&&);
+        push(response_type<_Body, _Fields>&&);
 
         flesh&
         wait();
@@ -252,13 +255,13 @@ public:
         void
         on_write(boost::system::error_code, std::size_t, bool);
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         void
-        do_write(response_type<_OtherBody>&);
+        do_write(response_type<_Body, _Fields>&);
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         void
-        do_push(response_type<_OtherBody>&);
+        do_push(response_type<_Body, _Fields>&);
 
         void
         do_read();
@@ -355,62 +358,62 @@ public:
             flesh_p_->recv(time_point);
         }
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         void
-        send(response_type<_OtherBody>& response) const
+        send(response_type<_Body, _Fields>& response) const
         {
             flesh_p_->send(response);
         }
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         void
-        send(response_type<_OtherBody>&& response) const
+        send(response_type<_Body, _Fields>&& response) const
         {
             flesh_p_->send(std::move(response));
         }
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         void
-        send(response_type<_OtherBody>& response,
+        send(response_type<_Body, _Fields>& response,
              duration_type const duration) const
         {
             flesh_p_->send(response, duration);
         }
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         void
-        send(response_type<_OtherBody>&& response,
+        send(response_type<_Body, _Fields>&& response,
              duration_type const duration) const
         {
             flesh_p_->send(std::move(response), duration);
         }
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         void
-        send(response_type<_OtherBody>& response,
+        send(response_type<_Body, _Fields>& response,
              time_point_type const time_point) const
         {
             flesh_p_->send(response, time_point);
         }
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         void
-        send(response_type<_OtherBody>&& response,
+        send(response_type<_Body, _Fields>&& response,
              time_point_type const time_point) const
         {
             flesh_p_->send(std::move(response), time_point);
         }
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         void
-        push(response_type<_OtherBody>& response) const
+        push(response_type<_Body, _Fields>& response) const
         {
             flesh_p_->push(response);
         }
 
-        template<class _OtherBody>
+        template<class _Body, class _Fields>
         void
-        push(response_type<_OtherBody>&& response) const
+        push(response_type<_Body, _Fields>&& response) const
         {
             flesh_p_->push(std::move(response));
         }

@@ -3,6 +3,7 @@
 
 #define BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE \
     template<class Body, \
+             class Fields, \
              class Buffer, \
              class Protocol, \
              template<typename> class Socket, \
@@ -16,7 +17,7 @@
              template<typename> class OnTimer>
 
 #define BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES \
-    Body, Buffer, Protocol, Socket, Clock, Timer, Entry, Container, MethodMap, ResourceMap, OnError, OnTimer
+    Body, Fields, Buffer, Protocol, Socket, Clock, Timer, Entry, Container, MethodMap, ResourceMap, OnError, OnTimer
 
 namespace _0xdead4ead {
 namespace http {
@@ -65,10 +66,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::recv(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _OtherBody>
+template<class _Body, class _Fields>
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        response_type<_OtherBody>& response)
+        response_type<_Body, _Fields>& response)
 {
     queue_(response);
 
@@ -76,10 +77,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _OtherBody>
+template<class _Body, class _Fields>
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        response_type<_OtherBody>&& response)
+        response_type<_Body, _Fields>&& response)
 {
     queue_(std::move(response));
 
@@ -87,10 +88,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _OtherBody>
+template<class _Body, class _Fields>
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        response_type<_OtherBody>& response, duration_type const duration)
+        response_type<_Body, _Fields>& response, duration_type const duration)
 {
     timer_.stream().expires_after(duration);
 
@@ -100,10 +101,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _OtherBody>
+template<class _Body, class _Fields>
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        response_type<_OtherBody>&& response, duration_type const duration)
+        response_type<_Body, _Fields>&& response, duration_type const duration)
 {
     timer_.stream().expires_after(duration);
 
@@ -113,10 +114,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _OtherBody>
+template<class _Body, class _Fields>
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        response_type<_OtherBody>& response, time_point_type const time_point)
+        response_type<_Body, _Fields>& response, time_point_type const time_point)
 {
     timer_.stream().expires_at(time_point);
 
@@ -126,10 +127,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _OtherBody>
+template<class _Body, class _Fields>
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        response_type<_OtherBody>&& response, time_point_type const time_point)
+        response_type<_Body, _Fields>&& response, time_point_type const time_point)
 {
     timer_.stream().expires_at(time_point);
 
@@ -139,10 +140,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _OtherBody>
+template<class _Body, class _Fields>
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::push(
-        response_type<_OtherBody>& response)
+        response_type<_Body, _Fields>& response)
 {
     do_push(response);
 
@@ -150,10 +151,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::push(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _OtherBody>
+template<class _Body, class _Fields>
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::push(
-        response_type<_OtherBody>&& response)
+        response_type<_Body, _Fields>&& response)
 {
     auto response_{std::move(response)};
 
@@ -369,10 +370,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_write(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _OtherBody>
+template<class _Body, class _Fields>
 void
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_write(
-        response_type<_OtherBody>& response)
+        response_type<_Body, _Fields>& response)
 {
     connection_.async_write(
                 response,
@@ -383,10 +384,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_write(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _OtherBody>
+template<class _Body, class _Fields>
 void
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_push(
-        response_type<_OtherBody>& response)
+        response_type<_Body, _Fields>& response)
 {
     auto ec = connection_.write(response);
 
