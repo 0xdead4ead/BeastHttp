@@ -10,6 +10,15 @@ namespace base {
 namespace traits {
 namespace detail {
 
+template<class T>
+struct wrap
+{
+    using type = T;
+};
+
+template<class T>
+T value(wrap<T>);
+
 template<class...>
 using void_t = void;
 
@@ -186,7 +195,7 @@ struct try_size_cxx11 : try_invoke_cxx11<R, try_size_helper, X>
 struct has_const_iterator_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::const_iterator;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::const_iterator;
 };
 
 template<class R, class X>
@@ -197,7 +206,7 @@ struct has_const_iterator_cxx11 : try_invoke_cxx11<R, has_const_iterator_helper,
 struct has_size_type_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::size_type;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::size_type;
 };
 
 template<class R, class X>
@@ -241,7 +250,7 @@ struct try_stream_cxx11 : try_invoke_cxx11<R, try_stream_helper, X>
 struct has_context_type_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::context_type;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::context_type;
 };
 
 template<class R, class X>
@@ -252,7 +261,7 @@ struct has_context_type_cxx11 : try_invoke_cxx11<R, has_context_type_helper, X>
 struct has_request_type_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::request_type;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::request_type;
 };
 
 template<class R, class X>
@@ -263,7 +272,7 @@ struct has_request_type_cxx11 : try_invoke_cxx11<R, has_request_type_helper, X>
 struct has_flesh_type_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::flesh_type;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::flesh_type;
 };
 
 template<class R, class X>
@@ -274,7 +283,7 @@ struct has_flesh_type_cxx11 : try_invoke_cxx11<R, has_flesh_type_helper, X>
 struct has_duration_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::duration;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::duration;
 };
 
 template<class R, class X>
@@ -285,7 +294,7 @@ struct has_duration_cxx11 : try_invoke_cxx11<R, has_duration_helper, X>
 struct has_time_point_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::time_point;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::time_point;
 };
 
 template<class R, class X>
@@ -296,7 +305,7 @@ struct has_time_point_cxx11 : try_invoke_cxx11<R, has_time_point_helper, X>
 struct has_clock_type_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::clock_type;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::clock_type;
 };
 
 template<class R, class X>
@@ -318,7 +327,7 @@ struct try_leftshift_cxx11 : try_invoke_cxx11<R, try_leftshift_helper, X, Y>
 struct has_storage_type_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::storage_type;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::storage_type;
 };
 
 template<class R, class X>
@@ -329,7 +338,7 @@ struct has_storage_type_cxx11 : try_invoke_cxx11<R, has_storage_type_helper, X>
 struct has_resource_map_type_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::resource_map_type;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::resource_map_type;
 };
 
 template<class R, class X>
@@ -340,7 +349,7 @@ struct has_resource_map_type_cxx11 : try_invoke_cxx11<R, has_resource_map_type_h
 struct has_method_map_type_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::method_map_type;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::method_map_type;
 };
 
 template<class R, class X>
@@ -351,7 +360,7 @@ struct has_method_map_type_cxx11 : try_invoke_cxx11<R, has_method_map_type_helpe
 struct has_resource_regex_type_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::resource_regex_type;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::resource_regex_type;
 };
 
 template<class R, class X>
@@ -362,7 +371,7 @@ struct has_resource_regex_type_cxx11 : try_invoke_cxx11<R, has_resource_regex_ty
 struct has_resource_type_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::resource_type;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::resource_type;
 };
 
 template<class R, class X>
@@ -373,7 +382,7 @@ struct has_resource_type_cxx11 : try_invoke_cxx11<R, has_resource_type_helper, X
 struct has_method_type_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::method_type;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::method_type;
 };
 
 template<class R, class X>
@@ -384,7 +393,7 @@ struct has_method_type_cxx11 : try_invoke_cxx11<R, has_method_type_helper, X>
 struct has_cbexecutor_type_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::cbexecutor_type;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::cbexecutor_type;
 };
 
 template<class R, class X>
@@ -395,7 +404,7 @@ struct has_cbexecutor_type_cxx11 : try_invoke_cxx11<R, has_cbexecutor_type_helpe
 struct has_regex_type_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::regex_type;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::regex_type;
 };
 
 template<class R, class X>
@@ -406,7 +415,7 @@ struct has_regex_type_cxx11 : try_invoke_cxx11<R, has_regex_type_helper, X>
 struct has_regex_flag_type_helper
 {
     template<class X>
-    auto operator()(X&&) -> typename std::decay<X>::type::regex_flag_type;
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::regex_flag_type;
 };
 
 template<class R, class X>
@@ -429,24 +438,21 @@ constexpr auto isValid(F&&)
 {
     return validity_checker<R, F>{};
 }
-
 #endif // not defined __cpp_generic_lambdas
-} // namespace detail
 
 #if not defined BEASTHTTP_CXX11_TRAITS
 template<class R, class F, class... Args>
 constexpr auto tryInvoke(F&& f, Args&&... args)
 {
-    return detail::isValid<R>(
-                [](auto&& f, auto&&... args)
-                -> decltype (f(std::forward<decltype (args)>(args)...)) {})
+    return isValid<R>([](auto&& f, auto&&... args)
+                      -> decltype (f(std::forward<decltype (args)>(args)...)) {})
             (std::forward<F>(f), std::forward<Args>(args)...);
 }
 
 template<class R, class X>
 constexpr auto tryCbegin(X&& x)
 {
-    return detail::isValid<R>(
+    return isValid<R>(
                 [](auto&& x) -> decltype(x.cbegin()){})
             (std::forward<X>(x));
 }
@@ -454,7 +460,7 @@ constexpr auto tryCbegin(X&& x)
 template<class R, class X>
 constexpr auto tryCend(X&& x)
 {
-    return detail::isValid<R>(
+    return isValid<R>(
                 [](auto&& x) -> decltype(x.cend()){})
             (std::forward<X>(x));
 }
@@ -462,7 +468,7 @@ constexpr auto tryCend(X&& x)
 template<class R, class X, class Y>
 constexpr auto tryFind(X&& x, Y&& y)
 {
-    return detail::isValid<R>(
+    return isValid<R>(
                 [](auto&& x, auto&& y) -> decltype(x.find(std::forward<decltype (y)>(y))){})
             (std::forward<X>(x), std::forward<Y>(y));
 }
@@ -470,31 +476,29 @@ constexpr auto tryFind(X&& x, Y&& y)
 template<class R, class X>
 constexpr auto trySize(X&& x)
 {
-    return detail::isValid<R>(
+    return isValid<R>(
                 [](auto&& x) -> decltype(x.size()){})
             (std::forward<X>(x));
 }
 
 template<class R, class X>
-constexpr auto hasConstIterator(X&& x)
+constexpr auto hasConstIterator(wrap<X> x)
 {
-    return detail::isValid<void>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::const_iterator {})
-            (std::forward<X>(x));
+    return isValid<void>(
+                [](auto x) -> typename decltype (value(x))::const_iterator {})(x);
 }
 
 template<class R, class X>
-constexpr auto hasSizeType(X&& x)
+constexpr auto hasSizeType(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::size_type {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::size_type {})(x);
 }
 
 template<class R, class X, class Y>
 constexpr auto tryPushBack(X&& x, Y&& y)
 {
-    return detail::isValid<R>(
+    return isValid<R>(
                 [](auto&& x, auto&& y) -> decltype (x.push_back(std::forward<decltype (y)>(y))){})
             (std::forward<X>(x), std::forward<Y>(y));
 }
@@ -502,7 +506,7 @@ constexpr auto tryPushBack(X&& x, Y&& y)
 template<class R, class X, class Y, class Z>
 constexpr auto tryBind(X&& x, Y&& y, Z&& z)
 {
-    return detail::isValid<R>(
+    return isValid<R>(
                 [](auto&& x, auto&& y, auto&& z) -> decltype (x.bind(std::forward<decltype (y)>(y), std::forward<decltype (z)>(z))){})
             (std::forward<X>(x), std::forward<Y>(y), std::forward<Z>(z));
 }
@@ -510,250 +514,236 @@ constexpr auto tryBind(X&& x, Y&& y, Z&& z)
 template<class R, class X>
 constexpr auto tryStream(X&& x)
 {
-    return detail::isValid<R>(
+    return isValid<R>(
                 [](auto&& x) -> decltype(x.stream()){})
             (std::forward<X>(x));
 }
 
 template<class R, class X>
-constexpr auto hasContextType(X&& x)
+constexpr auto hasContextType(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::context_type {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::context_type {})(x);
 }
 
 template<class R, class X>
-constexpr auto hasRequestType(X&& x)
+constexpr auto hasRequestType(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::request_type {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::request_type {})(x);
 }
 
 template<class R, class X>
-constexpr auto hasFleshType(X&& x)
+constexpr auto hasFleshType(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::flesh_type {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::flesh_type {})(x);
 }
 
 template<class R, class X>
-constexpr auto hasDuration(X&& x)
+constexpr auto hasDuration(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::duration {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::duration {})(x);
 }
 
 template<class R, class X>
-constexpr auto hasTimePoint(X&& x)
+constexpr auto hasTimePoint(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::time_point {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::time_point {})(x);
 }
 
 template<class R, class X>
-constexpr auto hasClockType(X&& x)
+constexpr auto hasClockType(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::clock_type {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::clock_type {})(x);
 }
 
 template<class R, class X, class Y>
 constexpr auto tryLeftShift(X&& x, Y&& y)
 {
-    return detail::isValid<R>(
+    return isValid<R>(
                 [](auto&& x, auto&& y) -> decltype (x << y) {})
             (std::forward<X>(x), std::forward<Y>(y));
 }
 
 template<class R, class X>
-constexpr auto hasStorageType(X&& x)
+constexpr auto hasStorageType(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::storage_type {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::storage_type {})(x);
 }
 
 template<class R, class X>
-constexpr auto hasResourceMapType(X&& x)
+constexpr auto hasResourceMapType(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::resource_map_type {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::resource_map_type {})(x);
 }
 
 template<class R, class X>
-constexpr auto hasMethodMapType(X&& x)
+constexpr auto hasMethodMapType(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::method_map_type {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::method_map_type {})(x);
 }
 
 template<class R, class X>
-constexpr auto hasResourceRegexType(X&& x)
+constexpr auto hasResourceRegexType(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::resource_regex_type {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::resource_regex_type {})(x);
 }
 
 template<class R, class X>
-constexpr auto hasResourceType(X&& x)
+constexpr auto hasResourceType(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::resource_type {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::resource_type {})(x);
 }
 
 template<class R, class X>
-constexpr auto hasMethodType(X&& x)
+constexpr auto hasMethodType(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::method_type {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::method_type {})(x);
 }
 
 template<class R, class X>
-constexpr auto hasCbExecutorType(X&& x)
+constexpr auto hasCbExecutorType(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::cbexecutor_type {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::cbexecutor_type {})(x);
 }
 
 template<class R, class X>
-constexpr auto hasRegexType(X&& x)
+constexpr auto hasRegexType(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::regex_type {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::regex_type {})(x);
 }
 
 template<class R, class X>
-constexpr auto hasRegexFlagType(X&& x)
+constexpr auto hasRegexFlagType(wrap<X> x)
 {
-    return detail::isValid<R>(
-                [](auto&& x) -> typename std::decay_t<decltype (x)>::regex_flag_type {})
-            (std::forward<X>(x));
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::regex_flag_type {})(x);
 }
 #else
 template<class R, class F, class... Args>
-constexpr auto tryInvoke(F&&, Args&&...) -> decltype (
-        detail::try_invoke_cxx11<R, F, Args...>{});
+constexpr auto tryInvoke(F&&, Args&&...)
+-> decltype (try_invoke_cxx11<R, F, Args...>{});
 
 template<class R, class X>
-constexpr auto tryCbegin(X&&) -> decltype (
-        detail::try_cbegin_cxx11<R, X>{});
+constexpr auto tryCbegin(X&&)
+-> decltype (try_cbegin_cxx11<R, X>{});
 
 template<class R, class X>
-constexpr auto tryCend(X&&) -> decltype (
-        detail::try_cend_cxx11<R, X>{});
+constexpr auto tryCend(X&&)
+-> decltype (try_cend_cxx11<R, X>{});
 
 template<class R, class X, class Y>
 constexpr auto tryFind(X&&, Y&&)
--> decltype (detail::try_find_cxx11<R, X, Y>{});
+-> decltype (try_find_cxx11<R, X, Y>{});
 
 template<class R, class X>
 constexpr auto trySize(X&&)
--> decltype (detail::try_size_cxx11<R, X>{});
+-> decltype (try_size_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasConstIterator(X&&)
--> decltype (detail::has_const_iterator_cxx11<R, X>{});
+-> decltype (has_const_iterator_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasSizeType(X&&)
--> decltype (detail::has_size_type_cxx11<R, X>{});
+-> decltype (has_size_type_cxx11<R, X>{});
 
 template<class R, class X, class Y>
 constexpr auto tryPushBack(X&&, Y&&)
--> decltype (detail::try_push_back_cxx11<R, X, Y>{});
+-> decltype (try_push_back_cxx11<R, X, Y>{});
 
 template<class R, class X, class Y, class Z>
 constexpr auto tryBind(X&&, Y&&, Z&&)
--> decltype (detail::try_bind_cxx11<R, X, Y, Z>{});
+-> decltype (try_bind_cxx11<R, X, Y, Z>{});
 
 template<class R, class X>
 constexpr auto tryStream(X&&)
--> decltype (detail::try_stream_cxx11<R, X>{});
+-> decltype (try_stream_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasContextType(X&&)
--> decltype (detail::has_context_type_cxx11<R, X>{});
+-> decltype (has_context_type_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasRequestType(X&&)
--> decltype (detail::has_request_type_cxx11<R, X>{});
+-> decltype (has_request_type_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasFleshType(X&&)
--> decltype (detail::has_flesh_type_cxx11<R, X>{});
+-> decltype (has_flesh_type_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasDuration(X&&)
--> decltype (detail::has_duration_cxx11<R, X>{});
+-> decltype (has_duration_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasTimePoint(X&&)
--> decltype (detail::has_time_point_cxx11<R, X>{});
+-> decltype (has_time_point_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasClockType(X&&)
--> decltype (detail::has_clock_type_cxx11<R, X>{});
+-> decltype (has_clock_type_cxx11<R, X>{});
 
 template<class R, class X, class Y>
 constexpr auto tryLeftShift(X&&, Y&&)
--> decltype (detail::try_leftshift_cxx11<R, X, Y>{});
+-> decltype (try_leftshift_cxx11<R, X, Y>{});
 
 template<class R, class X>
 constexpr auto hasStorageType(X&&)
--> decltype (detail::has_storage_type_cxx11<R, X>{});
+-> decltype (has_storage_type_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasResourceMapType(X&&)
--> decltype (detail::has_resource_map_type_cxx11<R, X>{});
+-> decltype (has_resource_map_type_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasMethodMapType(X&&)
--> decltype (detail::has_method_map_type_cxx11<R, X>{});
+-> decltype (has_method_map_type_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasResourceRegexType(X&&)
--> decltype (detail::has_resource_regex_type_cxx11<R, X>{});
+-> decltype (has_resource_regex_type_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasResourceType(X&&)
--> decltype (detail::has_resource_type_cxx11<R, X>{});
+-> decltype (has_resource_type_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasMethodType(X&&)
--> decltype (detail::has_method_type_cxx11<R, X>{});
+-> decltype (has_method_type_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasCbExecutorType(X&&)
--> decltype (detail::has_cbexecutor_type_cxx11<R, X>{});
+-> decltype (has_cbexecutor_type_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasRegexType(X&&)
--> decltype (detail::has_regex_type_cxx11<R, X>{});
+-> decltype (has_regex_type_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasRegexFlagType(X&&)
--> decltype (detail::has_regex_flag_type_cxx11<R, X>{});
+-> decltype (has_regex_flag_type_cxx11<R, X>{});
 #endif // not defined BEASTHTTP_CXX11_TRAITS
+} // namespace detail
 
 template<class, class>
 struct TryInvoke;
 
 template<class F, class R, class... Args>
 struct TryInvoke<F, R(Args...)>
-    : decltype (tryInvoke<R>(std::declval<F>(), std::declval<Args>()...))
+    : decltype (detail::tryInvoke<R>(std::declval<F>(), std::declval<Args>()...))
 {
 };
 
@@ -776,7 +766,7 @@ struct TryCbegin;
 
 template<class R, class X>
 struct TryCbegin<X, R()>
-    : decltype (tryCbegin<R>(std::declval<X>()))
+    : decltype (detail::tryCbegin<R>(std::declval<X>()))
 {
 };
 
@@ -785,7 +775,7 @@ struct TryCend;
 
 template<class R, class X>
 struct TryCend<X, R()>
-    : decltype (tryCend<R>(std::declval<X>()))
+    : decltype (detail::tryCend<R>(std::declval<X>()))
 {
 };
 
@@ -794,22 +784,22 @@ struct TryFind;
 
 template<class R, class X, class Y>
 struct TryFind<X, R(Y)>
-    : decltype (tryFind<R>(std::declval<X>(), std::declval<Y>()))
+    : decltype (detail::tryFind<R>(std::declval<X>(), std::declval<Y>()))
 {
 };
 
 template<class X, class R>
-using HasConstIterator = decltype (hasConstIterator<R>(std::declval<X>()));
+using HasConstIterator = decltype (detail::hasConstIterator<R>(detail::wrap<X>()));
 
 template<class X, class R>
-using HasSizeType = decltype (hasSizeType<R>(std::declval<X>()));
+using HasSizeType = decltype (detail::hasSizeType<R>(detail::wrap<X>()));
 
 template<class, class>
 struct TrySize;
 
 template<class R, class X>
 struct TrySize<X, R()>
-    : decltype (trySize<R>(std::declval<X>()))
+    : decltype (detail::trySize<R>(std::declval<X>()))
 {
 };
 
@@ -818,7 +808,7 @@ struct TryPushBack;
 
 template<class R, class X, class Y>
 struct TryPushBack<X, R(Y)>
-    : decltype (tryPushBack<R>(std::declval<X>(), std::declval<Y>()))
+    : decltype (detail::tryPushBack<R>(std::declval<X>(), std::declval<Y>()))
 {
 };
 
@@ -827,7 +817,7 @@ struct TryBind;
 
 template<class R, class X, class Y, class Z>
 struct TryBind<X, R(Y, Z)>
-    : decltype (tryBind<R>(std::declval<X>(), std::declval<Y>(), std::declval<Z>()))
+    : decltype (detail::tryBind<R>(std::declval<X>(), std::declval<Y>(), std::declval<Z>()))
 {
 };
 
@@ -836,63 +826,63 @@ struct TryStream;
 
 template<class R, class X>
 struct TryStream<X, R()>
-    : decltype (tryStream<R>(std::declval<X>()))
+    : decltype (detail::tryStream<R>(std::declval<X>()))
 {
 };
 
 template<class X, class R>
-using HasContextType = decltype (hasContextType<R>(std::declval<X>()));
+using HasContextType = decltype (detail::hasContextType<R>(detail::wrap<X>()));
 
 template<class X, class R>
-using HasRequestType = decltype (hasRequestType<R>(std::declval<X>()));
+using HasRequestType = decltype (detail::hasRequestType<R>(detail::wrap<X>()));
 
 template<class X, class R>
-using HasFleshType = decltype (hasFleshType<R>(std::declval<X>()));
+using HasFleshType = decltype (detail::hasFleshType<R>(detail::wrap<X>()));
 
 template<class X, class R>
-using HasDuration = decltype (hasDuration<R>(std::declval<X>()));
+using HasDuration = decltype (detail::hasDuration<R>(detail::wrap<X>()));
 
 template<class X, class R>
-using HasTimePoint = decltype (hasTimePoint<R>(std::declval<X>()));
+using HasTimePoint = decltype (detail::hasTimePoint<R>(detail::wrap<X>()));
 
 template<class X, class R>
-using HasClockType = decltype (hasClockType<R>(std::declval<X>()));
+using HasClockType = decltype (detail::hasClockType<R>(detail::wrap<X>()));
 
 template<class, class>
 struct TryLeftShift;
 
 template<class R, class X, class Y>
 struct TryLeftShift<X, R(Y)>
-    : decltype (tryLeftShift<R>(std::declval<X>(), std::declval<Y>()))
+    : decltype (detail::tryLeftShift<R>(std::declval<X>(), std::declval<Y>()))
 {
 };
 
 template<class X, class R>
-using HasStorageType = decltype (hasStorageType<R>(std::declval<X>()));
+using HasStorageType = decltype (detail::hasStorageType<R>(detail::wrap<X>()));
 
 template<class X, class R>
-using HasResourceMapType = decltype (hasResourceMapType<R>(std::declval<X>()));
+using HasResourceMapType = decltype (detail::hasResourceMapType<R>(detail::wrap<X>()));
 
 template<class X, class R>
-using HasMethodMapType = decltype (hasMethodMapType<R>(std::declval<X>()));
+using HasMethodMapType = decltype (detail::hasMethodMapType<R>(detail::wrap<X>()));
 
 template<class X, class R>
-using HasResourceRegexType = decltype (hasResourceRegexType<R>(std::declval<X>()));
+using HasResourceRegexType = decltype (detail::hasResourceRegexType<R>(detail::wrap<X>()));
 
 template<class X, class R>
-using HasResourceType = decltype (hasResourceType<R>(std::declval<X>()));
+using HasResourceType = decltype (detail::hasResourceType<R>(detail::wrap<X>()));
 
 template<class X, class R>
-using HasMethodType = decltype (hasMethodType<R>(std::declval<X>()));
+using HasMethodType = decltype (detail::hasMethodType<R>(detail::wrap<X>()));
 
 template<class X, class R>
-using HasCbExecutorType = decltype (hasCbExecutorType<R>(std::declval<X>()));
+using HasCbExecutorType = decltype (detail::hasCbExecutorType<R>(detail::wrap<X>()));
 
 template<class X, class R>
-using HasRegexType = decltype (hasRegexType<R>(std::declval<X>()));
+using HasRegexType = decltype (detail::hasRegexType<R>(detail::wrap<X>()));
 
 template<class X, class R>
-using HasRegexFlagType = decltype (hasRegexFlagType<R>(std::declval<X>()));
+using HasRegexFlagType = decltype (detail::hasRegexFlagType<R>(detail::wrap<X>()));
 
 template<class... Elements>
 using TypeList = detail::typelist::instance<Elements...>;
