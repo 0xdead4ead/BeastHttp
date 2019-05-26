@@ -577,42 +577,42 @@ public:
     template<class Router, class... _OnAction>
     static auto
     handshake(boost::asio::ssl::context&, socket_type&&, Router const&, buffer_type&&,
-              _OnAction&&...) -> decltype (
+              _OnAction&&...) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
-            std::declval<context_type>());
+            std::declval<context_type>())>::type;
 
     template<class Router, class... _OnAction>
     static auto
     handshake(boost::asio::ssl::context&, socket_type&&, Router const&,
-              _OnAction&&...) -> decltype (
+              _OnAction&&...) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
-            std::declval<context_type>());
+            std::declval<context_type>())>::type;
 
     template<class Router, class TimePointOrDuration, class... _OnAction>
     static auto
     handshake(boost::asio::ssl::context&, socket_type&&, Router const&,
-              TimePointOrDuration const, buffer_type&&, _OnAction&&...) -> decltype (
+              TimePointOrDuration const, buffer_type&&, _OnAction&&...) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).handshake(std::declval<TimePointOrDuration>()),
-            std::declval<context_type>());
+            std::declval<context_type>())>::type;
 
     template<class Router, class TimePointOrDuration, class... _OnAction>
     static auto
     handshake(boost::asio::ssl::context&, socket_type&&, Router const&,
-              TimePointOrDuration const, _OnAction&&...) -> decltype (
+              TimePointOrDuration const, _OnAction&&...) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).handshake(std::declval<TimePointOrDuration>()),
-            std::declval<context_type>());
+            std::declval<context_type>())>::type;
 
     template<class... _OnAction>
     static auto
     force_eof(boost::asio::ssl::context&, socket_type&&, _OnAction&&...) -> decltype (
-            BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY(), void());
+            void(BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY()));
 
     template<class... _OnAction>
     static auto
     force_cls(boost::asio::ssl::context&, socket_type&&, _OnAction&&...) -> decltype (
-            BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY(), void());
+            void(BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY()));
 
 }; // class session
 

@@ -660,16 +660,14 @@ template<class Router, class... _OnAction>
 auto
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
         boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
-        buffer_type&& buffer, _OnAction&&... on_action) -> decltype (
+        buffer_type&& buffer, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
-        std::declval<context_type>())
+        std::declval<context_type>())>::type
 {
-    context_type ctx_{std::make_shared<flesh_type>(
-                    ctx, std::move(socket), router.resource_map(), router.method_map(), router.regex_flags(),
-                    &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
-                ->handshake()};
-
-    return std::move(ctx_);
+    return std::make_shared<flesh_type>(
+                ctx, std::move(socket), router.resource_map(), router.method_map(), router.regex_flags(),
+                &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
+            ->handshake();
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -677,9 +675,9 @@ template<class Router, class... _OnAction>
 auto
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
         boost::asio::ssl::context& ctx, socket_type&& socket,
-        Router const& router, _OnAction&&... on_action) -> decltype (
+        Router const& router, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
-        std::declval<context_type>())
+        std::declval<context_type>())>::type
 {
     buffer_type buffer;
     return handshake(ctx, std::move(socket), router, std::move(buffer),
@@ -691,17 +689,15 @@ template<class Router, class TimePointOrDuration, class... _OnAction>
 auto
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
         boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
-        TimePointOrDuration const timeOrDuration, buffer_type&& buffer, _OnAction&&... on_action) -> decltype (
+        TimePointOrDuration const timeOrDuration, buffer_type&& buffer, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(
             std::declval<Router const&>()).handshake(std::declval<TimePointOrDuration>()),
-        std::declval<context_type>())
+        std::declval<context_type>())>::type
 {
-    context_type ctx_{std::make_shared<flesh_type>(
-                    ctx, std::move(socket), router.resource_map(), router.method_map(), router.regex_flags(),
-                    &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
-                ->handshake(timeOrDuration)};
-
-    return std::move(ctx_);
+    return std::make_shared<flesh_type>(
+                ctx, std::move(socket), router.resource_map(), router.method_map(), router.regex_flags(),
+                &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
+            ->handshake(timeOrDuration);
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -709,10 +705,10 @@ template<class Router, class TimePointOrDuration, class... _OnAction>
 auto
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
         boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
-        TimePointOrDuration const timeOrDuration, _OnAction&&... on_action) -> decltype (
+        TimePointOrDuration const timeOrDuration, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(
             std::declval<Router const&>()).handshake(std::declval<TimePointOrDuration>()),
-        std::declval<context_type>())
+        std::declval<context_type>())>::type
 {
     buffer_type buffer;
     return handshake(ctx, std::move(socket), router, timeOrDuration, std::move(buffer),
@@ -724,8 +720,8 @@ template<class... _OnAction>
 auto
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::force_eof(
         boost::asio::ssl::context& ctx, socket_type&& socket,
-        _OnAction&&... on_action) -> decltype (
-        BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY(), void())
+        _OnAction&&... on_action) -> decltype (void(
+        BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY()))
 {
     buffer_type buffer;
     return flesh_type(ctx, std::move(socket), {}, {}, {}, {}, std::move(buffer),
@@ -737,8 +733,8 @@ template<class... _OnAction>
 auto
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::force_cls(
         boost::asio::ssl::context& ctx, socket_type&& socket,
-        _OnAction&&... on_action) -> decltype (
-        BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY(), void())
+        _OnAction&&... on_action) -> decltype (void(
+        BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY()))
 {
     buffer_type buffer;
     return flesh_type(ctx, std::move(socket), {}, {}, {}, {}, std::move(buffer),
