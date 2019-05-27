@@ -8,7 +8,7 @@ matrix:
   - os: linux
     compiler: gcc
     env:
-      - COMPILER=g++-8
+      - COMPILER=g++
       - FLAGS=-std=c++14
       - BUILD_TYPE=Debug
     addons:
@@ -19,12 +19,12 @@ matrix:
         packages:
           - libssl-dev
           - boost1.67
-          - g++-8
+          - g++
 
   - os: linux
     compiler: gcc
     env:
-      - COMPILER=g++-8
+      - COMPILER=g++
       - FLAGS=-std=c++14
       - BUILD_TYPE=Release
     addons:
@@ -35,12 +35,12 @@ matrix:
         packages:
           - libssl-dev
           - boost1.67
-          - g++-8
+          - g++
 
   - os: linux
     compiler: gcc
     env:
-      - COMPILER=g++-8
+      - COMPILER=g++
       - FLAGS=-std=c++17
       - BUILD_TYPE=Debug
     addons:
@@ -51,12 +51,12 @@ matrix:
         packages:
           - libssl-dev
           - boost1.67
-          - g++-8
+          - g++
 
   - os: linux
     compiler: gcc
     env:
-      - COMPILER=g++-8
+      - COMPILER=g++
       - FLAGS=-std=c++17
       - BUILD_TYPE=Release
     addons:
@@ -67,7 +67,7 @@ matrix:
         packages:
           - libssl-dev
           - boost1.67
-          - g++-8
+          - g++
 
   - os: linux
     compiler: clang
