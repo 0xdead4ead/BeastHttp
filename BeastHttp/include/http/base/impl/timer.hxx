@@ -2,6 +2,7 @@
 #define BEASTHTTP_BASE_IMPL_TIMER_HXX
 
 #include <boost/asio/bind_executor.hpp>
+#include <boost/asio/version.hpp>
 
 namespace _0xdead4ead {
 namespace http {
@@ -14,7 +15,11 @@ timer<Clock, Timer, CompletionExecutor>::timer(
         const CompletionExecutor& completion_executor,
         const TimePointOrDuration duration_or_time)
     : completion_executor_{completion_executor},
-      timer_{completion_executor.get_inner_executor().context(), duration_or_time}
+      timer_{completion_executor.get_inner_executor()
+#if BOOST_ASIO_VERSION < 101400
+        .context()
+#endif
+      , duration_or_time}
 {
 }
 

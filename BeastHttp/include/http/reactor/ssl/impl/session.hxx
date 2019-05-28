@@ -6,7 +6,7 @@
              class Fields, \
              class Buffer, \
              class Protocol, \
-             template<typename> class Socket, \
+             class Socket, \
              class Clock, \
              template<typename, typename...> class Timer, \
              template<typename> class Entry, \

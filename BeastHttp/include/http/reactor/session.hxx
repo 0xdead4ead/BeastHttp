@@ -1,6 +1,8 @@
 #if not defined BEASTHTTP_REACTOR_SESSION_HXX
 #define BEASTHTTP_REACTOR_SESSION_HXX
 
+#include <unordered_map>
+
 #include <http/base/cb.hxx>
 #include <http/base/request_processor.hxx>
 #include <http/base/queue.hxx>
@@ -44,7 +46,7 @@ template</*Prototype request message*/
          class Buffer = boost::beast::flat_buffer,
          /*Connection param's*/
          class Protocol = boost::asio::ip::tcp,
-         template<typename> class Socket = boost::asio::basic_stream_socket,
+         class Socket = boost::asio::basic_stream_socket<Protocol>,
          /*Timer param's*/
          class Clock = boost::asio::chrono::steady_clock,
          template<typename, typename...> class Timer = boost::asio::basic_waitable_timer,
@@ -100,7 +102,7 @@ public:
 
     using buffer_type = Buffer;
 
-    using connection_type = common::connection<Protocol, Socket, base::strand_stream::asio_type>;
+    using connection_type = common::connection<Socket, base::strand_stream::asio_type>;
 
     using socket_type = typename connection_type::socket_type;
 

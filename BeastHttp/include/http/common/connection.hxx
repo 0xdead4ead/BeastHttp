@@ -8,8 +8,7 @@ namespace _0xdead4ead {
 namespace http {
 namespace common {
 
-template<class Protocol,
-         template<typename> class Socket,
+template<class Socket,
          class CompletionExecutor>
 class connection :
         private base::socket<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES>,

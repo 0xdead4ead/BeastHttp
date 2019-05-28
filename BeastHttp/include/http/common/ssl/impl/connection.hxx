@@ -6,8 +6,7 @@ namespace http {
 namespace common {
 namespace ssl {
 
-template<class Protocol,
-         template<typename> class Socket,
+template<class Socket,
          class CompletionExecutor>
 connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::connection(
         socket_type&& socket, boost::asio::ssl::context& ctx,
@@ -18,8 +17,7 @@ connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::connection(
 {
 }
 
-template<class Protocol,
-         template<typename> class Socket,
+template<class Socket,
          class CompletionExecutor>
 template <class F, class B>
 void
@@ -32,8 +30,7 @@ connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::async_handshak
                                            std::forward<F>(f)));
 }
 
-template<class Protocol,
-         template<typename> class Socket,
+template<class Socket,
          class CompletionExecutor>
 template<class F>
 void
@@ -44,8 +41,7 @@ connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::async_shutdown
                                            std::forward<F>(f)));
 }
 
-template<class Protocol,
-         template<typename> class Socket,
+template<class Socket,
          class CompletionExecutor>
 boost::beast::error_code
 connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::force_shutdown(shutdown_type type)
@@ -53,8 +49,7 @@ connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::force_shutdown
     return base_socket::shutdown(type);
 }
 
-template<class Protocol,
-         template<typename> class Socket,
+template<class Socket,
          class CompletionExecutor>
 boost::beast::error_code
 connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::force_close()
@@ -62,8 +57,7 @@ connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::force_close()
     return base_socket::close();
 }
 
-template<class Protocol,
-         template<typename> class Socket,
+template<class Socket,
          class CompletionExecutor>
 typename connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::ssl_stream_type&
 connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::stream()
@@ -71,8 +65,7 @@ connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::stream()
     return stream_;
 }
 
-template<class Protocol,
-         template<typename> class Socket,
+template<class Socket,
          class CompletionExecutor>
 typename connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::socket_type&
 connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::socket()

@@ -11,8 +11,7 @@ namespace http {
 namespace common {
 namespace ssl {
 
-template<class Protocol,
-         template<typename> class Socket,
+template<class Socket,
          class CompletionExecutor>
 class connection : private base::socket<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES>,
         public base::connection<connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>,
