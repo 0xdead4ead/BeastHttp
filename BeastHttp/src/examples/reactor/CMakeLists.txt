@@ -7,4 +7,4 @@ file(GLOB SRCS ${BEASTHTTP_EXAMPLES_DIR}/${BEASTHTTP_EXAMPLE_NAME}/*.cxx)
 
 add_executable(${BEASTHTTP_EXAMPLE_NAME} ${HEADS} ${SRCS})
 
-target_link_libraries(${BEASTHTTP_EXAMPLE_NAME} Boost::system Boost::thread Boost::regex pthread)
+target_link_libraries(${BEASTHTTP_EXAMPLE_NAME} Boost::system Boost::thread pthread)

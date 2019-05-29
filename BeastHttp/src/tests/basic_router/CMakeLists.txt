@@ -9,6 +9,6 @@ set(SRCS main.cxx)
 add_executable(${BEASTHTTP_BASIC_ROUTER_TEST_NAME} ${SRCS})
 
 target_link_libraries(${BEASTHTTP_BASIC_ROUTER_TEST_NAME} Boost::system Boost::thread
-    Boost::regex Boost::unit_test_framework pthread)
+    Boost::unit_test_framework pthread)
 
 add_test (NAME ${BEASTHTTP_BASIC_ROUTER_TEST_NAME} COMMAND "${BEASTHTTP_BASIC_ROUTER_TEST_NAME}" "--log_level=test_suite")

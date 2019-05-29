@@ -1,7 +1,7 @@
 #if not defined BEASTHTTP_BASE_REGEX_HXX
 #define BEASTHTTP_BASE_REGEX_HXX
 
-#include <boost/regex.hpp>
+#include <regex>
 
 namespace _0xdead4ead {
 namespace http {
@@ -15,9 +15,9 @@ public:
 
     using char_type = char;
 
-    using traits_type = boost::regex_traits<char_type>;
+    using traits_type = std::regex_traits<char_type>;
 
-    using regex_type = boost::basic_regex<char_type, traits_type>;
+    using regex_type = std::basic_regex<char_type, traits_type>;
 
     using flag_type = typename regex_type::flag_type;
 
@@ -27,7 +27,7 @@ public:
     match(const std::string&, const std::string&);
 
     bool
-    match(const std::string&, const std::string&, boost::smatch&);
+    match(const std::string&, const std::string&, std::smatch&);
 
 private:
 

@@ -153,10 +153,10 @@ int main()
         context.send(make_404<beast::http::string_body>(request, "Resource is not found\n", "text/html"));
     };
 
-    http::basic_router<HttpSession> router{boost::regex::ECMAScript};
+    http::basic_router<HttpSession> router{std::regex::ECMAScript};
 
     // Note: For encrypted connection must be separate copy router
-    http::basic_router<SslHttpSession> ssl_router{boost::regex::ECMAScript};
+    http::basic_router<SslHttpSession> ssl_router{std::regex::ECMAScript};
 
     // Applying resource handlers
     router.get(R"(^/$)", onMainResource);

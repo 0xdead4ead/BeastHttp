@@ -61,7 +61,7 @@ int main()
     using HttpRequest = typename HttpSession::request_type;
     using AsioSocket = typename HttpSession::socket_type;
 
-    http::basic_router<HttpSession> router{boost::regex::ECMAScript};
+    http::basic_router<HttpSession> router{std::regex::ECMAScript};
 
     router.get(R"(^/$)", [](HttpRequest request, HttpContext context) {
         // Send content message to client and wait to receive next request

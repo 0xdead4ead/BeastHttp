@@ -14,15 +14,15 @@ bool
 regex::match(const std::string& regx, const std::string& str)
 {
     const regex_type e(regx, flags_);
-    return boost::regex_match(str, e);
+    return std::regex_match(str, e);
 }
 
 bool
 regex::match(const std::string& regx, const std::string& str,
-      boost::smatch& results)
+      std::smatch& results)
 {
     const regex_type e(regx, flags_);
-    return boost::regex_match(str, results, e);
+    return std::regex_match(str, results, e);
 }
 
 } // namespace base

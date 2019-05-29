@@ -54,7 +54,7 @@ int main()
     using HttpSession = http::reactor::_default::session_type;
     using HttpListener = http::reactor::_default::listener_type;
 
-    http::basic_router<HttpSession> router{boost::regex::ECMAScript};
+    http::basic_router<HttpSession> router{std::regex::ECMAScript};
 
     // Set router targets
     router.get(R"(^/$)", [](auto request, auto context) {

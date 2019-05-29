@@ -38,7 +38,7 @@ int main()
     using HttpSession = http::reactor::_default::session_type;
     using HttpListener = http::reactor::_default::listener_type;
 
-    http::basic_router<HttpSession> router{boost::regex::ECMAScript};
+    http::basic_router<HttpSession> router{std::regex::ECMAScript};
 
     router.get(R"(^.*$)", [](auto request, auto context) {
         // Received customer feedback! Sending an echo target answer. Launch timer again!

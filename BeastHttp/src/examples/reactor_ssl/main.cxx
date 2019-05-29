@@ -137,7 +137,7 @@ int main()
     using SslHttpSession = http::reactor::ssl::_default::session_type;
     using HttpListener = http::reactor::_default::listener_type;
 
-    http::basic_router<SslHttpSession> router{boost::regex::ECMAScript};
+    http::basic_router<SslHttpSession> router{std::regex::ECMAScript};
 
     // Set router targets
     router.get(R"(^/$)", [](auto request, auto context) {

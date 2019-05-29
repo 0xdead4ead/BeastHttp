@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.11)
 
 project(BeastHttp VERSION 2.3 LANGUAGES CXX)
 
-find_package(Boost 1.67 COMPONENTS system thread regex)
+find_package(Boost 1.67 COMPONENTS system thread)
 
 set(BEASTHTTP_INCLUDE_PATH ${PROJECT_SOURCE_DIR}/../include)
 set(BEASTHTTP_EXAMPLES_DIR ${PROJECT_SOURCE_DIR}/examples)

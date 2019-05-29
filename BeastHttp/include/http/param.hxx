@@ -15,7 +15,7 @@
         shared_block_p_->rp_iter_--; \
         shared_block_p_->cur_pos_cb_ = shared_block_p_->regex_pack.size() - 1; \
     } \
-    boost::smatch what; \
+    std::smatch what; \
     const auto& target = request.target().to_string(); \
     if (shared_block_p_->regex_.match( \
                 *(shared_block_p_->rp_iter_), target, what)) \
@@ -31,7 +31,7 @@
     } \
     if (shared_block_p_->rp_iter_ == shared_block_p_->regex_pack.cbegin()) \
         shared_block_p_->rp_iter_++; \
-    boost::smatch what; \
+    std::smatch what; \
     const auto& target = request.target().to_string(); \
     if (shared_block_p_->regex_.match( \
                 *(shared_block_p_->rp_iter_), target, what)) \

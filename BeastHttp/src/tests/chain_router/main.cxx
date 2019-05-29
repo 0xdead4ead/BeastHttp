@@ -65,7 +65,7 @@ public:
 
 }; // class test_session
 
-static const boost::regex::flag_type regex_flags = boost::regex::ECMAScript;
+static const std::regex::flag_type regex_flags = std::regex::ECMAScript;
 
 BOOST_AUTO_TEST_CASE(no_1) {
 
