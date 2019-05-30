@@ -21,13 +21,14 @@ Easy HTTP (Header-only) library implemented using minimum C++11 and Boost.Beast.
 
 # DEPENDENCIES
 
-* Boost Libraries >= 1.70.0
-* [`Boost.Asio`](https://github.com/boostorg/asio), [`Boost.Beast`](https://github.com/boostorg/beast/tree/develop) & [`Boost.LexicalCast`](https://github.com/boostorg/lexical_cast) library
+* Boost Libraries >= 1.67.0
+* [`Boost.Asio`](https://github.com/boostorg/asio), [`Boost.Beast`](https://github.com/boostorg/beast/tree/develop)
 * [`OpenSSL`](https://github.com/openssl/openssl) (optional)
+* [`Boost.LexicalCast`](https://github.com/boostorg/lexical_cast) (optional)
 
 # USAGE
 
-More examples is [`here...`](https://github.com/0xdead4ead/BeastHttp/tree/dev/examples)
+More examples is [`here...`](https://github.com/0xdead4ead/BeastHttp/tree/dev/BeastHttp/src/examples)
 The following notes show the standard syntax for setting up routes and starting a server!
 
 Alias's represent instances of default classes for reactive (select/epool) design.
