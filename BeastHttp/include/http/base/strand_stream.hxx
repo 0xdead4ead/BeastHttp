@@ -3,17 +3,18 @@
 
 #include <boost/asio/strand.hpp>
 #include <boost/asio/io_context.hpp>
+#include <boost/asio/system_timer.hpp>
 
 namespace _0xdead4ead {
 namespace http {
 namespace base {
 
 struct strand_stream :
-        boost::asio::strand<boost::asio::io_context::executor_type>
+        boost::asio::strand<boost::asio::system_timer::executor_type>
 {
-    using asio_type = boost::asio::strand<boost::asio::io_context::executor_type>;
+    using asio_type = boost::asio::strand<boost::asio::system_timer::executor_type>;
 
-    strand_stream(const boost::asio::io_context::executor_type& executor)
+    strand_stream(const boost::asio::system_timer::executor_type& executor)
         : asio_type(executor)
     {
     }

@@ -5,23 +5,22 @@
 #include <boost/system/error_code.hpp>
 
 #define BEASTHTTP_SOCKET_TMPL_ATTRIBUTES \
-    Protocol, Socket
+    Socket
 
 namespace _0xdead4ead {
 namespace http {
 namespace base {
 
-template<class Protocol,
-         template<typename> class Socket>
+template<class Socket>
 class socket
 {
     using self_type = socket;
 
 protected:
 
-    using protocol_type = Protocol;
+    using protocol_type = typename Socket::protocol_type;
 
-    using socket_type = Socket<protocol_type>;
+    using socket_type = Socket;
 
     static_assert (std::is_base_of<boost::asio::socket_base, socket_type>::value,
                    "Socket type is not supported!");

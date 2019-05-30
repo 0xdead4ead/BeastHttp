@@ -20,8 +20,8 @@ namespace reactor {
 template<template<typename> class OnAccept = std::function,
          template<typename> class OnError = std::function,
          class Protocol = boost::asio::ip::tcp,
-         template<typename> class Acceptor = boost::asio::basic_socket_acceptor,
-         template<typename> class Socket = boost::asio::basic_stream_socket,
+         class Acceptor = boost::asio::basic_socket_acceptor<Protocol>,
+         class Socket = boost::asio::basic_stream_socket<Protocol>,
          template<typename> class Endpoint = boost::asio::ip::basic_endpoint>
 class listener : public std::enable_shared_from_this<listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>>
         , boost::asio::coroutine
@@ -34,9 +34,9 @@ public:
 
     using protocol_type = Protocol;
 
-    using acceptor_type = Acceptor<protocol_type>;
+    using acceptor_type = Acceptor;
 
-    using socket_type = Socket<protocol_type>;
+    using socket_type = Socket;
 
     using endpoint_type = Endpoint<protocol_type>;
 

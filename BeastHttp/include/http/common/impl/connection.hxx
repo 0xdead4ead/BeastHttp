@@ -5,8 +5,7 @@ namespace _0xdead4ead {
 namespace http {
 namespace common {
 
-template<class Protocol,
-         template<typename> class Socket,
+template<class Socket,
          class CompletionExecutor>
 connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::connection(
         socket_type&& socket,
@@ -17,8 +16,7 @@ connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::connection(
 {
 }
 
-template<class Protocol,
-         template<typename> class Socket,
+template<class Socket,
          class CompletionExecutor>
 boost::beast::error_code
 connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::shutdown(shutdown_type type)
@@ -26,8 +24,7 @@ connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::shutdown(shutd
     return base_socket::shutdown(type);
 }
 
-template<class Protocol,
-         template<typename> class Socket,
+template<class Socket,
          class CompletionExecutor>
 boost::beast::error_code
 connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::close()
@@ -35,8 +32,7 @@ connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::close()
     return base_socket::close();
 }
 
-template<class Protocol,
-         template<typename> class Socket,
+template<class Socket,
          class CompletionExecutor>
 typename connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::socket_type&
 connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::stream()

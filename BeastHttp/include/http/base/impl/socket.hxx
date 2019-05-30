@@ -5,10 +5,9 @@ namespace _0xdead4ead {
 namespace http {
 namespace base {
 
-template<class Protocol,
-         template<typename> class Socket>
+template<class Socket>
 boost::system::error_code
-socket<Protocol, Socket>::shutdown(typename socket_type::shutdown_type type)
+socket<Socket>::shutdown(typename socket_type::shutdown_type type)
 {
     auto ec = boost::system::error_code{};
     instance_.shutdown(type, ec);
@@ -16,10 +15,9 @@ socket<Protocol, Socket>::shutdown(typename socket_type::shutdown_type type)
     return ec;
 }
 
-template<class Protocol,
-         template<typename> class Socket>
+template<class Socket>
 boost::system::error_code
-socket<Protocol, Socket>::close()
+socket<Socket>::close()
 {
     auto ec = boost::system::error_code{};
     instance_.close(ec);
@@ -27,9 +25,8 @@ socket<Protocol, Socket>::close()
     return ec;
 }
 
-template<class Protocol,
-         template<typename> class Socket>
-socket<Protocol, Socket>::socket(socket_type&& socket)
+template<class Socket>
+socket<Socket>::socket(socket_type&& socket)
     : instance_{std::move(socket)}
 {
 }

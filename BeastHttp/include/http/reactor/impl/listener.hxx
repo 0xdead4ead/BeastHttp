@@ -5,8 +5,8 @@
     template<template<typename> class OnAccept, \
     template<typename> class OnError, \
     class Protocol, \
-    template<typename> class Acceptor, \
-    template<typename> class Socket, \
+    class Acceptor, \
+    class Socket, \
     template<typename> class Endpoint>
 
 namespace _0xdead4ead {
