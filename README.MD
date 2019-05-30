@@ -21,8 +21,8 @@ Easy HTTP (Header-only) library implemented using minimum C++11 and Boost.Beast.
 
 # DEPENDENCIES
 
-* Boost Libraries >= 1.67.0v
-* [`Boost.Regex`](https://github.com/boostorg/regex), [`Boost.Asio`](https://github.com/boostorg/asio), [`Boost.Beast`](https://github.com/boostorg/beast/tree/develop) & [`Boost.LexicalCast`](https://github.com/boostorg/lexical_cast) library
+* Boost Libraries >= 1.70.0
+* [`Boost.Asio`](https://github.com/boostorg/asio), [`Boost.Beast`](https://github.com/boostorg/beast/tree/develop) & [`Boost.LexicalCast`](https://github.com/boostorg/lexical_cast) library
 * [`OpenSSL`](https://github.com/openssl/openssl) (optional)
 
 # USAGE
@@ -46,7 +46,7 @@ Creating a new callback functions storage and route path for GET request with "/
 
 ```cpp
 
-    static const boost::regex::flag_type regex_flags = boost::regex::ECMAScript;
+    static const std::regex::flag_type regex_flags = std::regex::ECMAScript;
 
     http::basic_router<HttpSession> router{regex_flags};
 
