@@ -67,8 +67,12 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::loop(
 
         return;
     }
-
-    acceptor_.set_option(boost::asio::socket_base::reuse_address(false));
+#ifdef _WIN32
+    typedef boost::asio::detail::socket_option::boolean<BOOST_ASIO_OS_DEF(SOL_SOCKET), SO_EXCLUSIVEADDRUSE> exclusive_address_use;
+    acceptor_.set_option(exclusive_address_use(true), ec);
+#else
+    acceptor_.set_option(boost::asio::socket_base::reuse_address(true), ec);
+#endif
     if (ec) {
         if (on_error_)
             on_error_(ec, "set_option/loop");
