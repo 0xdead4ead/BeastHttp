@@ -5,8 +5,6 @@
 #include <http/basic_router.hxx>
 #include <http/out.hxx>
 
-#include <http/common/detect.hxx>
-
 #include <boost/asio/posix/stream_descriptor.hpp>
 #include <boost/asio/signal_set.hpp>
 

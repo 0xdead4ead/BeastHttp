@@ -10,6 +10,7 @@
 #include <http/base/lockable.hxx>
 
 #include <http/common/ssl/connection.hxx>
+#include <http/common/detect.hxx>
 
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
