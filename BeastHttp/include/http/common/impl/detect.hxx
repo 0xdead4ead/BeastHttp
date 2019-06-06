@@ -4,7 +4,7 @@
 #define BEASTHTTP_COMMON_DETECT_TMPL_DECLARE \
     template<class Buffer, \
              class Protocol, \
-             template<typename> class Socket, \
+             class Socket, \
              class Clock, \
              template<typename, typename...> class Timer, \
              template<typename> class OnError, \

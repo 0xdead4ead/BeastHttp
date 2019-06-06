@@ -19,7 +19,7 @@ template</*Message's buffer*/
          class Buffer = boost::beast::flat_buffer,
          /*connection*/
          class Protocol = boost::asio::ip::tcp,
-         template<typename> class Socket = boost::asio::basic_stream_socket,
+         class Socket = boost::asio::basic_stream_socket<Protocol>,
          /*timer*/
          class Clock = boost::asio::chrono::steady_clock,
          template<typename, typename...> class Timer = boost::asio::basic_waitable_timer,
@@ -40,7 +40,7 @@ public:
 
     using protocol_type = Protocol;
 
-    using socket_type = Socket<protocol_type>;
+    using socket_type = Socket;
 
     using buffer_type = Buffer;
 
