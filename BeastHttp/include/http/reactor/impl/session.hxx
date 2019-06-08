@@ -222,6 +222,31 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::cls()
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Handler>
+void
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::set_option(
+        typename option::on_error, Handler&& handler,
+        typename std::enable_if<
+        base::traits::TryInvoke<Handler,
+        void(boost::system::error_code,
+             boost::string_view)>::value, int>::type)
+{
+    on_error_ = std::forward<Handler>(handler);
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Handler>
+void
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::set_option(
+        typename option::on_timer, Handler&& handler,
+        typename std::enable_if<
+        base::traits::TryInvoke<Handler,
+        void(context_type)>::value, int>::type)
+{
+    on_timer_ = std::forward<Handler>(handler);
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::flesh(
         socket_type&& socket,
         std::shared_ptr<resource_map_type> const& resource_map,
@@ -670,27 +695,27 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class... _OnAction>
+template<class... _OnError>
 auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::eof(socket_type&& socket,
-    _OnAction&&... on_action) -> decltype (void(
+    _OnError&&... on_error) -> decltype (void(
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY()))
 {
     buffer_type buffer;
     return flesh_type(std::move(socket), {}, {}, {}, {}, std::move(buffer),
-                      std::forward<_OnAction>(on_action)...).eof();
+                      std::forward<_OnError>(on_error)...).eof();
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class... _OnAction>
+template<class... _OnError>
 auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::cls(socket_type&& socket,
-    _OnAction&&... on_action) -> decltype (void(
+    _OnError&&... on_error) -> decltype (void(
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY()))
 {
     buffer_type buffer;
     return flesh_type(std::move(socket), {}, {}, {}, {}, std::move(buffer),
-                      std::forward<_OnAction>(on_action)...).cls();
+                      std::forward<_OnError>(on_error)...).cls();
 }
 
 } // namespace reactor

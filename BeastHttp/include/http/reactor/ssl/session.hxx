@@ -34,7 +34,10 @@
                std::declval<regex_flag_type>(), \
                std::declval<mutex_type*>(), \
                std::declval<buffer_type>(), \
-               std::declval<_OnAction>()...)
+               std::declval<_OnError>()...)
+
+#define BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_SET_OPTION(overload_val) \
+    std::declval<context<Flesh, context_policy::shared>>().flesh_p_->set_option(overload_val, std::declval<Handler>())
 
 namespace _0xdead4ead {
 namespace http {
@@ -69,6 +72,12 @@ class session
     using self_type = session;
 
     enum class context_policy { shared, weak };
+
+    struct option
+    {
+        struct on_error{};
+        struct on_timer{};
+    };
 
 public:
 
@@ -239,6 +248,39 @@ public:
         void
         force_cls();
 
+        template<class Handler>
+        void
+        set_option(typename option::on_error, Handler&&,
+                   typename std::enable_if<
+                   base::traits::TryInvoke<Handler,
+                   void(boost::system::error_code,
+                        boost::string_view)>::value, int>::type = 0);
+
+        template<class Handler>
+        void
+        set_option(typename option::on_timer, Handler&&,
+                   typename std::enable_if<
+                   base::traits::TryInvoke<Handler,
+                   void(context_type)>::value, int>::type = 0);
+
+        explicit
+        flesh(boost::asio::ssl::context&,
+              socket_type&&,
+              std::shared_ptr<resource_map_type> const&,
+              std::shared_ptr<method_map_type> const&,
+              regex_flag_type,
+              mutex_type*,
+              buffer_type&&);
+
+        explicit
+        flesh(int, boost::asio::ssl::context&,
+              socket_type&&,
+              std::shared_ptr<resource_map_type> const&,
+              std::shared_ptr<method_map_type> const&,
+              regex_flag_type,
+              mutex_type*,
+              buffer_type&&);
+
         template<class _OnHandshake>
         explicit
         flesh(boost::asio::ssl::context&,
@@ -252,6 +294,21 @@ public:
               typename std::enable_if<
               base::traits::TryInvoke<_OnHandshake,
               void(context_type)>::value, int>::type = 0);
+
+        template<class _OnError>
+        explicit
+        flesh(int, boost::asio::ssl::context&,
+              socket_type&&,
+              std::shared_ptr<resource_map_type> const&,
+              std::shared_ptr<method_map_type> const&,
+              regex_flag_type,
+              mutex_type*,
+              buffer_type&&,
+              _OnError&&,
+              typename std::enable_if<
+              base::traits::TryInvoke<_OnError,
+              void(boost::system::error_code,
+                   boost::string_view)>::value, int>::type = 0);
 
         template<class _OnHandshake, class _OnError>
         explicit
@@ -383,6 +440,27 @@ public:
         }
 
     public:
+
+        struct set
+        {
+            template<class Handler>
+            static auto
+            on_error(context<Flesh, context_policy::shared> ctx, Handler&& handler) -> decltype (
+                    BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_SET_OPTION(std::declval<typename option::on_error>()))
+            {
+                ctx.flesh_p_->set_option(typename option::on_error(), std::forward<Handler>(handler));
+            }
+
+            template<class Handler>
+            static auto
+            on_timer(context<Flesh, context_policy::shared> ctx, Handler&& handler) -> decltype (
+                    BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_SET_OPTION(std::declval<typename option::on_timer>()))
+            {
+                ctx.flesh_p_->set_option(typename option::on_timer(), std::forward<Handler>(handler));
+            }
+        };
+
+        friend struct set;
 
         context(Flesh& flesh)
             : flesh_p_{flesh.shared_from_this()}
@@ -605,14 +683,14 @@ public:
                 std::declval<Router const&>()).handshake(std::declval<TimePointOrDuration>()),
             std::declval<context_type>())>::type;
 
-    template<class... _OnAction>
+    template<class... _OnError>
     static auto
-    force_eof(boost::asio::ssl::context&, socket_type&&, _OnAction&&...) -> decltype (
+    force_eof(boost::asio::ssl::context&, socket_type&&, _OnError&&...) -> decltype (
             void(BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY()));
 
-    template<class... _OnAction>
+    template<class... _OnError>
     static auto
-    force_cls(boost::asio::ssl::context&, socket_type&&, _OnAction&&...) -> decltype (
+    force_cls(boost::asio::ssl::context&, socket_type&&, _OnError&&...) -> decltype (
             void(BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY()));
 
 }; // class session
