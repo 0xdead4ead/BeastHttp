@@ -19,7 +19,7 @@ matrix:
         packages:
           - libssl-dev
           - boost1.67
-          - g++
+          - g++-8
 
   - os: linux
     compiler: gcc
@@ -35,7 +35,7 @@ matrix:
         packages:
           - libssl-dev
           - boost1.67
-          - g++
+          - g++-8
 
   - os: linux
     compiler: gcc
@@ -51,7 +51,7 @@ matrix:
         packages:
           - libssl-dev
           - boost1.67
-          - g++
+          - g++-8
 
   - os: linux
     compiler: gcc
@@ -67,7 +67,7 @@ matrix:
         packages:
           - libssl-dev
           - boost1.67
-          - g++
+          - g++-8
 
   - os: linux
     compiler: clang
