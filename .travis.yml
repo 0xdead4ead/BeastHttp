@@ -8,7 +8,7 @@ matrix:
   - os: linux
     compiler: gcc
     env:
-      - COMPILER=g++
+      - COMPILER=g++-8
       - FLAGS=-std=c++14
       - BUILD_TYPE=Debug
     addons:
@@ -24,7 +24,7 @@ matrix:
   - os: linux
     compiler: gcc
     env:
-      - COMPILER=g++
+      - COMPILER=g++-8
       - FLAGS=-std=c++14
       - BUILD_TYPE=Release
     addons:
@@ -40,7 +40,7 @@ matrix:
   - os: linux
     compiler: gcc
     env:
-      - COMPILER=g++
+      - COMPILER=g++-8
       - FLAGS=-std=c++17
       - BUILD_TYPE=Debug
     addons:
@@ -56,7 +56,7 @@ matrix:
   - os: linux
     compiler: gcc
     env:
-      - COMPILER=g++
+      - COMPILER=g++-8
       - FLAGS=-std=c++17
       - BUILD_TYPE=Release
     addons:
