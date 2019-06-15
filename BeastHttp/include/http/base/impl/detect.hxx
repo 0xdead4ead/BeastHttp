@@ -20,7 +20,7 @@ template<class S, class B, class F>
 void
 detect<CompletionExecutor>::async(S& s, B& buf, F&& f)
 {
-    async_detect_ssl(s, buf,
+    ::async_detect_ssl(s, buf,
                      boost::asio::bind_executor(
                          completion_executor_, std::forward<F>(f)));
 }

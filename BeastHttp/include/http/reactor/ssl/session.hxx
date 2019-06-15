@@ -16,6 +16,8 @@
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/http/string_body.hpp>
 
+#include <unordered_map>
+
 #define BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(router) \
     flesh_type(std::declval<boost::asio::ssl::context&>(), \
                std::declval<socket_type>(), \

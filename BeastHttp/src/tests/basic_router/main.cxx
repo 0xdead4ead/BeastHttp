@@ -12,6 +12,8 @@
 
 #include <boost/beast/http.hpp>
 
+#include <unordered_map>
+
 using namespace _0xdead4ead;
 
 class test_session
