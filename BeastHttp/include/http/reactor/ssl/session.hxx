@@ -38,8 +38,9 @@
                std::declval<buffer_type>(), \
                std::declval<_OnError>()...)
 
-#define BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_SET_OPTION(overload_val) \
-    std::declval<context<Flesh, context_policy::shared>>().flesh_p_->set_option(overload_val, std::declval<Handler>())
+
+#define BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_MEMBER(overload, ...) \
+    std::declval<context<Flesh, context_policy::shared>>().flesh_p_->member(overload, ##__VA_ARGS__)
 
 namespace _0xdead4ead {
 namespace http {
@@ -79,6 +80,8 @@ class session
     {
         struct on_error{};
         struct on_timer{};
+        struct socket{};
+        struct ssl_stream{};
     };
 
 public:
@@ -167,12 +170,6 @@ public:
 
     public:
 
-        socket_type&
-        asio_socket();
-
-        ssl_stream_type&
-        asio_ssl_stream();
-
         flesh&
         handshake();
 
@@ -252,18 +249,24 @@ public:
 
         template<class Handler>
         void
-        set_option(typename option::on_error, Handler&&,
-                   typename std::enable_if<
-                   base::traits::TryInvoke<Handler,
-                   void(boost::system::error_code,
-                        boost::string_view)>::value, int>::type = 0);
+        member(typename option::on_error, Handler&&,
+               typename std::enable_if<
+               base::traits::TryInvoke<Handler,
+               void(boost::system::error_code,
+                    boost::string_view)>::value, int>::type = 0);
 
         template<class Handler>
         void
-        set_option(typename option::on_timer, Handler&&,
-                   typename std::enable_if<
-                   base::traits::TryInvoke<Handler,
-                   void(context_type)>::value, int>::type = 0);
+        member(typename option::on_timer, Handler&&,
+               typename std::enable_if<
+               base::traits::TryInvoke<Handler,
+               void(context_type)>::value, int>::type = 0);
+
+        socket_type&
+        member(typename option::socket);
+
+        ssl_stream_type&
+        member(typename option::ssl_stream);
 
         explicit
         flesh(boost::asio::ssl::context&,
@@ -403,12 +406,6 @@ public:
         void
         do_process_request();
 
-        socket_type&
-        get_asio_socket();
-
-        ssl_stream_type&
-        get_asio_ssl_stream();
-
         void
         do_timer_cancel();
 
@@ -448,7 +445,7 @@ public:
             template<class Handler>
             static auto
             on_error(context<Flesh, context_policy::shared> ctx, Handler&& handler) -> decltype (
-                    BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_SET_OPTION(std::declval<typename option::on_error>()))
+                    BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_MEMBER(std::declval<typename option::on_error>(), std::declval<Handler>()))
             {
                 ctx.flesh_p_->set_option(typename option::on_error(), std::forward<Handler>(handler));
             }
@@ -456,7 +453,7 @@ public:
             template<class Handler>
             static auto
             on_timer(context<Flesh, context_policy::shared> ctx, Handler&& handler) -> decltype (
-                    BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_SET_OPTION(std::declval<typename option::on_timer>()))
+                    BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_MEMBER(std::declval<typename option::on_timer>(), std::declval<Handler>()))
             {
                 ctx.flesh_p_->set_option(typename option::on_timer(), std::forward<Handler>(handler));
             }
@@ -486,13 +483,13 @@ public:
         socket_type&
         asio_socket() const
         {
-            return flesh_p_->asio_socket();
+            return flesh_p_->member(typename option::socket());
         }
 
         ssl_stream_type&
         asio_ssl_stream() const
         {
-            return flesh_p_->asio_ssl_stream();
+            return flesh_p_->member(typename option::ssl_stream());
         }
 
         void

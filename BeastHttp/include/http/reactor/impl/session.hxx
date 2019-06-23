@@ -24,13 +24,6 @@ namespace http {
 namespace reactor {
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::socket_type&
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::asio_socket()
-{
-    return get_asio_socket();
-}
-
-BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::recv()
 {
@@ -224,7 +217,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::cls()
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Handler>
 void
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::set_option(
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::member(
         typename option::on_error, Handler&& handler,
         typename std::enable_if<
         base::traits::TryInvoke<Handler,
@@ -237,13 +230,21 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::set_option(
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Handler>
 void
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::set_option(
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::member(
         typename option::on_timer, Handler&& handler,
         typename std::enable_if<
         base::traits::TryInvoke<Handler,
         void(context_type)>::value, int>::type)
 {
     on_timer_ = std::forward<Handler>(handler);
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::socket_type&
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::member(
+        typename option::socket)
+{
+    return connection_.stream();
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -363,7 +364,6 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_read(
         if (on_error_)
             on_error_(ec, "async_read/on_read");
 
-        do_timer_cancel();
         return;
     }
 
@@ -381,7 +381,6 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_write(
         if (on_error_)
             on_error_(ec, "async_write/on_write");
 
-        do_timer_cancel();
         return;
     }
 
@@ -420,7 +419,6 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_push(
         if (on_error_)
             on_error_(ec, "write/do_push");
 
-        do_timer_cancel();
         return;
     }
 }
@@ -447,8 +445,6 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_eof()
     auto ec = connection_.shutdown(shutdown_type::shutdown_send);
     if (ec and on_error_)
         on_error_(ec, "shutdown/eof");
-
-    do_timer_cancel();
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -461,8 +457,6 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_cls()
     auto ec = connection_.close();
     if (ec and on_error_)
         on_error_(ec, "close/cls");
-
-    do_timer_cancel();
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -500,13 +494,6 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_process_request()
 
     if (not queue_.is_full() and connection_.stream().is_open())
         recv();
-}
-
-BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::socket_type&
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::get_asio_socket()
-{
-    return connection_.stream();
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE

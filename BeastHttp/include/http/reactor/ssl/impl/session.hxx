@@ -26,22 +26,6 @@ namespace reactor {
 namespace ssl {
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
-typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>
-::socket_type&
-session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::asio_socket()
-{
-    return get_asio_socket();
-}
-
-BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
-typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>
-::ssl_stream_type&
-session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::asio_ssl_stream()
-{
-    return get_asio_ssl_stream();
-}
-
-BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::handshake()
 {
@@ -297,7 +281,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::force_cls()
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 template<class Handler>
 void
-session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::set_option(
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::member(
         typename option::on_error, Handler&& handler,
         typename std::enable_if<
         base::traits::TryInvoke<Handler,
@@ -310,13 +294,29 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::set_option(
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 template<class Handler>
 void
-session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::set_option(
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::member(
         typename option::on_timer, Handler&& handler,
         typename std::enable_if<
         base::traits::TryInvoke<Handler,
         void(context_type)>::value, int>::type)
 {
     on_timer_ = std::forward<Handler>(handler);
+}
+
+BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
+typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::socket_type&
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::member(
+        typename option::socket)
+{
+    return connection_.socket();
+}
+
+BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
+typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::ssl_stream_type&
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::member(
+        typename option::ssl_stream)
+{
+    return connection_.stream();
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -512,7 +512,6 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::on_handshake(
         if (on_error_)
             on_error_(ec, "async_handshake/on_handshake");
 
-        do_timer_cancel();
         return;
     }
 
@@ -532,8 +531,6 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::on_shutdown(
 
     if (ec and on_error_)
         on_error_(ec, "async_shutdown/on_shutdown");
-
-    do_timer_cancel();
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -552,7 +549,6 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::on_read(
         if (on_error_)
             on_error_(ec, "async_read/on_read");
 
-        do_timer_cancel();
         return;
     }
 
@@ -570,7 +566,6 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::on_write(
         if (on_error_)
             on_error_(ec, "async_write/on_write");
 
-        do_timer_cancel();
         return;
     }
 
@@ -631,7 +626,6 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_push(
         if (on_error_)
             on_error_(ec, "write/do_push");
 
-        do_timer_cancel();
         return;
     }
 }
@@ -667,8 +661,6 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_force_eof()
     auto ec = connection_.force_shutdown(shutdown_type::shutdown_send);
     if (ec and on_error_)
         on_error_(ec, "shutdown/force_eof");
-
-    do_timer_cancel();
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -681,8 +673,6 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_force_cls()
     auto ec = connection_.force_close();
     if (ec and on_error_)
         on_error_(ec, "close/force_cls");
-
-    do_timer_cancel();
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -717,22 +707,6 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_process_reques
 
     if (not queue_.is_full() and connection_.stream().next_layer().is_open())
         recv();
-}
-
-BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
-typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>
-::socket_type&
-session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::get_asio_socket()
-{
-    return connection_.socket();
-}
-
-BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
-typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>
-::ssl_stream_type&
-session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::get_asio_ssl_stream()
-{
-    return connection_.stream();
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
