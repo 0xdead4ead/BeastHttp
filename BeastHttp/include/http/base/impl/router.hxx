@@ -78,7 +78,7 @@ void
 router<Session>::use(resource_regex_type const& path_to_resource,
                      self_type const& other)
 {
-    auto const& dummy = base::lockable::enter_to_read(other.mutex());
+    BEASTHTTP_LOCKABLE_ENTER_TO_READ(other.mutex())
 
     if (other.resource_map_)
         for (const auto& value : *other.resource_map_) {
