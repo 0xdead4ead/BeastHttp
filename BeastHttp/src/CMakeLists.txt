@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 
-project(BeastHttp VERSION 2.3 LANGUAGES CXX)
+project(BeastHttp VERSION 2.4 LANGUAGES CXX)
 
 find_package(Boost 1.67 COMPONENTS system thread)
 
