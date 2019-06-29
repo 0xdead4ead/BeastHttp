@@ -16,6 +16,7 @@ request_processor<Session>::request_processor(
 {
 }
 
+#if defined BEASTHTTP_TEST_ROUTER
 template<class Session>
 void
 request_processor<Session>::provide(
@@ -23,6 +24,7 @@ request_processor<Session>::provide(
 {
     provide(request, _flesh);
 }
+#endif // defined BEASTHTTP_TEST_ROUTER
 
 template<class Session>
 void
