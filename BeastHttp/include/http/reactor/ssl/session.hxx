@@ -392,7 +392,7 @@ public:
         do_eof();
 
         void
-        do_force_eof();
+        do_force_eof(shutdown_type);
 
         void
         do_force_cls();

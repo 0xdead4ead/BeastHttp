@@ -39,11 +39,15 @@ typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::recv(
         duration_type const duration)
 {
+    request_ = {};
+
     timer_.stream().expires_after(duration);
 
     do_launch_timer();
 
-    return recv();
+    do_read();
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -51,11 +55,15 @@ typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::recv(
         time_point_type const time_point)
 {
+    request_ = {};
+
     timer_.stream().expires_at(time_point);
 
     do_launch_timer();
 
-    return recv();
+    do_read();
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -90,7 +98,9 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 
     do_launch_timer();
 
-    return send(response);
+    queue_(response);
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -103,7 +113,9 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 
     do_launch_timer();
 
-    return send(std::move(response));
+    queue_(std::move(response));
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -116,7 +128,9 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 
     do_launch_timer();
 
-    return send(response);
+    queue_(response);
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -129,7 +143,9 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 
     do_launch_timer();
 
-    return send(std::move(response));
+    queue_(std::move(response));
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -204,7 +220,7 @@ BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 void
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::eof()
 {
-    do_eof();
+    do_eof(shutdown_type::shutdown_send);
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -356,7 +372,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_read(
     boost::ignore_unused(bytes_transferred);
 
     if (ec == boost::beast::http::error::end_of_stream) {
-        do_eof();
+        do_eof(shutdown_type::shutdown_both);
         return;
     }
 
@@ -385,7 +401,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_write(
     }
 
     if (close) {
-        do_eof();
+        do_eof(shutdown_type::shutdown_both);
         return;
     }
 
@@ -437,12 +453,12 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_read()
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 void
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_eof()
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_eof(shutdown_type type)
 {
     if (not connection_.stream().is_open())
         return;
 
-    auto ec = connection_.shutdown(shutdown_type::shutdown_send);
+    auto ec = connection_.shutdown(type);
     if (ec and on_error_)
         on_error_(ec, "shutdown/eof");
 }

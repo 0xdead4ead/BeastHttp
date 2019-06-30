@@ -43,7 +43,9 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::handshake(
 
     do_launch_timer();
 
-    return handshake();
+    do_handshake();
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -55,7 +57,9 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::handshake(
 
     do_launch_timer();
 
-    return handshake();
+    do_handshake();
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -74,11 +78,15 @@ typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::recv(
         duration_type const duration)
 {
+    request_ = {};
+
     timer_.stream().expires_after(duration);
 
     do_launch_timer();
 
-    return recv();
+    do_read();
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -86,11 +94,15 @@ typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::recv(
         time_point_type const time_point)
 {
+    request_ = {};
+
     timer_.stream().expires_at(time_point);
 
     do_launch_timer();
 
-    return recv();
+    do_read();
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -125,7 +137,9 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 
     do_launch_timer();
 
-    return send(response);
+    queue_(response);
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -138,7 +152,9 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 
     do_launch_timer();
 
-    return send(std::move(response));
+    queue_(std::move(response));
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -151,7 +167,9 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 
     do_launch_timer();
 
-    return send(response);
+    queue_(response);
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -164,7 +182,9 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 
     do_launch_timer();
 
-    return send(std::move(response));
+    queue_(std::move(response));
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -251,7 +271,11 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::eof(
 {
     timer_.stream().expires_after(duration);
 
-    return eof();
+    do_launch_timer();
+
+    do_eof();
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -261,14 +285,18 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::eof(
 {
     timer_.stream().expires_at(time_point);
 
-    return eof();
+    do_launch_timer();
+
+    do_eof();
+
+    return *this;
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 void
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::force_eof()
 {
-    do_force_eof();
+    do_force_eof(shutdown_type::shutdown_send);
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -653,12 +681,12 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_eof()
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 void
-session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_force_eof()
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_force_eof(shutdown_type type)
 {
     if (not connection_.stream().next_layer().is_open())
         return;
 
-    auto ec = connection_.force_shutdown(shutdown_type::shutdown_send);
+    auto ec = connection_.force_shutdown(type);
     if (ec and on_error_)
         on_error_(ec, "shutdown/force_eof");
 }

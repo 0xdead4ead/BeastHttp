@@ -295,7 +295,7 @@ public:
         do_read();
 
         void
-        do_eof();
+        do_eof(shutdown_type);
 
         void
         do_cls();
