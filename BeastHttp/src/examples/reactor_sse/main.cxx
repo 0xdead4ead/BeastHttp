@@ -42,7 +42,7 @@ auto make_404(const beast::http::request<RequestBody>& request,
 }
 
 static boost::asio::io_context ioc;
-static boost::asio::posix::stream_descriptor out{ioc, ::dup(STDOUT_FILENO)};
+static boost::asio::posix::stream_descriptor out{ioc, ::dup(STDERR_FILENO)};
 static boost::asio::signal_set sig_set(ioc, SIGINT, SIGTERM);
 
 int main()
