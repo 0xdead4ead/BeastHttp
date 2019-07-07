@@ -11,7 +11,7 @@ add_executable(${BEASTHTTP_EXAMPLE_NAME} ${HEADS} ${SRCS})
 
 target_link_libraries(${BEASTHTTP_EXAMPLE_NAME} Boost::system Boost::thread pthread)
 
-if ( NOT OPENSSL_SSL_LIBRARY)
+if ( NOT OPENSSL_FOUND)
     message(FATAL_ERROR "The OpenSSL ssl lib is not found! ")
 endif()
 
