@@ -8,9 +8,6 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-// P.S.
-// This file has been updated to Boost.Beast version 235 for support early Boost library versions. ( >= 1.67.0 )
-
 #ifndef BOOST_BEAST_EXAMPLE_COMMON_DETECT_SSL_HPP
 #define BOOST_BEAST_EXAMPLE_COMMON_DETECT_SSL_HPP
 

@@ -1,10 +1,9 @@
 #if not defined BEASTHTTP_COMMON_SSL_CONNECTION_HXX
 #define BEASTHTTP_COMMON_SSL_CONNECTION_HXX
 
+#include <http/base/beast/ssl_stream.hpp>
 #include <http/base/connection.hxx>
 #include <http/base/socket.hxx>
-
-#include <boost/asio/ssl/stream.hpp>
 
 namespace _0xdead4ead {
 namespace http {
@@ -27,7 +26,7 @@ public:
 
     using socket_type = typename base_socket::socket_type;
 
-    using ssl_stream_type = boost::asio::ssl::stream<socket_type&>;
+    using ssl_stream_type = boost::beast::ssl_stream<socket_type&>;
 
     using shutdown_type = typename socket_type::shutdown_type;
 
