@@ -52,7 +52,7 @@ static boost::asio::ssl::context ctx{boost::asio::ssl::context::tlsv12};
 int main()
 {    
     // localhost.crt
-    std::string const& crt =
+    const char crt[] =
             "-----BEGIN CERTIFICATE-----\n"
             "MIID7zCCAtegAwIBAgIUNCRVPYAJtn2rRrk9JpaD3Wz82pQwDQYJKoZIhvcNAQEL\n"
             "BQAwgYcxCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJDQTEUMBIGA1UEBwwLTG9zLUFu\n"
@@ -79,7 +79,7 @@ int main()
             "-----END CERTIFICATE-----\n";
 
     // localhost.key
-    std::string const& key =
+    const char key[] =
             "-----BEGIN RSA PRIVATE KEY-----\n"
             "MIIEowIBAAKCAQEAtrQCd/hVbqugqfl04FnK91Ctnn+dfXuka+d5z/YZ7SM78sze\n"
             "i6NiDYW5fevYPq7sCN743m0KBPSO1AjcrOEv7kfv/IkdEyGFFzwxp1ccm5028M60\n"
@@ -108,7 +108,7 @@ int main()
             "/OxtFm+Wu5ag6nhLH1383xTzOLau+B3820igoF8y+X0l1Pw35uFf\n"
             "-----END RSA PRIVATE KEY-----\n";
 
-    std::string const& dh =
+    const char dh[] =
             "-----BEGIN DH PARAMETERS-----\n"
             "MIIBCAKCAQEAw5V8Zv0UXTzjBLBr+Wje5RktwL1K27giAQoZIKfs5MsKqAkaGJOI\n"
             "jeThplBGu26wZOxUKa0+aSU780JQY75aOYXqw6trLPC8Ay9ogQP9XzbxyJQPj2lJ\n"
@@ -123,10 +123,10 @@ int main()
                     boost::asio::ssl::context::no_sslv2 |
                     boost::asio::ssl::context::single_dh_use);
 
-    ctx.use_certificate_chain(boost::asio::buffer(crt.data(), crt.size()));
-    ctx.use_private_key(boost::asio::buffer(key.data(), key.size()),
+    ctx.use_certificate_chain(boost::asio::buffer(crt));
+    ctx.use_private_key(boost::asio::buffer(key),
                         boost::asio::ssl::context::file_format::pem);
-    ctx.use_tmp_dh(boost::asio::buffer(dh.data(), dh.size()));
+    ctx.use_tmp_dh(boost::asio::buffer(dh));
 
     ctx.set_password_callback(
                 [](std::size_t, boost::asio::ssl::context_base::password_purpose)
