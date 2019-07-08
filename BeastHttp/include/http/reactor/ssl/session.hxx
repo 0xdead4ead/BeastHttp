@@ -487,7 +487,7 @@ public:
         }
 
         ssl_stream_type&
-        asio_ssl_stream() const
+        beast_ssl_stream() const
         {
             return flesh_p_->member(typename option::ssl_stream());
         }

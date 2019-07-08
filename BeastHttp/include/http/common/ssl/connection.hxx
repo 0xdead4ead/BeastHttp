@@ -3,7 +3,8 @@
 
 #include <http/base/beast/ssl_stream.hpp>
 #include <http/base/connection.hxx>
-#include <http/base/socket.hxx>
+
+#include <boost/noncopyable.hpp>
 
 namespace _0xdead4ead {
 namespace http {
@@ -12,21 +13,19 @@ namespace ssl {
 
 template<class Socket,
          class CompletionExecutor>
-class connection : private base::socket<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES>,
-        public base::connection<connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>,
-        CompletionExecutor>
+class connection :
+        public base::connection<connection<Socket, CompletionExecutor>,
+        CompletionExecutor>, boost::noncopyable
 {
     using self_type = connection;
 
     using base_connection = base::connection<self_type, CompletionExecutor>;
 
-    using base_socket = base::socket<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES>;
-
 public:
 
-    using socket_type = typename base_socket::socket_type;
+    using socket_type = typename std::remove_reference<Socket>::type;
 
-    using ssl_stream_type = boost::beast::ssl_stream<socket_type&>;
+    using ssl_stream_type = boost::beast::ssl_stream<socket_type>;
 
     using shutdown_type = typename socket_type::shutdown_type;
 
@@ -49,10 +48,13 @@ public:
     force_close();
 
     ssl_stream_type&
-    stream();
+    beast_ssl_stream();
 
     socket_type&
-    socket();
+    asio_socket();
+
+    ssl_stream_type&
+    stream();
 
 private:
 

@@ -336,7 +336,7 @@ typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::socket_type&
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::member(
         typename option::socket)
 {
-    return connection_.socket();
+    return connection_.asio_socket();
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
@@ -344,7 +344,7 @@ typename session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::ssl_stream_type
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::member(
         typename option::ssl_stream)
 {
-    return connection_.stream();
+    return connection_.beast_ssl_stream();
 }
 
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE

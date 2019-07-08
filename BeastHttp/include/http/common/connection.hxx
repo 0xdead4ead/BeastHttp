@@ -2,7 +2,10 @@
 #define BEASTHTTP_COMMON_CONNECTION_HXX
 
 #include <http/base/connection.hxx>
-#include <http/base/socket.hxx>
+
+#include <boost/asio/socket_base.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/noncopyable.hpp>
 
 namespace _0xdead4ead {
 namespace http {
@@ -11,27 +14,21 @@ namespace common {
 template<class Socket,
          class CompletionExecutor>
 class connection :
-        private base::socket<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES>,
-        public base::connection<connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>,
-        CompletionExecutor>
+        public base::connection<connection<Socket, CompletionExecutor>,
+        CompletionExecutor>, boost::noncopyable
 {
     using self_type = connection;
 
     using base_connection = base::connection<self_type, CompletionExecutor>;
 
-    using base_socket = base::socket<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES>;
-
 public:
 
-    using socket_type = typename base_socket::socket_type;
+    using socket_type = typename std::remove_reference<Socket>::type;
 
     using shutdown_type = typename socket_type::shutdown_type;
 
     explicit
     connection(socket_type&&, const CompletionExecutor&);
-
-    connection(self_type&&) = default;
-    auto operator=(self_type&&) -> self_type& = default;
 
     boost::beast::error_code
     shutdown(shutdown_type);
@@ -40,7 +37,12 @@ public:
     close();
 
     socket_type&
+    asio_socket();
+
+    socket_type&
     stream();
+
+    socket_type socket_;
 
 }; // class connection
 

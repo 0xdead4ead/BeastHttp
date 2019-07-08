@@ -8,12 +8,11 @@ namespace ssl {
 
 template<class Socket,
          class CompletionExecutor>
-connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::connection(
+connection<Socket, CompletionExecutor>::connection(
         socket_type&& socket, boost::asio::ssl::context& ctx,
         const CompletionExecutor& completion_executor)
-    : base_socket{std::move(socket)},
-      base_connection{completion_executor},
-      stream_{base_socket::instance_, ctx}
+    : base_connection{completion_executor},
+      stream_{std::move(socket), ctx}
 {
 }
 
@@ -21,7 +20,7 @@ template<class Socket,
          class CompletionExecutor>
 template <class F, class B>
 void
-connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::async_handshake(
+connection<Socket, CompletionExecutor>::async_handshake(
         const B& buf, F&& f)
 {
     stream_.async_handshake(
@@ -34,7 +33,7 @@ template<class Socket,
          class CompletionExecutor>
 template<class F>
 void
-connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::async_shutdown(F&& f)
+connection<Socket, CompletionExecutor>::async_shutdown(F&& f)
 {
     stream_.async_shutdown(
                 boost::asio::bind_executor(base_connection::completion_executor_,
@@ -44,33 +43,41 @@ connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::async_shutdown
 template<class Socket,
          class CompletionExecutor>
 boost::beast::error_code
-connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::force_shutdown(shutdown_type type)
+connection<Socket, CompletionExecutor>::force_shutdown(shutdown_type type)
 {
-    return base_socket::shutdown(type);
+    return stream_.next_layer().shutdown(type);
 }
 
 template<class Socket,
          class CompletionExecutor>
 boost::beast::error_code
-connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::force_close()
+connection<Socket, CompletionExecutor>::force_close()
 {
-    return base_socket::close();
+    return stream_.next_layer().close();
 }
 
 template<class Socket,
          class CompletionExecutor>
-typename connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::ssl_stream_type&
-connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::stream()
+typename connection<Socket, CompletionExecutor>::ssl_stream_type&
+connection<Socket, CompletionExecutor>::beast_ssl_stream()
 {
     return stream_;
 }
 
 template<class Socket,
          class CompletionExecutor>
-typename connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::socket_type&
-connection<BEASTHTTP_SOCKET_TMPL_ATTRIBUTES, CompletionExecutor>::socket()
+typename connection<Socket, CompletionExecutor>::socket_type&
+connection<Socket, CompletionExecutor>::asio_socket()
 {
-    return base_socket::instance_;
+    return stream_.next_layer();
+}
+
+template<class Socket,
+         class CompletionExecutor>
+typename connection<Socket, CompletionExecutor>::ssl_stream_type&
+connection<Socket, CompletionExecutor>::stream()
+{
+    return stream_;
 }
 
 } // namespace ssl

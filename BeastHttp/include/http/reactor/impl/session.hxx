@@ -260,7 +260,7 @@ typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::socket_type&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::member(
         typename option::socket)
 {
-    return connection_.stream();
+    return connection_.asio_socket();
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
