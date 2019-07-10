@@ -45,7 +45,10 @@ template<class Socket,
 boost::beast::error_code
 connection<Socket, CompletionExecutor>::force_shutdown(shutdown_type type)
 {
-    return stream_.next_layer().shutdown(type);
+    auto ec = boost::system::error_code{};
+    stream_.next_layer().shutdown(type, ec);
+
+    return ec;
 }
 
 template<class Socket,
@@ -53,7 +56,10 @@ template<class Socket,
 boost::beast::error_code
 connection<Socket, CompletionExecutor>::force_close()
 {
-    return stream_.next_layer().close();
+    auto ec = boost::system::error_code{};
+    stream_.next_layer().close(ec);
+
+    return ec;
 }
 
 template<class Socket,
