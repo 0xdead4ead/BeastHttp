@@ -515,7 +515,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::on_timer(
 
     if (timer_.stream().expiry() <= clock_type::now()) {
 
-        bool is_alive = connection_.stream().next_layer().is_open();
+        bool is_alive = connection_.stream().is_open();
 
         if (on_timer_ and is_alive) {
             on_timer_(std::move(_self));
@@ -683,7 +683,7 @@ BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 void
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_force_eof(shutdown_type type)
 {
-    if (not connection_.stream().next_layer().is_open())
+    if (not connection_.stream().is_open())
         return;
 
     auto ec = connection_.force_shutdown(type);
@@ -695,7 +695,7 @@ BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 void
 session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_force_cls()
 {
-    if (not connection_.stream().next_layer().is_open())
+    if (not connection_.stream().is_open())
         return;
 
     auto ec = connection_.force_close();
@@ -733,7 +733,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::flesh::do_process_reques
         this->provide(request_, *this);
     }
 
-    if (not queue_.is_full() and connection_.stream().next_layer().is_open())
+    if (not queue_.is_full() and connection_.stream().is_open())
         recv();
 }
 

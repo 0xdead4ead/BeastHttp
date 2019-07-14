@@ -86,6 +86,12 @@ public:
         return *this;
     }
 
+    bool
+    is_open()
+    {
+        return p_.operator bool();
+    }
+
     executor_type
     get_executor() noexcept
     {
