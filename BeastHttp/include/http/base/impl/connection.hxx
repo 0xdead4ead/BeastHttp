@@ -16,45 +16,45 @@ connection<Derived, CompletionExecutor>::connection(CompletionExecutor const& co
 }
 
 template<class Derived, class CompletionExecutor>
-template <class F, class R>
+template <class Function, class Serializer>
 void
-connection<Derived, CompletionExecutor>::async_write(/*const*/ R& msg, F&& f)
+connection<Derived, CompletionExecutor>::async_write(Serializer& serializer, Function&& function)
 {
-    boost::beast::http::async_write(derived().stream(), msg,
+    boost::beast::http::async_write(derived().stream(), serializer,
                                boost::asio::bind_executor(
-                                       completion_executor_, std::forward<F>(f)));
+                                       completion_executor_, std::forward<Function>(function)));
 }
 
 template<class Derived, class CompletionExecutor>
-template <class F, class B, class R>
+template <class Function, class Buffer, class Parser>
 void
-connection<Derived, CompletionExecutor>::async_read(B& buf, R& msg, F&& f)
+connection<Derived, CompletionExecutor>::async_read(Buffer& buffer, Parser& parser, Function&& function)
 {
-    boost::beast::http::async_read(derived().stream(), buf, msg,
+    boost::beast::http::async_read(derived().stream(), buffer, parser,
                                boost::asio::bind_executor(
-                                       completion_executor_, std::forward<F>(f)));
+                                       completion_executor_, std::forward<Function>(function)));
 }
 
 template<class Derived, class CompletionExecutor>
-template<class R>
+template<class Serializer>
 boost::beast::error_code
-connection<Derived, CompletionExecutor>::write(/*const*/ R& msg)
+connection<Derived, CompletionExecutor>::write(Serializer& serializer)
 {
     auto ec = boost::beast::error_code{};
 
-    boost::beast::http::write(derived().stream(), msg, ec);
+    boost::beast::http::write(derived().stream(), serializer, ec);
 
     return ec;
 }
 
 template<class Derived, class CompletionExecutor>
-template<class R, class B>
+template<class Parser, class Buffer>
 boost::beast::error_code
-connection<Derived, CompletionExecutor>::read(B& buf, R& msg)
+connection<Derived, CompletionExecutor>::read(Buffer& buffer, Parser& parser)
 {
     auto ec = boost::beast::error_code{};
 
-    boost::beast::http::read(derived().stream(), buf, msg, ec);
+    boost::beast::http::read(derived().stream(), buffer, parser, ec);
 
     return ec;
 }

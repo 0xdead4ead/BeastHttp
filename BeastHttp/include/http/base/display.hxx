@@ -1,6 +1,8 @@
 #if not defined BEASTHTTP_BASE_DISPLAY_HXX
 #define BEASTHTTP_BASE_DISPLAY_HXX
 
+#include <http/base/config.hxx>
+
 #include <http/base/traits.hxx>
 
 namespace _0xdead4ead {
@@ -24,7 +26,7 @@ template<const char, class Stream>
 auto
 printline(Stream& stream) -> decltype (stream.flush());
 
-#if not defined __cpp_fold_expressions
+#if not defined BEASTHTTP_CXX17_FOLD_EXPR
 template<class Stream, class Arg, class... Args>
 auto
 print(Stream& stream, Arg const& arg, Args const&... args)
@@ -46,7 +48,7 @@ template<class Stream, class... Args>
 auto
 printline(Stream& stream, Args const&... args)
 -> decltype (std::enable_if_t<(... and traits::TryLeftShift<Stream, void(Args)>::value), int>{}, stream.flush());
-#endif // not defined __cpp_fold_expressions
+#endif // BEASTHTTP_CXX17_FOLD_EXPR
 
 template<const char s, class Stream, class Arg, class... Args>
 auto

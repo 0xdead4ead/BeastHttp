@@ -1,12 +1,14 @@
 #if not defined BEASTHTTP_COMMON_IMPL_DETECT_HXX
 #define BEASTHTTP_COMMON_IMPL_DETECT_HXX
 
+#include <http/base/config.hxx>
+
 #define BEASTHTTP_COMMON_DETECT_TMPL_DECLARE \
     template<class Buffer, \
              class Protocol, \
              class Socket, \
              class Clock, \
-             template<typename, typename...> class Timer, \
+             class Timer, \
              template<typename> class OnError, \
              template<typename> class OnDetect, \
              template<typename> class OnTimer>
@@ -19,31 +21,107 @@ BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class... _OnAction>
 auto
 detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
-        socket_type socket, _OnAction&&... on_action)  -> decltype (
+        socket_type&& socket, _OnAction&&... on_action)  -> decltype (
         void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
 {
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<self_type>;
+
+    Alloc a = Alloc();
+
+    std::shared_ptr<self_type>(new (std::allocator_traits<Alloc>::allocate(a, 1)) self_type(
+                std::move(socket), std::forward<_OnAction>(on_action)...))->do_async();
+#else
     std::make_shared<self_type>(std::move(socket), std::forward<_OnAction>(on_action)...)->do_async();
+#endif
 }
 
 BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class... _OnAction>
 auto
 detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
-        socket_type socket, duration_type const duration, _OnAction&&... on_action)  -> decltype (
+        socket_type&& socket, duration_type const duration, _OnAction&&... on_action)  -> decltype (
         void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
 {
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<self_type>;
+
+    Alloc a = Alloc();
+
+    std::shared_ptr<self_type>(new (std::allocator_traits<Alloc>::allocate(a, 1)) self_type(
+                std::move(socket), std::forward<_OnAction>(on_action)...))->do_async_2(duration);
+#else
     std::make_shared<self_type>(std::move(socket), std::forward<_OnAction>(on_action)...)->do_async_2(duration);
+#endif
 }
 
 BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class... _OnAction>
 auto
 detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
-        socket_type socket, time_point_type const time_point, _OnAction&&... on_action)  -> decltype (
+        socket_type&& socket, time_point_type const time_point, _OnAction&&... on_action)  -> decltype (
         void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
 {
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<self_type>;
+
+    Alloc a = Alloc();
+
+    std::shared_ptr<self_type>(new (std::allocator_traits<Alloc>::allocate(a, 1)) self_type(
+                std::move(socket), std::forward<_OnAction>(on_action)...))->do_async_2(time_point);
+#else
     std::make_shared<self_type>(std::move(socket), std::forward<_OnAction>(on_action)...)->do_async_2(time_point);
+#endif
 }
+
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
+template<class Deleter, class Allocator, class... _OnAction>
+auto
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
+        allocator_t, socket_type&& socket, const Deleter& d,
+        const Allocator& alloc, _OnAction&&... on_action)  -> decltype (
+        void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
+{
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<self_type>;
+
+    Alloc a = Alloc(alloc);
+
+    std::shared_ptr<self_type>(new (std::allocator_traits<Alloc>::allocate(a, 1)) self_type(
+                std::move(socket), std::forward<_OnAction>(on_action)...), d, alloc)->do_async();
+}
+
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
+template<class Deleter, class Allocator, class... _OnAction>
+auto
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
+        allocator_t, socket_type&& socket, duration_type const duration,
+        const Deleter& d, const Allocator& alloc, _OnAction&&... on_action)  -> decltype (
+        void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
+{
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<self_type>;
+
+    Alloc a = Alloc(alloc);
+
+    std::shared_ptr<self_type>(new (std::allocator_traits<Alloc>::allocate(a, 1)) self_type(
+                std::move(socket), std::forward<_OnAction>(on_action)...), d, alloc)->do_async_2(duration);
+}
+
+BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
+template<class Deleter, class Allocator, class... _OnAction>
+auto
+detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
+        allocator_t, socket_type&& socket, time_point_type const time_point,
+        const Deleter& d, const Allocator& alloc, _OnAction&&... on_action)  -> decltype (
+        void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
+{
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<self_type>;
+
+    Alloc a = Alloc(alloc);
+
+    std::shared_ptr<self_type>(new (std::allocator_traits<Alloc>::allocate(a, 1)) self_type(
+                std::move(socket), std::forward<_OnAction>(on_action)...), d, alloc)->do_async_2(time_point);
+}
+
 
 BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 boost::system::error_code
@@ -56,7 +134,7 @@ detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::sync(
 BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class _OnDetect>
 detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::detect(
-        socket_type socket, _OnDetect&& on_detect,
+        socket_type&& socket, _OnDetect&& on_detect,
         typename std::enable_if<base::traits::TryInvoke<
         _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value, int>::type)
     : base::strand_stream(socket.get_executor()),
@@ -70,7 +148,7 @@ detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::detect(
 BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class _OnDetect, class _OnError>
 detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::detect(
-        socket_type socket, _OnDetect&& on_detect, _OnError&& on_error,
+        socket_type&& socket, _OnDetect&& on_detect, _OnError&& on_error,
         typename std::enable_if<base::traits::TryInvoke<
         _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value and
         base::traits::TryInvoke<_OnError, void(
@@ -87,7 +165,7 @@ detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::detect(
 BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class _OnDetect, class _OnError, class _OnTimer>
 detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::detect(
-        socket_type socket, _OnDetect&& on_detect, _OnError&& on_error, _OnTimer&& on_timer,
+        socket_type&& socket, _OnDetect&& on_detect, _OnError&& on_error, _OnTimer&& on_timer,
         typename std::enable_if<base::traits::TryInvoke<
         _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value and
         base::traits::TryInvoke<_OnError, void(
@@ -138,7 +216,24 @@ detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::do_async_2(
 
     do_launch_timer();
 
-    do_async();
+    BOOST_ASIO_CORO_REENTER(*this) {
+        BOOST_ASIO_CORO_YIELD
+                base_type::async(socket_, buffer_,
+                                 std::bind(&self_type::do_async_2,
+                                           this->shared_from_this(),
+                                           std::placeholders::_1,
+                                           std::placeholders::_2));
+        do_timer_cancel();
+
+        if (ec) {
+            if (on_error_)
+                on_error_(ec, "detect/do_async_2");
+
+            return;
+        }
+
+        on_detect_(std::move(socket_), std::move(buffer_), result);
+    }
 }
 
 BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
@@ -150,7 +245,24 @@ detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::do_async_2(
 
     do_launch_timer();
 
-    do_async();
+    BOOST_ASIO_CORO_REENTER(*this) {
+        BOOST_ASIO_CORO_YIELD
+                base_type::async(socket_, buffer_,
+                                 std::bind(&self_type::do_async_2,
+                                           this->shared_from_this(),
+                                           std::placeholders::_1,
+                                           std::placeholders::_2));
+        do_timer_cancel();
+
+        if (ec) {
+            if (on_error_)
+                on_error_(ec, "detect/do_async_2");
+
+            return;
+        }
+
+        on_detect_(std::move(socket_), std::move(buffer_), result);
+    }
 }
 
 BEASTHTTP_COMMON_DETECT_TMPL_DECLARE

@@ -35,17 +35,20 @@ queue<Flesh>::on_write()
 template<class Flesh>
 template<class Response>
 void
-queue<Flesh>::operator()(Response&& response)
+queue<Flesh>::operator()(Response& response)
 {
+    using response_type = typename std::decay<Response>::type;
+
     struct work_impl : work
     {
         Flesh& impl_;
-        typename std::decay<Response>::type response_;
+        response_type response_;
 
-        work_impl(Flesh& impl, Response&& response)
+        work_impl(Flesh& impl, response_type&& response)
             : impl_(impl)
-            , response_(std::forward<Response>(response))
-        {}
+            , response_(std::move(response))
+        {
+        }
 
         void
         operator()()
@@ -55,11 +58,10 @@ queue<Flesh>::operator()(Response&& response)
     };
 #if not defined __cpp_lib_make_unique
     items_.push_back(std::unique_ptr<work_impl>(
-                         new work_impl(impl_,
-                                       std::forward<Response>(response))));
+                         new work_impl(impl_, std::move(response))));
 #else
     items_.push_back(std::make_unique<work_impl>(
-                         impl_, std::forward<Response>(response)));
+                         impl_, std::move(response)));
 #endif
     if (items_.size() == 1)
         (*items_.front())();

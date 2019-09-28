@@ -9,8 +9,9 @@ namespace _0xdead4ead {
 namespace http {
 namespace base {
 
-template<class Clock,
-         template<typename, typename...> class Timer,
+using namespace traits;
+
+template<class T,
          class CompletionExecutor>
 class timer
 {
@@ -18,7 +19,7 @@ class timer
 
 public:
 
-    using timer_type = Timer<Clock>;
+    using timer_type = T;
 
     using clock_type = typename timer_type::clock_type;
 
@@ -26,17 +27,18 @@ public:
 
     using time_point = typename timer_type::time_point;
 
-    static_assert (traits::HasDuration<timer_type, void>::value
-                   and traits::HasTimePoint<timer_type, void>::value
-                   and traits::HasClockType<timer_type, void>::value,
+    static_assert (traits::Conjunction<
+                   traits::HasDuration<timer_type, void>,
+                   traits::HasTimePoint<timer_type, void>,
+                   traits::HasClockType<timer_type, void>,
+                   traits::TryWait<timer_type, void(boost::system::error_code&)>,
+                   traits::TryCancel<timer_type, void(boost::system::error_code&)>,
+                   traits::TryAsyncWait<timer_type, void(void(boost::system::error_code))>>::value,
                    "Invalid timer type!");
 
     template<class TimePointOrDuration>
     explicit
     timer(const CompletionExecutor&, const TimePointOrDuration);
-
-    timer(self_type&&) = default;
-    auto operator=(self_type&&) -> self_type& = default;
 
     timer_type&
     stream();

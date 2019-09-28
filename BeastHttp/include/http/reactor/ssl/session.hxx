@@ -1,6 +1,10 @@
 #if not defined BEASTHTTP_REACTOR_SSL_SESSION_HXX
 #define BEASTHTTP_REACTOR_SSL_SESSION_HXX
 
+#include <unordered_map>
+
+#include <http/base/config.hxx>
+
 #include <http/base/cb.hxx>
 #include <http/base/request_processor.hxx>
 #include <http/base/queue.hxx>
@@ -13,10 +17,16 @@
 #include <http/common/detect.hxx>
 
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/dispatch.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/http/string_body.hpp>
+#include <memory>
 
-#include <unordered_map>
+#if defined BEASTHTTP_CXX17_OPTIONAL
+#include <optional>
+#else
+#include <boost/optional.hpp>
+#endif
 
 #define BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(router) \
     flesh_type(std::declval<boost::asio::ssl::context&>(), \
@@ -36,20 +46,23 @@
                std::declval<regex_flag_type>(), \
                std::declval<mutex_type*>(), \
                std::declval<buffer_type>(), \
-               std::declval<_OnError>()...)
+               std::declval<_OnError>())
 
 
-#define BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_MEMBER(overload, ...) \
+#define BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_MEMBER(overload, ...) \
     std::declval<context<Flesh, context_policy::shared>>().flesh_p_->member(overload, ##__VA_ARGS__)
+
+#define BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_ADVANCE(arg, ...) \
+    std::declval<context<Flesh, context_policy::shared>>().advance(arg, ##__VA_ARGS__)
 
 namespace _0xdead4ead {
 namespace http {
 namespace reactor {
 namespace ssl {
 
-template</*Prototype request message*/
+template</*Prototype parser request of message*/
          class Body = boost::beast::http::string_body,
-         class Fields = boost::beast::http::basic_fields<std::allocator<char>>,
+         class RequestParser = boost::beast::http::request_parser<Body>,
          /*Message's buffer*/
          class Buffer = boost::beast::flat_buffer,
          /*Connection param's*/
@@ -57,7 +70,7 @@ template</*Prototype request message*/
          class Socket = boost::asio::basic_stream_socket<Protocol>,
          /*Timer param's*/
          class Clock = boost::asio::chrono::steady_clock,
-         template<typename, typename...> class Timer = boost::asio::basic_waitable_timer,
+         class Timer = boost::asio::basic_waitable_timer<Clock>,
          /*Callback list container*/
          template<typename> class Entry = std::function,
          template<typename, typename...> class Container = std::vector,
@@ -76,20 +89,35 @@ class session
 
     enum class context_policy { shared, weak };
 
-    struct option
-    {
-        struct on_error{};
-        struct on_timer{};
-        struct socket{};
-        struct ssl_stream{};
-    };
-
-public:
+    class flesh;
 
     template<class, context_policy>
     class context;
 
-    class flesh;
+public:
+
+    struct option
+    {
+        struct on_error_t
+        {
+        };
+
+        struct on_timer_t
+        {
+        };
+
+        struct get_socket_t
+        {
+        };
+
+        struct get_ssl_stream_t
+        {
+        };
+    };
+
+    struct allocator_t
+    {
+    };
 
     using flesh_type = flesh;
 
@@ -107,14 +135,14 @@ public:
 
     using body_type = Body;
 
-    using fields_type = Fields;
-
     using cbexecutor_type = base::cb::executor;
 
-    using request_type = boost::beast::http::request<body_type, fields_type>;
+    using request_parser_type = RequestParser;
 
-    template<class _Body, class _Fields>
-    using response_type = boost::beast::http::response<_Body, _Fields>;
+    using request_type = typename request_parser_type::value_type;
+
+    template<class _Body>
+    using response_type = boost::beast::http::response<_Body>;
 
     using queue_type = base::queue<flesh>;
 
@@ -126,7 +154,7 @@ public:
 
     using ssl_stream_type = typename connection_type::ssl_stream_type;
 
-    using timer_type = base::timer<Clock, Timer, base::strand_stream::asio_type>;
+    using timer_type = base::timer<Timer, base::strand_stream::asio_type>;
 
     using duration_type = typename timer_type::duration_type;
 
@@ -152,6 +180,11 @@ public:
 
     using shutdown_type = typename socket_type::shutdown_type;
 
+    static_assert (base::traits::Conjunction<
+                   std::is_base_of<boost::beast::http::basic_parser<true>, request_parser_type>,
+                   base::traits::HasValueType<request_parser_type, void>>::value,
+                   "Request parser type is not supported!");
+
     static_assert (base::traits::TryInvoke<on_timer_type, void(context_type)>::value,
                    "Invalid OnTimer handler type!");
 
@@ -161,12 +194,22 @@ public:
     static_assert (base::traits::TryInvoke<on_error_type, void(boost::system::error_code, boost::string_view)>::value,
                    "Invalid OnError handler type!");
 
-    class flesh : private base::strand_stream, base::request_processor<self_type>,
+    static constexpr typename option::on_error_t on_error_arg{};
+    static constexpr typename option::on_timer_t on_timer_arg{};
+    static constexpr typename option::get_socket_t get_socket_arg{};
+    static constexpr typename option::get_ssl_stream_t get_ssl_stream_arg{};
+    static constexpr allocator_t allocator_arg{};
+
+private:
+
+    class flesh : public base::strand_stream, base::request_processor<self_type>,
             public std::enable_shared_from_this<flesh>
     {
         using base_type = base::request_processor<self_type>;
 
         friend queue_type;
+
+        friend context_type;
 
     public:
 
@@ -174,51 +217,35 @@ public:
         handshake();
 
         flesh&
-        handshake(duration_type const);
+        handshake(duration_type const duration);
 
         flesh&
-        handshake(time_point_type const);
+        handshake(time_point_type const time_point);
 
         flesh&
         recv();
 
         flesh&
-        recv(duration_type const);
+        recv(duration_type const duration);
 
         flesh&
-        recv(time_point_type const);
+        recv(time_point_type const time_point);
 
-        template<class _Body, class _Fields>
+        template<class _Body>
         flesh&
-        send(response_type<_Body, _Fields>&);
+        send(response_type<_Body>&);
 
-        template<class _Body, class _Fields>
+        template<class _Body>
         flesh&
-        send(response_type<_Body, _Fields>&&);
+        send(response_type<_Body>&, duration_type const);
 
-        template<class _Body, class _Fields>
+        template<class _Body>
         flesh&
-        send(response_type<_Body, _Fields>&, duration_type const);
+        send(response_type<_Body>&, time_point_type const);
 
-        template<class _Body, class _Fields>
+        template<class _Body>
         flesh&
-        send(response_type<_Body, _Fields>&&, duration_type const);
-
-        template<class _Body, class _Fields>
-        flesh&
-        send(response_type<_Body, _Fields>&, time_point_type const);
-
-        template<class _Body, class _Fields>
-        flesh&
-        send(response_type<_Body, _Fields>&&, time_point_type const);
-
-        template<class _Body, class _Fields>
-        flesh&
-        push(response_type<_Body, _Fields>&);
-
-        template<class _Body, class _Fields>
-        flesh&
-        push(response_type<_Body, _Fields>&&);
+        push(response_type<_Body>&);
 
         flesh&
         wait();
@@ -249,7 +276,7 @@ public:
 
         template<class Handler>
         void
-        member(typename option::on_error, Handler&&,
+        member(typename option::on_error_t, Handler&,
                typename std::enable_if<
                base::traits::TryInvoke<Handler,
                void(boost::system::error_code,
@@ -257,16 +284,33 @@ public:
 
         template<class Handler>
         void
-        member(typename option::on_timer, Handler&&,
+        member(typename option::on_timer_t, Handler&,
                typename std::enable_if<
                base::traits::TryInvoke<Handler,
                void(context_type)>::value, int>::type = 0);
 
+        template<class Handler, class Allocator>
+        void
+        member(typename option::on_error_t, Handler&, const Allocator&,
+               typename std::enable_if<
+               base::traits::TryInvoke<Handler,
+               void(boost::system::error_code,
+                    boost::string_view)>::value and
+               std::is_constructible<on_error_type, Handler, Allocator>::value, int>::type = 0);
+
+        template<class Handler, class Allocator>
+        void
+        member(typename option::on_timer_t, Handler&, const Allocator&,
+               typename std::enable_if<
+               base::traits::TryInvoke<Handler,
+               void(context_type)>::value and
+               std::is_constructible<on_timer_type, Handler, Allocator>::value, int>::type = 0);
+
         socket_type&
-        member(typename option::socket);
+        member(typename option::get_socket_t);
 
         ssl_stream_type&
-        member(typename option::ssl_stream);
+        member(typename option::get_ssl_stream_t);
 
         explicit
         flesh(boost::asio::ssl::context&,
@@ -377,13 +421,13 @@ public:
         void
         do_shutdown();
 
-        template<class _Body, class _Fields>
+        template<class _Body>
         void
-        do_write(response_type<_Body, _Fields>&);
+        do_write(response_type<_Body>&);
 
-        template<class _Body, class _Fields>
+        template<class _Body>
         void
-        do_push(response_type<_Body, _Fields>&);
+        do_push(response_type<_Body>&);
 
         void
         do_read();
@@ -421,7 +465,12 @@ public:
         on_error_type on_error_;
         on_timer_type on_timer_;
 
-        request_type request_;
+#if defined BEASTHTTP_CXX17_OPTIONAL
+        std::optional<request_parser_type> parser_;
+#else
+        boost::optional<request_parser_type> parser_;
+#endif
+
         buffer_type buffer_;
         queue_type queue_;
 
@@ -440,26 +489,139 @@ public:
 
     public:
 
+        template<class Handler>
+        auto
+        advance(typename option::on_error_t arg, Handler&& handler) const -> decltype (
+                BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_MEMBER(
+                    std::declval<typename option::on_error_t>(), std::declval<Handler>()))
+        {
+            using handler_type = typename std::decay<Handler>::type;
+
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<void (Flesh::*)(
+                                typename option::on_error_t, handler_type&, typename std::enable_if<
+                                    base::traits::TryInvoke<handler_type,
+                                    void(boost::system::error_code,
+                                         boost::string_view)>::value, int>::type)>(&Flesh::template member<handler_type>),
+                            flesh_p_->shared_from_this(), arg, std::forward<Handler>(handler), 0));
+        }
+
+        template<class Handler>
+        auto
+        advance(typename option::on_timer_t arg, Handler&& handler) const -> decltype (
+                BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_MEMBER(
+                    std::declval<typename option::on_timer_t>(), std::declval<Handler>()))
+        {
+            using handler_type = typename std::decay<Handler>::type;
+
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<void (Flesh::*)(
+                                typename option::on_timer_t, handler_type&, typename std::enable_if<
+                                    base::traits::TryInvoke<handler_type,
+                                    void(boost::system::error_code,
+                                         boost::string_view)>::value, int>::type)>(&Flesh::template member<handler_type>),
+                            flesh_p_->shared_from_this(), arg, std::forward<Handler>(handler), 0));
+        }
+
+        template<class Handler, class Allocator>
+        auto
+        advance(typename option::on_error_t arg, Handler&& handler, Allocator&& alloc) const -> decltype (
+                BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_MEMBER(
+                    std::declval<typename option::on_error_t>(), std::declval<Handler>(), std::declval<Allocator>()))
+        {
+            using handler_type = typename std::decay<Handler>::type;
+            using allocator_type = typename std::decay<Allocator>::type;
+
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<void (Flesh::*)(
+                                typename option::on_error_t, handler_type&, typename std::enable_if<
+                                    base::traits::TryInvoke<handler_type,
+                                    void(boost::system::error_code,
+                                         boost::string_view)>::value and
+                                std::is_constructible<on_error_type, handler_type, allocator_type>::value, int>::type)>(
+                                &Flesh::template member<handler_type, allocator_type>),
+                            flesh_p_->shared_from_this(), arg, std::forward<Handler>(handler), std::forward<Allocator>(alloc), 0));
+        }
+
+        template<class Handler, class Allocator>
+        auto
+        advance(typename option::on_timer_t arg, Handler&& handler, Allocator&& alloc) const -> decltype (
+                BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_MEMBER(
+                    std::declval<typename option::on_timer_t>(), std::declval<Handler>(), std::declval<Allocator>()))
+        {
+
+            using handler_type = typename std::decay<Handler>::type;
+            using allocator_type = typename std::decay<Allocator>::type;
+
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<void (Flesh::*)(
+                                typename option::on_timer_t, handler_type&,
+                                    typename std::enable_if<
+                                    base::traits::TryInvoke<handler_type,
+                                    void(context_type)>::value and
+                                std::is_constructible<on_timer_type, handler_type, allocator_type>::value, int>::type)>(
+                                &Flesh::template member<handler_type, allocator_type>),
+                            flesh_p_->shared_from_this(), arg, std::forward<Handler>(handler), std::forward<Allocator>(alloc), 0));
+        }
+
+        auto
+        advance(typename option::get_socket_t arg) const -> decltype (
+                BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_MEMBER(
+                    std::declval<typename option::get_socket_t>()))
+        {
+            return flesh_p_->member(arg);
+        }
+
+        auto
+        advance(typename option::get_ssl_stream_t arg) const -> decltype (
+                BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_MEMBER(
+                    std::declval<typename option::get_ssl_stream_t>()))
+        {
+            return flesh_p_->member(arg);
+        }
+
         struct set
         {
-            template<class Handler>
+            template<class... Args>
             static auto
-            on_error(context<Flesh, context_policy::shared> ctx, Handler&& handler) -> decltype (
-                    BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_MEMBER(std::declval<typename option::on_error>(), std::declval<Handler>()))
+            on_error(context<Flesh, context_policy::shared> ctx, Args&&... args) -> decltype (
+                    BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_ADVANCE(on_error_arg, std::declval<Args>()...))
             {
-                ctx.flesh_p_->set_option(typename option::on_error(), std::forward<Handler>(handler));
+                return ctx.advance(on_error_arg, std::forward<Args>(args)...);
             }
 
-            template<class Handler>
+            template<class... Args>
             static auto
-            on_timer(context<Flesh, context_policy::shared> ctx, Handler&& handler) -> decltype (
-                    BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_MEMBER(std::declval<typename option::on_timer>(), std::declval<Handler>()))
+            on_timer(context<Flesh, context_policy::shared> ctx, Args&&... args) -> decltype (
+                    BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_ADVANCE(on_timer_arg, std::declval<Args>()...))
             {
-                ctx.flesh_p_->set_option(typename option::on_timer(), std::forward<Handler>(handler));
+                return ctx.advance(on_timer_arg, std::forward<Args>(args)...);
+            }
+        };
+
+        struct get
+        {
+            static auto
+            asio_socket(context<Flesh, context_policy::shared> ctx) -> decltype (
+                    BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_ADVANCE(get_socket_arg))
+            {
+                return ctx.advance(get_socket_arg);
+            }
+
+            static auto
+            beast_ssl_stream(context<Flesh, context_policy::shared> ctx) -> decltype (
+                    BEASTHTTP_REACTOR_SSL_SESSION_CONTEXT_TRY_INVOKE_ADVANCE(get_socket_arg))
+            {
+                return ctx.advance(get_socket_arg);
             }
         };
 
         friend struct set;
+        friend struct get;
 
         context(Flesh& flesh)
             : flesh_p_{flesh.shared_from_this()}
@@ -475,7 +637,7 @@ public:
         }
 
         context<Flesh, context_policy::weak>
-        weak()
+        weak() const
         {
             return context<Flesh, context_policy::weak>(flesh_p_);
         }
@@ -483,148 +645,205 @@ public:
         socket_type&
         asio_socket() const
         {
-            return flesh_p_->member(typename option::socket());
+            return advance(get_socket_arg);
         }
 
         ssl_stream_type&
         beast_ssl_stream() const
         {
-            return flesh_p_->member(typename option::ssl_stream());
+            return advance(get_ssl_stream_arg);
         }
 
         void
         recv() const
         {
-            flesh_p_->recv();
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)()>(&Flesh::recv),
+                            flesh_p_->shared_from_this()));
         }
 
         void
         recv(duration_type const duration) const
         {
-            flesh_p_->recv(duration);
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)(duration_type const)>(&Flesh::recv),
+                            flesh_p_->shared_from_this(), duration));
         }
 
         void
         recv(time_point_type const time_point) const
         {
-            flesh_p_->recv(time_point);
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)(time_point_type const)>(&Flesh::recv),
+                            flesh_p_->shared_from_this(), time_point));
         }
 
-        template<class _Body, class _Fields>
+        template<class _Body>
         void
-        send(response_type<_Body, _Fields>& response) const
+        send(response_type<_Body>& response) const
         {
-            flesh_p_->send(response);
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)(response_type<_Body>&)>(&Flesh::send),
+                            flesh_p_->shared_from_this(), response));
         }
 
-        template<class _Body, class _Fields>
+        template<class _Body>
         void
-        send(response_type<_Body, _Fields>&& response) const
+        send(response_type<_Body>&& response) const
         {
-            flesh_p_->send(std::move(response));
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)(response_type<_Body>&)>(&Flesh::send),
+                            flesh_p_->shared_from_this(), std::move(response)));
         }
 
-        template<class _Body, class _Fields>
+        template<class _Body>
         void
-        send(response_type<_Body, _Fields>& response,
+        send(response_type<_Body>& response,
              duration_type const duration) const
         {
-            flesh_p_->send(response, duration);
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)(response_type<_Body>&, duration_type const)>(&Flesh::send),
+                            flesh_p_->shared_from_this(), response, duration));
         }
 
-        template<class _Body, class _Fields>
+        template<class _Body>
         void
-        send(response_type<_Body, _Fields>&& response,
+        send(response_type<_Body>&& response,
              duration_type const duration) const
         {
-            flesh_p_->send(std::move(response), duration);
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)(response_type<_Body>&, duration_type const)>(&Flesh::send),
+                            flesh_p_->shared_from_this(), std::move(response), duration));
         }
 
-        template<class _Body, class _Fields>
+        template<class _Body>
         void
-        send(response_type<_Body, _Fields>& response,
+        send(response_type<_Body>& response,
              time_point_type const time_point) const
         {
-            flesh_p_->send(response, time_point);
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)(response_type<_Body>&, time_point_type const)>(&Flesh::send),
+                            flesh_p_->shared_from_this(), response, time_point));
         }
 
-        template<class _Body, class _Fields>
+        template<class _Body>
         void
-        send(response_type<_Body, _Fields>&& response,
+        send(response_type<_Body>&& response,
              time_point_type const time_point) const
         {
-            flesh_p_->send(std::move(response), time_point);
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)(response_type<_Body>&, time_point_type const)>(&Flesh::send),
+                            flesh_p_->shared_from_this(), std::move(response), time_point));
         }
 
-        template<class _Body, class _Fields>
+        template<class _Body>
         void
-        push(response_type<_Body, _Fields>& response) const
+        push(response_type<_Body>& response) const
         {
-            flesh_p_->push(response);
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)(response_type<_Body>&)>(&Flesh::push),
+                            flesh_p_->shared_from_this(), response));
         }
 
-        template<class _Body, class _Fields>
+        template<class _Body>
         void
-        push(response_type<_Body, _Fields>&& response) const
+        push(response_type<_Body>&& response) const
         {
-            flesh_p_->push(std::move(response));
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)(response_type<_Body>&)>(&Flesh::push),
+                            flesh_p_->shared_from_this(), std::move(response)));
         }
 
         void
         wait() const
         {
-            flesh_p_->wait();
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)()>(&Flesh::wait),
+                            flesh_p_->shared_from_this()));
         }
 
         void
         wait(duration_type const duration) const
         {
-            flesh_p_->wait(duration);
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)(duration_type const)>(&Flesh::wait),
+                            flesh_p_->shared_from_this(), duration));
         }
 
         void
         wait(time_point_type const time_point) const
         {
-            flesh_p_->wait(time_point);
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)(time_point_type const)>(&Flesh::wait),
+                            flesh_p_->shared_from_this(), time_point));
         }
 
         void
         timer_cancel() const
         {
-            flesh_p_->timer_cancel();
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            &Flesh::timer_cancel, flesh_p_->shared_from_this()));
         }
 
         void
         eof() const
         {
-            flesh_p_->eof();
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)()>(&Flesh::eof),
+                            flesh_p_->shared_from_this()));
         }
 
         void
         eof(duration_type const duration) const
         {
-            flesh_p_->eof(duration);
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)(duration_type const)>(&Flesh::eof),
+                            flesh_p_->shared_from_this(), duration));
         }
 
         void
         eof(time_point_type const time_point) const
         {
-            flesh_p_->eof(time_point);
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            static_cast<Flesh& (Flesh::*)(time_point_type const)>(&Flesh::eof),
+                            flesh_p_->shared_from_this(), time_point));
         }
 
         void
         force_eof() const
         {
-            flesh_p_->force_eof();
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            &Flesh::force_eof, flesh_p_->shared_from_this()));
         }
 
         void
         force_cls() const
         {
-            flesh_p_->force_cls();
+            boost::asio::dispatch(
+                        static_cast<base::strand_stream&>(*flesh_p_), std::bind(
+                            &Flesh::force_cls, flesh_p_->shared_from_this()));
         }
 
-    }; // class context<Flesh, context_policy::shared>
+    }; // class context
 
     template<class Flesh>
     class context<Flesh, context_policy::weak>
@@ -650,46 +869,79 @@ public:
             return context<Flesh, context_policy::shared>(flesh_p_.lock());
         }
 
-    }; // class context<Flesh, context_policy::weak>
+    }; // class context
+
+public:
 
     template<class Router, class... _OnAction>
     static auto
-    handshake(boost::asio::ssl::context&, socket_type&&, Router const&, buffer_type&&,
-              _OnAction&&...) -> typename std::decay<decltype (
+    handshake(boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
+              buffer_type&& buffer, _OnAction&&... on_action) -> typename std::decay<decltype (
+            BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+            std::declval<context_type>())>::type;
+
+    template<class Deleter, class Allocator, class Router, class... _OnAction>
+    static auto
+    handshake(allocator_t arg, boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
+              buffer_type&& buffer, const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
             std::declval<context_type>())>::type;
 
     template<class Router, class... _OnAction>
     static auto
-    handshake(boost::asio::ssl::context&, socket_type&&, Router const&,
-              _OnAction&&...) -> typename std::decay<decltype (
+    handshake(boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
+              _OnAction&&... on_action) -> typename std::decay<decltype (
+            BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+            std::declval<context_type>())>::type;
+
+    template<class Deleter, class Allocator, class Router, class... _OnAction>
+    static auto
+    handshake(allocator_t arg, boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
+              const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
             std::declval<context_type>())>::type;
 
     template<class Router, class TimePointOrDuration, class... _OnAction>
     static auto
-    handshake(boost::asio::ssl::context&, socket_type&&, Router const&,
-              TimePointOrDuration const, buffer_type&&, _OnAction&&...) -> typename std::decay<decltype (
+    handshake(boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
+              TimePointOrDuration const timeOrDuration, buffer_type&& buffer, _OnAction&&... on_action) -> typename std::decay<decltype (
+            BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(
+                std::declval<Router const&>()).handshake(std::declval<TimePointOrDuration>()),
+            std::declval<context_type>())>::type;
+
+    template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
+    static auto
+    handshake(allocator_t arg, boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
+              TimePointOrDuration const timeOrDuration, buffer_type&& buffer,
+              const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).handshake(std::declval<TimePointOrDuration>()),
             std::declval<context_type>())>::type;
 
     template<class Router, class TimePointOrDuration, class... _OnAction>
     static auto
-    handshake(boost::asio::ssl::context&, socket_type&&, Router const&,
-              TimePointOrDuration const, _OnAction&&...) -> typename std::decay<decltype (
+    handshake(boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
+              TimePointOrDuration const timeOrDuration, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).handshake(std::declval<TimePointOrDuration>()),
             std::declval<context_type>())>::type;
 
-    template<class... _OnError>
+    template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
     static auto
-    force_eof(boost::asio::ssl::context&, socket_type&&, _OnError&&...) -> decltype (
+    handshake(allocator_t arg, boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
+              TimePointOrDuration const timeOrDuration, const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
+            BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(
+                std::declval<Router const&>()).handshake(std::declval<TimePointOrDuration>()),
+            std::declval<context_type>())>::type;
+
+    template<class _OnError>
+    static auto
+    force_eof(boost::asio::ssl::context& ctx, socket_type&& socket, _OnError&& on_error) -> decltype (
             void(BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY()));
 
-    template<class... _OnError>
+    template<class _OnError>
     static auto
-    force_cls(boost::asio::ssl::context&, socket_type&&, _OnError&&...) -> decltype (
+    force_cls(boost::asio::ssl::context& ctx, socket_type&& socket, _OnError&& on_error) -> decltype (
             void(BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY()));
 
 }; // class session

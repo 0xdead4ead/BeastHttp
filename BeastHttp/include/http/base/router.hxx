@@ -45,16 +45,17 @@ protected:
 
     using regex_flag_type = typename session_type::regex_flag_type;
 
-    static_assert (base::traits::HasStorageType<session_type, void>::value
-                   and base::traits::HasResourceMapType<session_type, void>::value
-                   and base::traits::HasMethodMapType<session_type, void>::value
-                   and base::traits::HasResourceRegexType<session_type, void>::value
-                   and base::traits::HasResourceType<session_type, void>::value
-                   and base::traits::HasMethodType<session_type, void>::value
-                   and base::traits::HasRegexType<session_type, void>::value
-                   and base::traits::HasRegexFlagType<session_type, void>::value
-                   and base::traits::HasRequestType<session_type, void>::value,
-                   "Invalid session type!");
+    static_assert (base::traits::Conjunction<
+                   base::traits::HasStorageType<session_type, void>,
+                   base::traits::HasResourceMapType<session_type, void>,
+                   base::traits::HasMethodMapType<session_type, void>,
+                   base::traits::HasResourceRegexType<session_type, void>,
+                   base::traits::HasResourceType<session_type, void>,
+                   base::traits::HasMethodType<session_type, void>,
+                   base::traits::HasRegexType<session_type, void>,
+                   base::traits::HasRegexFlagType<session_type, void>,
+                   base::traits::HasRequestType<session_type, void>>::value,
+                   "Session type is incorrect!");
 
     explicit
     router(std::shared_ptr<resource_map_type>&,

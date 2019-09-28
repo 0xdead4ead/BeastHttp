@@ -40,7 +40,8 @@ public:
     basic_router(regex_flag_type regex_flags) noexcept
         : base_type{resource_map_, method_map_},
           regex_flags_{regex_flags}
-    {}
+    {
+    }
 
     template<class... OnRequest>
     auto

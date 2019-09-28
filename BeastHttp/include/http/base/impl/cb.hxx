@@ -1,6 +1,8 @@
 #if not defined BEASTHTTP_BASE_IMPL_CB_HXX
 #define BEASTHTTP_BASE_IMPL_CB_HXX
 
+#include <http/base/config.hxx>
+
 #include <functional>
 
 namespace _0xdead4ead {
@@ -8,7 +10,7 @@ namespace http {
 namespace base {
 namespace cb {
 namespace detail {
-#if not defined (__cpp_if_constexpr)
+#if not defined BEASTHTTP_CXX17_IF_CONSTEXPR
 template<std::size_t value>
 using size_type = std::integral_constant<std::size_t, value>;
 
@@ -70,9 +72,9 @@ for_each(const std::tuple<Elements...>& tpl,
         for_each<Index + 1, Begin, End, Elements...>(tpl, begin, end);
     }
 }
-#endif
+#endif // BEASTHTTP_CXX17_IF_CONSTEXPR
 
-#if not defined __cpp_generic_lambdas
+#if not defined BEASTHTTP_CXX14_GENERIC_LAMBDAS
 template<class Container>
 struct cb_push_cxx11
 {
@@ -128,7 +130,7 @@ struct cb_push_fin_cxx11
     }
 }; // struct cb_push_fin_cxx11
 
-#endif
+#endif // BEASTHTTP_CXX14_GENERIC_LAMBDAS
 } // namespace detail
 
 template<class Request, class SessionFlesh, class Storage>
@@ -210,7 +212,7 @@ storage<Session, Entry, Container>::prepare(OnRequest&&... on_request)
                   decltype (tuple_cb) >::type>::value != 0,
                   "Oops...! tuple is empty.");
 
-#if not defined __cpp_generic_lambdas
+#if not defined BEASTHTTP_CXX14_GENERIC_LAMBDAS
     detail::for_each<0>(tuple_cb,
                         detail::cb_push_cxx11<container_type>{_l},
                         detail::cb_push_fin_cxx11<container_type>{_l});
@@ -231,7 +233,7 @@ storage<Session, Entry, Container>::prepare(OnRequest&&... on_request)
                             value,
                             std::placeholders::_1,
                             std::placeholders::_2)));});
-#endif
+#endif // BEASTHTTP_CXX14_GENERIC_LAMBDAS
     return _l;
 }
 

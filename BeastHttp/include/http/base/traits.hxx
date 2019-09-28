@@ -1,6 +1,8 @@
 #if not defined BEASTHTTP_BASE_TRAITS_HXX
 #define BEASTHTTP_BASE_TRAITS_HXX
 
+#include <http/base/config.hxx>
+
 #include <type_traits>
 #include <utility>
 
@@ -140,9 +142,7 @@ struct conjunction<B1, B2, B3, Bn...>
 {
 };
 
-#if not defined __cpp_generic_lambdas
-#define BEASTHTTP_CXX11_TRAITS
-
+#if not defined BEASTHTTP_CXX14_GENERIC_LAMBDAS
 template<class R, class F, class... Args>
 struct try_invoke_cxx11 : is_invocable<F, R(Args...)>
 {
@@ -151,7 +151,7 @@ struct try_invoke_cxx11 : is_invocable<F, R(Args...)>
 struct try_cbegin_helper
 {
     template<class X>
-    auto operator()(X&&) -> decltype (std::declval<X>().cbegin());
+    auto operator()(X&& x) -> decltype (x.cbegin());
 };
 
 template<class R, class X>
@@ -162,7 +162,7 @@ struct try_cbegin_cxx11 : try_invoke_cxx11<R, try_cbegin_helper, X>
 struct try_cend_helper
 {
     template<class X>
-    auto operator()(X&&) -> decltype (std::declval<X>().cend());
+    auto operator()(X&& x) -> decltype (x.cend());
 };
 
 template<class R, class X>
@@ -173,7 +173,7 @@ struct try_cend_cxx11 : try_invoke_cxx11<R, try_cend_helper, X>
 struct try_find_helper
 {
     template<class X, class Y>
-    auto operator()(X&&, Y&&) -> decltype (std::declval<X>().find(std::declval<Y>()));
+    auto operator()(X&& x, Y&& y) -> decltype (x.find(std::forward<Y>(y)));
 };
 
 template<class R, class X, class Y>
@@ -184,7 +184,7 @@ struct try_find_cxx11 : try_invoke_cxx11<R, try_find_helper, X, Y>
 struct try_size_helper
 {
     template<class X>
-    auto operator()(X&&) -> decltype (std::declval<X>().size());
+    auto operator()(X&& x) -> decltype (x.size());
 };
 
 template<class R, class X>
@@ -217,7 +217,7 @@ struct has_size_type_cxx11 : try_invoke_cxx11<R, has_size_type_helper, X>
 struct try_push_back_helper
 {
     template<class X, class Y>
-    auto operator()(X&&, Y&&) -> decltype (std::declval<X>().push_back(std::declval<Y>()));
+    auto operator()(X&& x, Y&& y) -> decltype (x.push_back(std::forward<Y>(y)));
 };
 
 template<class R, class X, class Y>
@@ -228,7 +228,7 @@ struct try_push_back_cxx11 : try_invoke_cxx11<R, try_push_back_helper, X, Y>
 struct try_bind_helper
 {
     template<class X, class Y, class Z>
-    auto operator()(X&&, Y&&, Z&&) -> decltype (std::declval<X>().bind(std::declval<Y>(), std::declval<Z>()));
+    auto operator()(X&& x, Y&& y, Z&& z) -> decltype (x.bind(std::forward<Y>(y), std::forward<Z>(z)));
 };
 
 template<class R, class X, class Y, class Z>
@@ -239,7 +239,7 @@ struct try_bind_cxx11 : try_invoke_cxx11<R, try_bind_helper, X, Y, Z>
 struct try_stream_helper
 {
     template<class X>
-    auto operator()(X&&) -> decltype (std::declval<X>().stream());
+    auto operator()(X&& x) -> decltype (x.stream());
 };
 
 template<class R, class X>
@@ -316,7 +316,7 @@ struct has_clock_type_cxx11 : try_invoke_cxx11<R, has_clock_type_helper, X>
 struct try_leftshift_helper
 {
     template<class X, class Y>
-    auto operator()(X&&, Y&&) -> decltype (std::declval<X>() << std::declval<Y>());
+    auto operator()(X&& x, Y&& y) -> decltype (x << y);
 };
 
 template<class R, class X, class Y>
@@ -422,6 +422,50 @@ template<class R, class X>
 struct has_regex_flag_type_cxx11 : try_invoke_cxx11<R, has_regex_flag_type_helper, X>
 {
 };
+
+struct try_wait_helper
+{
+    template<class X, class Y>
+    auto operator()(X&& x, Y&& y) -> decltype (x.wait(std::forward<Y>(y)));
+};
+
+template<class R, class X, class Y>
+struct try_wait_cxx11 : try_invoke_cxx11<R, try_wait_helper, X, Y>
+{
+};
+
+struct try_cancel_helper
+{
+    template<class X, class Y>
+    auto operator()(X&& x, Y&& y) -> decltype (x.cancel(std::forward<Y>(y)));
+};
+
+template<class R, class X, class Y>
+struct try_cancel_cxx11 : try_invoke_cxx11<R, try_cancel_helper, X, Y>
+{
+};
+
+struct try_async_wait_helper
+{
+    template<class X, class Y>
+    auto operator()(X&& x, Y&& y) -> decltype (x.async_wait(std::forward<Y>(y)));
+};
+
+template<class R, class X, class Y>
+struct try_async_wait_cxx11 : try_invoke_cxx11<R, try_async_wait_helper, X, Y>
+{
+};
+
+struct has_value_type_helper
+{
+    template<class X>
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::value_type;
+};
+
+template<class R, class X>
+struct has_value_type_cxx11 : try_invoke_cxx11<R, has_value_type_helper, X>
+{
+};
 #else
 template <class R, class F>
 struct validity_checker
@@ -438,9 +482,9 @@ constexpr auto isValid(F&&)
 {
     return validity_checker<R, F>{};
 }
-#endif // not defined __cpp_generic_lambdas
+#endif // BEASTHTTP_CXX14_GENERIC_LAMBDAS
 
-#if not defined BEASTHTTP_CXX11_TRAITS
+#if defined BEASTHTTP_CXX14_GENERIC_LAMBDAS
 template<class R, class F, class... Args>
 constexpr auto tryInvoke(F&& f, Args&&... args)
 {
@@ -631,6 +675,37 @@ constexpr auto hasRegexFlagType(wrap<X> x)
     return isValid<R>(
                 [](auto x) -> typename decltype (value(x))::regex_flag_type {})(x);
 }
+
+template<class R, class X, class Y>
+constexpr auto tryWait(X&& x, Y&& y)
+{
+    return isValid<R>(
+                [](auto&& x, auto&& y) -> decltype (x.wait(std::forward<decltype (y)>(y))) {})
+            (std::forward<X>(x), std::forward<Y>(y));
+}
+
+template<class R, class X, class Y>
+constexpr auto tryCancel(X&& x, Y&& y)
+{
+    return isValid<R>(
+                [](auto&& x, auto&& y) -> decltype (x.cancel(std::forward<decltype (y)>(y))) {})
+            (std::forward<X>(x), std::forward<Y>(y));
+}
+
+template<class R, class X, class Y>
+constexpr auto tryAsyncWait(X&& x, Y&& y)
+{
+    return isValid<R>(
+                [](auto&& x, auto&& y) -> decltype (x.async_wait(std::forward<decltype (y)>(y))) {})
+            (std::forward<X>(x), std::forward<Y>(y));
+}
+
+template<class R, class X>
+constexpr auto hasValueType(wrap<X> x)
+{
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::value_type {})(x);
+}
 #else
 template<class R, class F, class... Args>
 constexpr auto tryInvoke(F&&, Args&&...)
@@ -735,7 +810,24 @@ constexpr auto hasRegexType(X&&)
 template<class R, class X>
 constexpr auto hasRegexFlagType(X&&)
 -> decltype (has_regex_flag_type_cxx11<R, X>{});
-#endif // not defined BEASTHTTP_CXX11_TRAITS
+
+template<class R, class X, class Y>
+constexpr auto tryWait(X&&, Y&&)
+-> decltype (try_wait_cxx11<R, X, Y>{});
+
+template<class R, class X, class Y>
+constexpr auto tryCancel(X&&, Y&&)
+-> decltype (try_cancel_cxx11<R, X, Y>{});
+
+template<class R, class X, class Y>
+constexpr auto tryAsyncWait(X&&, Y&&)
+-> decltype (try_async_wait_cxx11<R, X, Y>{});
+
+template<class R, class X>
+constexpr auto hasValueType(X&&)
+-> decltype (has_value_type_cxx11<R, X>{});
+
+#endif // BEASTHTTP_CXX14_GENERIC_LAMBDAS
 } // namespace detail
 
 template<class, class>
@@ -761,7 +853,7 @@ struct TryInvokeConjunction<0, Sig1, Sig2, F>
     static constexpr bool value = TryInvoke<F, Sig2>::value;
 };
 
-template<class, class>
+template<class, class, class...>
 struct TryCbegin;
 
 template<class R, class X>
@@ -895,6 +987,36 @@ using Get = detail::typelist::get<TypeList, Index>;
 
 template<class... Bn>
 using Conjunction = detail::conjunction<Bn...>;
+
+template<class, class>
+struct TryWait;
+
+template<class R, class X, class Y>
+struct TryWait<X, R(Y)>
+    : decltype (detail::tryWait<R>(std::declval<X>(), std::declval<Y>()))
+{
+};
+
+template<class, class>
+struct TryCancel;
+
+template<class R, class X, class Y>
+struct TryCancel<X, R(Y)>
+    : decltype (detail::tryCancel<R>(std::declval<X>(), std::declval<Y>()))
+{
+};
+
+template<class, class>
+struct TryAsyncWait;
+
+template<class R, class X, typename Y>
+struct TryAsyncWait<X, R(Y)>
+    : decltype (detail::tryAsyncWait<R>(std::declval<X>(), std::declval<Y>()))
+{
+};
+
+template<class X, class R>
+using HasValueType = decltype (detail::hasValueType<R>(detail::wrap<X>()));
 
 } // namespace traits
 } // namespace base

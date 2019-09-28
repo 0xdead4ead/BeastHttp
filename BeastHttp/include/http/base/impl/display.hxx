@@ -34,7 +34,7 @@ printline(Stream& stream) -> decltype (stream.flush())
     return stream.flush();
 }
 
-#if not defined __cpp_fold_expressions
+#if not defined BEASTHTTP_CXX17_FOLD_EXPR
 template<class Stream, class Arg, class... Args>
 auto
 print(Stream& stream, Arg const& arg, Args const&... args)
@@ -81,7 +81,7 @@ printline(Stream& stream, Args const&... args)
     (stream << ... << args) << '\n';
     return stream.flush();
 }
-#endif // not defined __cpp_fold_expressions
+#endif // BEASTHTTP_CXX17_FOLD_EXPR
 
 template<const char s, class Stream, class Arg, class... Args>
 auto

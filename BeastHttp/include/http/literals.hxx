@@ -1,13 +1,11 @@
 #if not defined BEASTHTTP_LITERALS_HXX
 #define BEASTHTTP_LITERALS_HXX
 
+#include <http/base/config.hxx>
+
 #include <cassert>
 #include <cstddef>
 #include <tuple>
-
-#if __cplusplus >= 201402L
-#define BEASTHTTP_LITERALS_DETECT_CXX14
-#endif
 
 #define BEASTHTTP_LITERALS_DECLARE_VERB_SYMBOL(x) class x;
 
@@ -50,7 +48,7 @@ namespace http {
 namespace literals {
 namespace detail {
 
-#if defined BEASTHTTP_LITERALS_DETECT_CXX14
+#if defined BEASTHTTP_CXX14_CONSTEXPR
 constexpr int toInt(char c)
 {
     if (c >= 'A' and c <= 'F') {
@@ -97,7 +95,7 @@ constexpr int parseInt(char const (&array)[N])
   }
   return value;
 }
-#endif // defined BEASTHTTP_LITERALS_DETECT_CXX14
+#endif // BEASTHTTP_CXX14_CONSTEXPR
 
 namespace symbol {
 
@@ -178,7 +176,7 @@ BEASTHTTP_LITERALS_DECLARE_ROUTE_STRUCT
 
 } // namespace detail
 
-#if defined BEASTHTTP_LITERALS_DETECT_CXX14
+#if defined BEASTHTTP_CXX14_CONSTEXPR
 template<char... cs>
 constexpr auto operator"" _c()
 {
@@ -198,7 +196,7 @@ value(const std::tuple<Types...>& tpl, std::integral_constant<int, Index>)
 {
     return std::get<Index>(tpl);
 }
-#endif // defined BEASTHTTP_LITERALS_DETECT_CXX14
+#endif // BEASTHTTP_CXX14_CONSTEXPR
 
 inline detail::__verb<detail::symbol::get>
 operator "" _get(const char* s, std::size_t n)

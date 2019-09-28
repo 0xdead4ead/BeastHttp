@@ -36,7 +36,7 @@ public:
 
     template<class Response>
     void
-    operator()(Response&&);
+    operator()(Response&);
 
 }; // class queue
 

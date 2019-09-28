@@ -1,6 +1,10 @@
 #if not defined BEASTHTTP_REACTOR_IMPL_LISTENER_HXX
 #define BEASTHTTP_REACTOR_IMPL_LISTENER_HXX
 
+#include <http/base/config.hxx>
+
+#include <boost/asio/post.hpp>
+
 #define BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE \
     template<template<typename> class OnAccept, \
     template<typename> class OnError, \
@@ -16,24 +20,86 @@ namespace reactor {
 BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
 template<class... _OnAction>
 auto
-listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::launch(io_context& ioc,
-     endpoint_type const& endpoint,
-     _OnAction&&... on_action) -> decltype (
-        self_type{std::declval<io_context&>(), std::declval<_OnAction>()...},
-        void())
+listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::launch(
+        boost::asio::io_context& ctx, const endpoint_type& endpoint, _OnAction&&... on_action) -> decltype (
+        void(self_type(std::declval<boost::asio::io_context&>(), std::declval<_OnAction>()...)))
 {
-    return std::make_shared<self_type>
-            (ioc, std::forward<_OnAction>(on_action)...)->loop(endpoint);
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<self_type>;
+
+    Alloc a = Alloc();
+
+    std::shared_ptr<self_type>(new (std::allocator_traits<Alloc>::allocate(a, 1)) self_type(
+                ctx, std::forward<_OnAction>(on_action)...))->loop(endpoint);
+#else
+    std::make_shared<self_type>(ctx, std::forward<_OnAction>(on_action)...)->loop(endpoint);
+#endif // BEASTHTTP_USE_MAKE_SHARED
+}
+
+BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
+template<class... _OnAction>
+auto
+listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::launch(
+        boost::asio::io_context& acceptor_ctx, boost::asio::io_context& socket_ctx,
+     const endpoint_type& endpoint, _OnAction&&... on_action) -> decltype (
+        void(self_type(std::declval<boost::asio::io_context&>(),
+                       std::declval<boost::asio::io_context&>(), std::declval<_OnAction>()...)))
+{
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<self_type>;
+
+    Alloc a = Alloc();
+
+    std::shared_ptr<self_type>(new (std::allocator_traits<Alloc>::allocate(a, 1)) self_type(
+                acceptor_ctx, socket_ctx, std::forward<_OnAction>(on_action)...))->loop(endpoint);
+#else
+    std::make_shared<self_type>(acceptor_ctx, socket_ctx, std::forward<_OnAction>(on_action)...)->loop(endpoint);
+#endif // BEASTHTTP_USE_MAKE_SHARED
+}
+
+BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
+template<class Deleter, class Allocator, class... _OnAction>
+auto
+listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::launch(
+        boost::asio::io_context& ctx, const Deleter& d, const Allocator& alloc, const endpoint_type& endpoint,
+        _OnAction&&... on_action) -> decltype (
+        void(self_type(std::declval<boost::asio::io_context&>(), std::declval<_OnAction>()...)))
+{
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<self_type>;
+
+    Alloc a = Alloc(alloc);
+
+    std::shared_ptr<self_type>(new (std::allocator_traits<Alloc>::allocate(a, 1)) self_type(
+                ctx, std::forward<_OnAction>(on_action)...), d, alloc)->loop(endpoint);
+}
+
+BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
+template<class Deleter, class Allocator, class... _OnAction>
+auto
+listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::launch(
+        boost::asio::io_context& acceptor_ctx, boost::asio::io_context& socket_ctx,
+        const Deleter& d, const Allocator& alloc, const endpoint_type& endpoint, _OnAction&&... on_action) -> decltype (
+        void(self_type(std::declval<boost::asio::io_context&>(),
+                       std::declval<boost::asio::io_context&>(), std::declval<_OnAction>()...)))
+{
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<self_type>;
+
+    Alloc a = Alloc(alloc);
+
+    std::shared_ptr<self_type>(new (std::allocator_traits<Alloc>::allocate(a, 1)) self_type(
+                acceptor_ctx, socket_ctx, std::forward<_OnAction>(on_action)...), d, alloc)
+            ->loop(endpoint);
 }
 
 BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
 template<class _OnAccept>
 listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::listener(
-        io_context& ioc, _OnAccept&& on_accept,
+        boost::asio::io_context& ctx, _OnAccept&& on_accept,
         typename std::enable_if<base::traits::TryInvoke<
         _OnAccept, void(socket_type)>::value, int>::type)
-    : acceptor_{ioc},
-      socket_{ioc},
+    : base::strand_stream{ctx.get_executor()},
+      acceptor_{ctx},
+      socket_ctx_{ctx},
       on_accept_{std::forward<_OnAccept>(on_accept)}
 {
 }
@@ -41,13 +107,43 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::listener(
 BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
 template<class _OnAccept, class _OnError>
 listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::listener(
-        io_context& ioc, _OnAccept&& on_accept, _OnError&& on_error,
+        boost::asio::io_context& ctx, _OnAccept&& on_accept, _OnError&& on_error,
         typename std::enable_if<base::traits::TryInvoke<
         _OnAccept, void(socket_type)>::value and
         base::traits::TryInvoke<_OnError, void(
             boost::system::error_code, boost::string_view)>::value, int>::type)
-    : acceptor_{ioc},
-      socket_{ioc},
+    : base::strand_stream{ctx.get_executor()},
+      acceptor_{ctx},
+      socket_ctx_{ctx},
+      on_accept_{std::forward<_OnAccept>(on_accept)},
+      on_error_{std::forward<_OnError>(on_error)}
+{
+}
+
+BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
+template<class _OnAccept>
+listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::listener(
+        boost::asio::io_context& acceptor_ctx, boost::asio::io_context& socket_ctx, _OnAccept&& on_accept,
+        typename std::enable_if<base::traits::TryInvoke<
+        _OnAccept, void(socket_type)>::value, int>::type)
+    : base::strand_stream{acceptor_ctx.get_executor()},
+      acceptor_{acceptor_ctx},
+      socket_ctx_{socket_ctx},
+      on_accept_{std::forward<_OnAccept>(on_accept)}
+{
+}
+
+BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
+template<class _OnAccept, class _OnError>
+listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::listener(
+        boost::asio::io_context& acceptor_ctx, boost::asio::io_context& socket_ctx, _OnAccept&& on_accept, _OnError&& on_error,
+        typename std::enable_if<base::traits::TryInvoke<
+        _OnAccept, void(socket_type)>::value and
+        base::traits::TryInvoke<_OnError, void(
+            boost::system::error_code, boost::string_view)>::value, int>::type)
+    : base::strand_stream{acceptor_ctx.get_executor()},
+      acceptor_{acceptor_ctx},
+      socket_ctx_{socket_ctx},
       on_accept_{std::forward<_OnAccept>(on_accept)},
       on_error_{std::forward<_OnError>(on_error)}
 {
@@ -55,8 +151,32 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::listener(
 
 BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
 void
+listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::on_spawn_connect(boost::system::error_code ec, socket_type& socket)
+{
+    if (ec) {
+        if (on_error_)
+            on_error_(ec, "accept/do_loop");
+
+        return;
+    }
+
+    on_accept_(std::move(socket));
+}
+
+BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
+void
+listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::on_accept(boost::system::error_code ec, socket_type socket)
+{
+    boost::asio::post(static_cast<base::strand_stream&>(*this),
+                      std::bind(&self_type::on_spawn_connect, this->shared_from_this(), ec, std::move(socket)));
+
+    do_accept();
+}
+
+BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
+void
 listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::loop(
-        endpoint_type const& endpoint)
+        const endpoint_type& endpoint)
 {
     auto ec = boost::system::error_code{};
 
@@ -99,29 +219,19 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::loop(
 
     endpoint_ = endpoint;
 
-    do_loop();
+    do_accept();
 }
 
 BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
 void
-listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::do_loop(
-        boost::system::error_code ec)
+listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::do_accept()
 {
-    BOOST_ASIO_CORO_REENTER(*this){
-        for(;;)
-        {
-            BOOST_ASIO_CORO_YIELD acceptor_.async_accept(
-                        socket_,
-                        std::bind(
-                            &self_type::do_loop,
-                            this->shared_from_this(),
-                            std::placeholders::_1));
-            if (ec and on_error_)
-                on_error_(ec, "accept/do_loop");
-            else
-                on_accept_(std::move(socket_));
-        }
-    }
+    acceptor_.async_accept(socket_ctx_,
+                           std::bind(
+                               &self_type::on_accept,
+                               this->shared_from_this(),
+                               std::placeholders::_1,
+                               std::placeholders::_2));
 }
 
 } // namespace reactor

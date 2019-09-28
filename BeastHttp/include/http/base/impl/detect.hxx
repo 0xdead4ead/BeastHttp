@@ -1,7 +1,7 @@
 #if not defined BEASTHTTP_BASE_IMPL_DETECT_HXX
 #define BEASTHTTP_BASE_IMPL_DETECT_HXX
 
-#include <http/base/beast/detect_ssl.hpp>
+#include <boost/beast/core/detect_ssl.hpp>
 
 #include <boost/asio/bind_executor.hpp>
 
@@ -20,7 +20,7 @@ template<class S, class B, class F>
 void
 detect<CompletionExecutor>::async(S& s, B& buf, F&& f)
 {
-    ::async_detect_ssl(s, buf,
+    boost::beast::async_detect_ssl(s, buf,
                      boost::asio::bind_executor(
                          completion_executor_, std::forward<F>(f)));
 }
@@ -32,7 +32,7 @@ detect<CompletionExecutor>::sync(S& s, B& buf, boost::tribool& res)
 {
     auto ec = boost::beast::error_code{};
 
-    res = detect_ssl(s, buf, ec);
+    res = boost::beast::detect_ssl(s, buf, ec);
 
     return ec;
 }

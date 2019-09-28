@@ -8,10 +8,9 @@ namespace _0xdead4ead {
 namespace http {
 namespace base {
 
-template<class Clock,
-         template<typename, typename...> class Timer, class CompletionExecutor>
+template<class T, class CompletionExecutor>
 template<class TimePointOrDuration>
-timer<Clock, Timer, CompletionExecutor>::timer(
+timer<T, CompletionExecutor>::timer(
         const CompletionExecutor& completion_executor,
         const TimePointOrDuration duration_or_time)
     : completion_executor_{completion_executor},
@@ -23,30 +22,26 @@ timer<Clock, Timer, CompletionExecutor>::timer(
 {
 }
 
-template<class Clock,
-         template<typename, typename...> class Timer, class CompletionExecutor>
-typename timer<Clock, Timer, CompletionExecutor>::timer_type&
-timer<Clock, Timer, CompletionExecutor>::stream()
+template<class T, class CompletionExecutor>
+typename timer<T, CompletionExecutor>::timer_type&
+timer<T, CompletionExecutor>::stream()
 {
     return timer_;
 }
 
-template<class Clock,
-         template<typename, typename...> class Timer,
-         class CompletionExecutor>
+template<class T, class CompletionExecutor>
 template<class F>
 void
-timer<Clock, Timer, CompletionExecutor>::async_wait(F&& f)
+timer<T, CompletionExecutor>::async_wait(F&& f)
 {
     timer_.async_wait(
                 boost::asio::bind_executor(
                     completion_executor_, std::forward<F>(f)));
 }
 
-template<class Clock,
-         template<typename, typename...> class Timer, class CompletionExecutor>
+template<class T, class CompletionExecutor>
 boost::system::error_code
-timer<Clock, Timer, CompletionExecutor>::wait()
+timer<T, CompletionExecutor>::wait()
 {
     auto ec = boost::system::error_code{};
 
@@ -55,10 +50,9 @@ timer<Clock, Timer, CompletionExecutor>::wait()
     return ec;
 }
 
-template<class Clock,
-         template<typename, typename...> class Timer, class CompletionExecutor>
+template<class T, class CompletionExecutor>
 boost::system::error_code
-timer<Clock, Timer, CompletionExecutor>::cancel()
+timer<T, CompletionExecutor>::cancel()
 {
     auto ec = boost::system::error_code{};
 

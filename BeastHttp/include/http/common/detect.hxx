@@ -8,6 +8,9 @@
 
 #include <boost/asio/ip/tcp.hpp>
 
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/core/string_param.hpp>
+
 #define BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES \
     Buffer, Protocol, Socket, Clock, Timer, OnError, OnDetect, OnTimer
 
@@ -22,7 +25,7 @@ template</*Message's buffer*/
          class Socket = boost::asio::basic_stream_socket<Protocol>,
          /*timer*/
          class Clock = boost::asio::chrono::steady_clock,
-         template<typename, typename...> class Timer = boost::asio::basic_waitable_timer,
+         class Timer = boost::asio::basic_waitable_timer<Clock>,
          /*On error/warning handler holder*/
          template<typename> class OnError = std::function,
          /*On detect tls hello packet handler holder*/
@@ -32,11 +35,15 @@ template</*Message's buffer*/
 class detect : public std::enable_shared_from_this<detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>>,
         private base::strand_stream, base::detect<base::strand_stream::asio_type>, boost::asio::coroutine
 {
+public:
+
     using self_type = detect;
 
     using base_type = base::detect<base::strand_stream::asio_type>;
 
-public:
+    struct allocator_t
+    {
+    };
 
     using protocol_type = Protocol;
 
@@ -44,7 +51,7 @@ public:
 
     using buffer_type = Buffer;
 
-    using timer_type = base::timer<Clock, Timer, base::strand_stream::asio_type>;
+    using timer_type = base::timer<Timer, base::strand_stream::asio_type>;
 
     using duration_type = typename timer_type::duration_type;
 
@@ -58,33 +65,54 @@ public:
 
     using on_error_type = OnError<void (boost::system::error_code, boost::string_view)>;
 
+    static constexpr allocator_t allocator_arg{};
+
     template<class... _OnAction>
     static auto
-    async(socket_type, _OnAction&&...) -> decltype (
+    async(socket_type&& socket, _OnAction&&... on_action) -> decltype (
             void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)));
 
     template<class... _OnAction>
     static auto
-    async(socket_type, duration_type const, _OnAction&&...) -> decltype (
+    async(socket_type&& socket, duration_type const duration, _OnAction&&... on_action) -> decltype (
             void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)));
 
     template<class... _OnAction>
     static auto
-    async(socket_type, time_point_type const, _OnAction&&...) -> decltype (
+    async(socket_type&& socket, time_point_type const time_point, _OnAction&&... on_action) -> decltype (
+            void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)));
+
+
+    template<class Deleter, class Allocator, class... _OnAction>
+    static auto
+    async(allocator_t arg, socket_type&& socket, const Deleter& d,
+          const Allocator& alloc, _OnAction&&... on_action) -> decltype (
+            void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)));
+
+    template<class Deleter, class Allocator, class... _OnAction>
+    static auto
+    async(allocator_t arg, socket_type&& socket, duration_type const duration,
+          const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> decltype (
+            void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)));
+
+    template<class Deleter, class Allocator, class... _OnAction>
+    static auto
+    async(allocator_t arg, socket_type&& socket, time_point_type const time_point,
+          const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> decltype (
             void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)));
 
     static boost::system::error_code
-    sync(socket_type&, buffer_type&, boost::tribool&);
+    sync(socket_type& socket, buffer_type& buffer, boost::tribool& result);
 
     template<class _OnDetect>
     explicit
-    detect(socket_type, _OnDetect&&,
+    detect(socket_type&& socket, _OnDetect&& on_detect,
              typename std::enable_if<base::traits::TryInvoke<
              _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value, int>::type = 0);
 
     template<class _OnDetect, class _OnError>
     explicit
-    detect(socket_type, _OnDetect&&, _OnError&&,
+    detect(socket_type&& socket, _OnDetect&& on_detect, _OnError&& on_error,
              typename std::enable_if<base::traits::TryInvoke<
              _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value and
              base::traits::TryInvoke<_OnError, void(
@@ -92,7 +120,7 @@ public:
 
     template<class _OnDetect, class _OnError, class _OnTimer>
     explicit
-    detect(socket_type, _OnDetect&&, _OnError&&, _OnTimer&&,
+    detect(socket_type&& socket, _OnDetect&& on_detect, _OnError&& on_error, _OnTimer&& on_timer,
              typename std::enable_if<base::traits::TryInvoke<
              _OnDetect, void(socket_type&&, buffer_type&&, boost::tribool)>::value and
              base::traits::TryInvoke<_OnError, void(

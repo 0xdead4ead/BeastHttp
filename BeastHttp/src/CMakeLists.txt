@@ -1,16 +1,23 @@
 cmake_minimum_required(VERSION 3.11)
 
-project(BeastHttp VERSION 2.5 LANGUAGES CXX)
+project(BeastHttp VERSION 3.0 LANGUAGES CXX)
 
-find_package(Boost 1.67 COMPONENTS system thread)
+find_package(Boost 1.70 COMPONENTS system thread)
 
 set(BEASTHTTP_INCLUDE_PATH ${PROJECT_SOURCE_DIR}/../include)
 set(BEASTHTTP_EXAMPLES_DIR ${PROJECT_SOURCE_DIR}/examples)
 set(BEASTHTTP_TESTS_DIR ${PROJECT_SOURCE_DIR}/tests)
 
+option(USE_MAKE_SHARED "Allocate memory object with std::make_shared" ON)
+
 configure_file (
   "${PROJECT_SOURCE_DIR}/cmake/version.hxx.in"
   "${BEASTHTTP_INCLUDE_PATH}/http/base/version.hxx"
+)
+
+configure_file (
+  "${PROJECT_SOURCE_DIR}/cmake/config.hxx.in"
+  "${BEASTHTTP_INCLUDE_PATH}/http/base/config.hxx"
 )
 
 if(NOT CMAKE_CXX_FLAGS)

@@ -23,7 +23,7 @@ class connection :
 
 public:
 
-    using socket_type = typename std::remove_reference<Socket>::type;
+    using socket_type = Socket;
 
     using ssl_stream_type = boost::beast::ssl_stream<socket_type>;
 

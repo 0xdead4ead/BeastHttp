@@ -1,16 +1,17 @@
 #if not defined BEASTHTTP_BASE_LOCKABLE_HXX
 #define BEASTHTTP_BASE_LOCKABLE_HXX
 
+#include <http/base/config.hxx>
+
 #include <boost/core/ignore_unused.hpp>
 
-#if __cplusplus >= 201703L
-#define BEASTHTTP_CXX17_SHARED_MUTEX
+#if defined BEASTHTTP_CXX17_SHARED_MUTEX
 #include <mutex>
 #include <shared_mutex>
 #else
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/lock_factories.hpp>
-#endif
+#endif // BEASTHTTP_CXX17_SHARED_MUTEX
 
 #define BEASTHTTP_LOCKABLE_ENTER_TO_READ(shared_mutex) \
     auto const& dummy = base::lockable::enter_to_read(shared_mutex); \
@@ -38,7 +39,7 @@ struct lockable
     using shared_lock_type = boost::shared_lock<mutex_type>;
 
     using unique_lock_type = boost::unique_lock<mutex_type>;
-#endif
+#endif // BEASTHTTP_CXX17_SHARED_MUTEX
 
     static shared_lock_type
     enter_to_read(mutex_type& mutex)
@@ -64,7 +65,7 @@ struct lockable
     {
         return boost::make_unique_locks(mutex_1, mutex_2);
     }
-#endif
+#endif // BEASTHTTP_CXX17_SHARED_MUTEX
 }; // class lockable
 
 } // namespace base

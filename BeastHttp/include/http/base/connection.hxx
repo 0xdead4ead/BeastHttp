@@ -27,21 +27,21 @@ protected:
 
 public:
 
-    template <class F, class R>
+    template <class Function, class Serializer>
     void
-    async_write(/*const*/ R&, F&&);
+    async_write(Serializer&, Function&&);
 
-    template <class F, class B, class R>
+    template <class Function, class Buffer, class Parser>
     void
-    async_read(B&, R&, F&&);
+    async_read(Buffer&, Parser&, Function&&);
 
-    template<class R>
+    template<class Serializer>
     boost::beast::error_code
-    write(/*const*/ R&);
+    write(Serializer&);
 
-    template<class R, class B>
+    template<class Parser, class Buffer>
     boost::beast::error_code
-    read(B&, R&);
+    read(Buffer&, Parser&);
 
 }; // connection class
 

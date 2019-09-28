@@ -3,12 +3,12 @@
 
 #define BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE \
     template<class Body, \
-             class Fields, \
+             class RequestParser, \
              class Buffer, \
              class Protocol, \
              class Socket, \
              class Clock, \
-             template<typename, typename...> class Timer, \
+             class Timer, \
              template<typename> class Entry, \
              template<typename, typename...> class Container, \
              template<typename, typename, typename...> class MethodMap, \
@@ -17,7 +17,7 @@
              template<typename> class OnTimer>
 
 #define BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES \
-    Body, Fields, Buffer, Protocol, Socket, Clock, Timer, Entry, Container, MethodMap, ResourceMap, OnError, OnTimer
+    Body, RequestParser, Buffer, Protocol, Socket, Clock, Timer, Entry, Container, MethodMap, ResourceMap, OnError, OnTimer
 
 namespace _0xdead4ead {
 namespace http {
@@ -27,7 +27,7 @@ BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::recv()
 {
-    request_ = {};
+    parser_.emplace();
 
     do_read();
 
@@ -39,7 +39,7 @@ typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::recv(
         duration_type const duration)
 {
-    request_ = {};
+    parser_.emplace();
 
     timer_.stream().expires_after(duration);
 
@@ -55,7 +55,7 @@ typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::recv(
         time_point_type const time_point)
 {
-    request_ = {};
+    parser_.emplace();
 
     timer_.stream().expires_at(time_point);
 
@@ -67,10 +67,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::recv(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _Body, class _Fields>
+template<class _Body>
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        response_type<_Body, _Fields>& response)
+        response_type<_Body>& response)
 {
     queue_(response);
 
@@ -78,21 +78,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _Body, class _Fields>
+template<class _Body>
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        response_type<_Body, _Fields>&& response)
-{
-    queue_(std::move(response));
-
-    return *this;
-}
-
-BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _Body, class _Fields>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        response_type<_Body, _Fields>& response, duration_type const duration)
+        response_type<_Body>& response, duration_type const duration)
 {
     timer_.stream().expires_after(duration);
 
@@ -104,25 +93,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _Body, class _Fields>
+template<class _Body>
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        response_type<_Body, _Fields>&& response, duration_type const duration)
-{
-    timer_.stream().expires_after(duration);
-
-    do_launch_timer();
-
-    queue_(std::move(response));
-
-    return *this;
-}
-
-BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _Body, class _Fields>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        response_type<_Body, _Fields>& response, time_point_type const time_point)
+        response_type<_Body>& response, time_point_type const time_point)
 {
     timer_.stream().expires_at(time_point);
 
@@ -134,40 +108,12 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _Body, class _Fields>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::send(
-        response_type<_Body, _Fields>&& response, time_point_type const time_point)
-{
-    timer_.stream().expires_at(time_point);
-
-    do_launch_timer();
-
-    queue_(std::move(response));
-
-    return *this;
-}
-
-BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _Body, class _Fields>
+template<class _Body>
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::push(
-        response_type<_Body, _Fields>& response)
+        response_type<_Body>& response)
 {
     do_push(response);
-
-    return *this;
-}
-
-BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _Body, class _Fields>
-typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::push(
-        response_type<_Body, _Fields>&& response)
-{
-    auto response_{std::move(response)};
-
-    do_push(response_);
 
     return *this;
 }
@@ -234,31 +180,58 @@ BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Handler>
 void
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::member(
-        typename option::on_error, Handler&& handler,
+        typename option::on_error_t, Handler& handler,
         typename std::enable_if<
         base::traits::TryInvoke<Handler,
         void(boost::system::error_code,
              boost::string_view)>::value, int>::type)
 {
-    on_error_ = std::forward<Handler>(handler);
+    on_error_ = on_error_type(std::move(handler));
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Handler>
 void
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::member(
-        typename option::on_timer, Handler&& handler,
+        typename option::on_timer_t, Handler& handler,
         typename std::enable_if<
         base::traits::TryInvoke<Handler,
         void(context_type)>::value, int>::type)
 {
-    on_timer_ = std::forward<Handler>(handler);
+    on_timer_ = on_timer_type(std::move(handler));
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Handler, class Allocator>
+void
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::member(
+        typename option::on_error_t, Handler& handler, const Allocator& alloc,
+        typename std::enable_if<
+        base::traits::TryInvoke<Handler,
+        void(boost::system::error_code,
+             boost::string_view)>::value and
+        std::is_constructible<on_error_type, Handler, Allocator>::value, int>::type)
+{
+    on_error_ = on_error_type(std::move(handler), alloc);
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Handler, class Allocator>
+void
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::member(
+        typename option::on_timer_t, Handler& handler, const Allocator& alloc,
+        typename std::enable_if<
+        base::traits::TryInvoke<Handler,
+        void(context_type)>::value and
+        std::is_constructible<on_timer_type, Handler, Allocator>::value, int>::type)
+{
+    on_timer_ = on_timer_type(std::move(handler), alloc);
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::socket_type&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::member(
-        typename option::socket)
+        typename option::get_socket_t)
 {
     return connection_.asio_socket();
 }
@@ -410,10 +383,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::on_write(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _Body, class _Fields>
+template<class _Body>
 void
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_write(
-        response_type<_Body, _Fields>& response)
+        response_type<_Body>& response)
 {
     connection_.async_write(
                 response,
@@ -424,10 +397,10 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_write(
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class _Body, class _Fields>
+template<class _Body>
 void
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_push(
-        response_type<_Body, _Fields>& response)
+        response_type<_Body>& response)
 {
     auto ec = connection_.write(response);
 
@@ -445,7 +418,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_read()
 {
     connection_.async_read(
                 buffer_,
-                request_,
+                *parser_,
                 std::bind(&flesh::on_read, this->shared_from_this(),
                           std::placeholders::_1,
                           std::placeholders::_2));
@@ -503,9 +476,11 @@ BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 void
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_process_request()
 {
+    request_type request = parser_->release();
+
     {
         BEASTHTTP_LOCKABLE_ENTER_TO_READ(*router_mutex_)
-        this->provide(request_, *this);
+        this->provide(request, *this);
     }
 
     if (not queue_.is_full() and connection_.stream().is_open())
@@ -525,15 +500,158 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_timer_cancel()
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Router, class... _OnAction>
 auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::make(socket_type&& socket,
+     Router const& router, buffer_type&& buffer, _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+        std::declval<context_type>())>::type
+{
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<flesh_type>;
+
+    Alloc a = Alloc();
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...)));
+#else
+    context_type ctx(*std::make_shared<flesh_type>(
+                         std::move(socket), router.resource_map(), router.method_map(),
+                         router.regex_flags(), &router.mutex(), std::move(buffer),
+                         std::forward<_OnAction>(on_action)...));
+#endif // BEASTHTTP_USE_MAKE_SHARED
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Deleter, class Allocator, class Router, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::make(allocator_t arg,
+     socket_type&& socket, Router const& router, buffer_type&& buffer,
+     const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+        std::declval<context_type>())>::type
+{
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<flesh_type>;
+
+    Alloc a = Alloc(alloc);
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...), d, alloc));
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Router, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::make(socket_type&& socket,
+     Router const& router, _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+        std::declval<context_type>())>::type
+{
+    buffer_type buffer;
+
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<flesh_type>;
+
+    Alloc a = Alloc();
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...)));
+#else
+    context_type ctx(*std::make_shared<flesh_type>(
+                         std::move(socket), router.resource_map(), router.method_map(),
+                         router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...));
+#endif // BEASTHTTP_USE_MAKE_SHARED
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Deleter, class Allocator, class Router, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::make(allocator_t arg,
+     socket_type&& socket, Router const& router, const Deleter& d,
+     const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+        std::declval<context_type>())>::type
+{
+    buffer_type buffer;
+
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<flesh_type>;
+
+    Alloc a = Alloc(alloc);
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...), d, alloc));
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Router, class... _OnAction>
+auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
      Router const& router, buffer_type&& buffer, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
         std::declval<context_type>())>::type
 {
-    return std::make_shared<flesh_type>(
-                    std::move(socket), router.resource_map(), router.method_map(),
-                    router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
-                ->recv();
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<flesh_type>;
+
+    Alloc a = Alloc();
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...)));
+#else
+    context_type ctx(*std::make_shared<flesh_type>(
+                         std::move(socket), router.resource_map(), router.method_map(),
+                         router.regex_flags(), &router.mutex(), std::move(buffer),
+                         std::forward<_OnAction>(on_action)...));
+#endif // BEASTHTTP_USE_MAKE_SHARED
+
+    ctx.recv();
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Deleter, class Allocator, class Router, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(allocator_t arg, socket_type&& socket,
+     Router const& router, buffer_type&& buffer, const Deleter& d, const Allocator& alloc,
+     _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+        std::declval<context_type>())>::type
+{
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<flesh_type>;
+
+    Alloc a = Alloc(alloc);
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...), d, alloc));
+
+    ctx.recv();
+
+    return ctx;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -545,7 +663,53 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
         std::declval<context_type>())>::type
 {
     buffer_type buffer;
-    return recv(std::move(socket), router, std::move(buffer), std::forward<_OnAction>(on_action)...);
+
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<flesh_type>;
+
+    Alloc a = Alloc();
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...)));
+#else
+    context_type ctx(*std::make_shared<flesh_type>(
+                         std::move(socket), router.resource_map(), router.method_map(),
+                         router.regex_flags(), &router.mutex(), std::move(buffer),
+                         std::forward<_OnAction>(on_action)...));
+#endif // BEASTHTTP_USE_MAKE_SHARED
+
+    ctx.recv();
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Deleter, class Allocator, class Router, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(allocator_t arg,
+     socket_type&& socket, Router const& router, const Deleter& d,
+     const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+        std::declval<context_type>())>::type
+{
+    buffer_type buffer;
+
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<flesh_type>;
+
+    Alloc a = Alloc(alloc);
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...), d, alloc));
+
+    ctx.recv();
+
+    return ctx;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -558,10 +722,51 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
             std::declval<Router const&>()).recv(std::declval<TimePointOrDuration>()),
         std::declval<context_type>())>::type
 {
-    return std::make_shared<flesh_type>(
-                    std::move(socket), router.resource_map(), router.method_map(),
-                    router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
-                ->recv(timeOrDuration);
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<flesh_type>;
+
+    Alloc a = Alloc();
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...)));
+#else
+    context_type ctx(*std::make_shared<flesh_type>(
+                         std::move(socket), router.resource_map(), router.method_map(),
+                         router.regex_flags(), &router.mutex(), std::move(buffer),
+                         std::forward<_OnAction>(on_action)...));
+#endif // BEASTHTTP_USE_MAKE_SHARED
+
+    ctx.recv(timeOrDuration);
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(allocator_t arg,
+     socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration,
+     buffer_type&& buffer, const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+            std::declval<Router const&>()).recv(std::declval<TimePointOrDuration>()),
+        std::declval<context_type>())>::type
+{
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<flesh_type>;
+
+    Alloc a = Alloc(alloc);
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...), d, alloc));
+
+    ctx.recv(timeOrDuration);
+
+    return ctx;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -575,8 +780,54 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
         std::declval<context_type>())>::type
 {
     buffer_type buffer;
-    return recv(std::move(socket), router, timeOrDuration,
-                std::move(buffer), std::forward<_OnAction>(on_action)...);
+
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<flesh_type>;
+
+    Alloc a = Alloc();
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...)));
+#else
+    context_type ctx(*std::make_shared<flesh_type>(
+                         std::move(socket), router.resource_map(), router.method_map(),
+                         router.regex_flags(), &router.mutex(), std::move(buffer),
+                         std::forward<_OnAction>(on_action)...));
+#endif // BEASTHTTP_USE_MAKE_SHARED
+
+    ctx.recv(timeOrDuration);
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(allocator_t arg,
+     socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration,
+     const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+            std::declval<Router const&>()).recv(std::declval<TimePointOrDuration>()),
+        std::declval<context_type>())>::type
+{
+    buffer_type buffer;
+
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<flesh_type>;
+
+    Alloc a = Alloc(alloc);
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...), d, alloc));
+
+    ctx.recv(timeOrDuration);
+
+    return ctx;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -589,10 +840,51 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
             std::declval<Router const&>()).send(std::declval<Response>()),
         std::declval<context_type>())>::type
 {
-    return std::make_shared<flesh_type>(
-                    std::move(socket), router.resource_map(), router.method_map(),
-                    router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
-                ->send(std::forward<Response>(response));
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<flesh_type>;
+
+    Alloc a = Alloc();
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...)));
+#else
+    context_type ctx(*std::make_shared<flesh_type>(
+                         std::move(socket), router.resource_map(), router.method_map(),
+                         router.regex_flags(), &router.mutex(), std::move(buffer),
+                         std::forward<_OnAction>(on_action)...));
+#endif // BEASTHTTP_USE_MAKE_SHARED
+
+    ctx.send(std::forward<Response>(response));
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Deleter, class Allocator, class Router, class Response, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(allocator_t arg,
+     socket_type&& socket, Response&& response, Router const& router, buffer_type&& buffer,
+     const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+            std::declval<Router const&>()).send(std::declval<Response>()),
+        std::declval<context_type>())>::type
+{
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<flesh_type>;
+
+    Alloc a = Alloc(alloc);
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...), d, alloc));
+
+    ctx.send(std::forward<Response>(response));
+
+    return ctx;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -605,8 +897,54 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
         std::declval<context_type>())>::type
 {
     buffer_type buffer;
-    return send(std::move(socket), std::forward<Response>(response), router,
-                std::move(buffer), std::forward<_OnAction>(on_action)...);
+
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<flesh_type>;
+
+    Alloc a = Alloc();
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...)));
+#else
+    context_type ctx(*std::make_shared<flesh_type>(
+                         std::move(socket), router.resource_map(), router.method_map(),
+                         router.regex_flags(), &router.mutex(), std::move(buffer),
+                         std::forward<_OnAction>(on_action)...));
+#endif // BEASTHTTP_USE_MAKE_SHARED
+
+    ctx.send(std::forward<Response>(response));
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Deleter, class Allocator, class Router, class Response, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(allocator_t arg,
+     socket_type&& socket, Response&& response, Router const& router, const Deleter& d,
+     const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+            std::declval<Router const&>()).send(std::declval<Response>()),
+        std::declval<context_type>())>::type
+{
+    buffer_type buffer;
+
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<flesh_type>;
+
+    Alloc a = Alloc(alloc);
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...), d, alloc));
+
+    ctx.send(std::forward<Response>(response));
+
+    return ctx;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -619,10 +957,51 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
             std::declval<Router const&>()).send(std::declval<Response>(), std::declval<TimePointOrDuration>()),
         std::declval<context_type>())>::type
 {
-    return std::make_shared<flesh_type>(
-                    std::move(socket), router.resource_map(), router.method_map(),
-                    router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
-                ->send(std::forward<Response>(response), timeOrDuration);
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<flesh_type>;
+
+    Alloc a = Alloc();
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...)));
+#else
+    context_type ctx(*std::make_shared<flesh_type>(
+                         std::move(socket), router.resource_map(), router.method_map(),
+                         router.regex_flags(), &router.mutex(), std::move(buffer),
+                         std::forward<_OnAction>(on_action)...));
+#endif // BEASTHTTP_USE_MAKE_SHARED
+
+    ctx.send(std::forward<Response>(response), timeOrDuration);
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Deleter, class Allocator, class Router, class Response, class TimePointOrDuration, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(allocator_t arg,
+     socket_type&& socket, Response&& response, Router const& router, TimePointOrDuration const timeOrDuration,
+     buffer_type&& buffer, const Deleter& d, const Allocator& alloc,  _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+            std::declval<Router const&>()).send(std::declval<Response>(), std::declval<TimePointOrDuration>()),
+        std::declval<context_type>())>::type
+{
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<flesh_type>;
+
+    Alloc a = Alloc(alloc);
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...), d, alloc));
+
+    ctx.send(std::forward<Response>(response), timeOrDuration);
+
+    return ctx;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -636,8 +1015,54 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
         std::declval<context_type>())>::type
 {
     buffer_type buffer;
-    return send(std::move(socket), std::forward<Response>(response), router,
-                timeOrDuration, std::move(buffer), std::forward<_OnAction>(on_action)...);
+
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<flesh_type>;
+
+    Alloc a = Alloc();
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...)));
+#else
+    context_type ctx(*std::make_shared<flesh_type>(
+                         std::move(socket), router.resource_map(), router.method_map(),
+                         router.regex_flags(), &router.mutex(), std::move(buffer),
+                         std::forward<_OnAction>(on_action)...));
+#endif // BEASTHTTP_USE_MAKE_SHARED
+
+    ctx.send(std::forward<Response>(response), timeOrDuration);
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Deleter, class Allocator, class Router, class Response, class TimePointOrDuration, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(allocator_t arg,
+     socket_type&& socket, Response&& response, Router const& router, TimePointOrDuration const timeOrDuration,
+     const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+            std::declval<Router const&>()).send(std::declval<Response>(), std::declval<TimePointOrDuration>()),
+        std::declval<context_type>())>::type
+{
+    buffer_type buffer;
+
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<flesh_type>;
+
+    Alloc a = Alloc(alloc);
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...), d, alloc));
+
+    ctx.send(std::forward<Response>(response), timeOrDuration);
+
+    return ctx;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -648,10 +1073,50 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
         std::declval<context_type>())>::type
 {
-    return std::make_shared<flesh_type>(
-                    std::move(socket), router.resource_map(), router.method_map(),
-                    router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
-                ->wait();
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<flesh_type>;
+
+    Alloc a = Alloc();
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...)));
+#else
+    context_type ctx(*std::make_shared<flesh_type>(
+                         std::move(socket), router.resource_map(), router.method_map(),
+                         router.regex_flags(), &router.mutex(), std::move(buffer),
+                         std::forward<_OnAction>(on_action)...));
+#endif // BEASTHTTP_USE_MAKE_SHARED
+
+    ctx.wait();
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Deleter, class Allocator, class Router, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(allocator_t arg,
+     socket_type&& socket, Router const& router, buffer_type&& buffer, const Deleter& d,
+     const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+        std::declval<context_type>())>::type
+{
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<flesh_type>;
+
+    Alloc a = Alloc(alloc);
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...), d, alloc));
+
+    ctx.wait();
+
+    return ctx;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -663,7 +1128,52 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
         std::declval<context_type>())>::type
 {
     buffer_type buffer;
-    return wait(std::move(socket), router, std::move(buffer), std::forward<_OnAction>(on_action)...);
+
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<flesh_type>;
+
+    Alloc a = Alloc();
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...)));
+#else
+    context_type ctx(*std::make_shared<flesh_type>(
+                         std::move(socket), router.resource_map(), router.method_map(),
+                         router.regex_flags(), &router.mutex(), std::move(buffer),
+                         std::forward<_OnAction>(on_action)...));
+#endif // BEASTHTTP_USE_MAKE_SHARED
+
+    ctx.wait();
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Deleter, class Allocator, class Router, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(allocator_t arg,
+     socket_type&& socket, Router const& router, const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
+        std::declval<context_type>())>::type
+{
+    buffer_type buffer;
+
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<flesh_type>;
+
+    Alloc a = Alloc(alloc);
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...), d, alloc));
+
+    ctx.wait();
+
+    return ctx;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -676,10 +1186,51 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
             std::declval<Router const&>()).wait(std::declval<TimePointOrDuration>()),
         std::declval<context_type>())>::type
 {
-    return std::make_shared<flesh_type>(
-                std::move(socket), router.resource_map(), router.method_map(),
-                router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...)
-            ->wait(timeOrDuration);
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<flesh_type>;
+
+    Alloc a = Alloc();
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...)));
+#else
+    context_type ctx(*std::make_shared<flesh_type>(
+                         std::move(socket), router.resource_map(), router.method_map(),
+                         router.regex_flags(), &router.mutex(), std::move(buffer),
+                         std::forward<_OnAction>(on_action)...));
+#endif // BEASTHTTP_USE_MAKE_SHARED
+
+    ctx.wait(timeOrDuration);
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(allocator_t arg,
+     socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration, buffer_type&& buffer,
+     const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+            std::declval<Router const&>()).wait(std::declval<TimePointOrDuration>()),
+        std::declval<context_type>())>::type
+{
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<flesh_type>;
+
+    Alloc a = Alloc(alloc);
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...), d, alloc));
+
+    ctx.wait(timeOrDuration);
+
+    return ctx;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
@@ -693,32 +1244,78 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
         std::declval<context_type>())>::type
 {
     buffer_type buffer;
-    return wait(std::move(socket), router, timeOrDuration,
-                std::move(buffer), std::forward<_OnAction>(on_action)...);
+
+#if not defined BEASTHTTP_USE_MAKE_SHARED
+    using Alloc = std::allocator<flesh_type>;
+
+    Alloc a = Alloc();
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...)));
+#else
+    context_type ctx(*std::make_shared<flesh_type>(
+                         std::move(socket), router.resource_map(), router.method_map(),
+                         router.regex_flags(), &router.mutex(), std::move(buffer),
+                         std::forward<_OnAction>(on_action)...));
+#endif // BEASTHTTP_USE_MAKE_SHARED
+
+    ctx.wait(timeOrDuration);
+
+    return ctx;
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class... _OnError>
+template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
+auto
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(allocator_t arg,
+     socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration,
+     const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
+        BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
+            std::declval<Router const&>()).wait(std::declval<TimePointOrDuration>()),
+        std::declval<context_type>())>::type
+{
+    buffer_type buffer;
+
+    using Alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<flesh_type>;
+
+    Alloc a = Alloc(alloc);
+
+    context_type ctx(*std::shared_ptr<flesh_type>(
+                         new (std::allocator_traits<Alloc>::allocate(a, 1)) flesh_type(
+                             std::move(socket), router.resource_map(), router.method_map(),
+                             router.regex_flags(), &router.mutex(), std::move(buffer),
+                             std::forward<_OnAction>(on_action)...), d, alloc));
+
+    ctx.wait(timeOrDuration);
+
+    return ctx;
+}
+
+BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
+template<class _OnError>
 auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::eof(socket_type&& socket,
-    _OnError&&... on_error) -> decltype (void(
+    _OnError&& on_error) -> decltype (void(
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY()))
 {
     buffer_type buffer;
     return flesh_type(std::move(socket), {}, {}, {}, {}, std::move(buffer),
-                      std::forward<_OnError>(on_error)...).eof();
+                      std::forward<_OnError>(on_error)).eof();
 }
 
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
-template<class... _OnError>
+template<class _OnError>
 auto
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::cls(socket_type&& socket,
-    _OnError&&... on_error) -> decltype (void(
+    _OnError&& on_error) -> decltype (void(
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE_LEGACY()))
 {
     buffer_type buffer;
     return flesh_type(std::move(socket), {}, {}, {}, {}, std::move(buffer),
-                      std::forward<_OnError>(on_error)...).cls();
+                      std::forward<_OnError>(on_error)).cls();
 }
 
 } // namespace reactor
