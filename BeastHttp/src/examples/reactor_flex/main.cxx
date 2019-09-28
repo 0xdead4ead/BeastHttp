@@ -136,25 +136,25 @@ int main()
 
     using namespace _0xdead4ead;
 
-    using HttpSession = http::reactor::_default::session_type;
-    using HttpListener = http::reactor::_default::listener_type;
-    using SslHttpSession = http::reactor::ssl::_default::session_type;
-    using SslDetect = http::common::_default::detect_type;
+    using http_session = http::reactor::_default::session_type;
+    using http_listener = http::reactor::_default::listener_type;
+    using ssl_http_session = http::reactor::ssl::_default::session_type;
+    using ssl_detect = http::common::_default::detect_type;
 
     // Create resource handlers
-    const auto& onMainResource = [](auto request, auto context) {
+    const auto& onMainResource = [](auto beast_http_request, auto context) {
         // Send content message to client and wait to receive next request
-        context.send(make_200<beast::http::string_body>(request, "Main page\n", "text/html"));
+        context.send(make_200<beast::http::string_body>(beast_http_request, "Main page\n", "text/html"));
     };
 
-    const auto& onUnknownResource = [](auto request, auto context) {
-        context.send(make_404<beast::http::string_body>(request, "Resource is not found\n", "text/html"));
+    const auto& onUnknownResource = [](auto beast_http_request, auto context) {
+        context.send(make_404<beast::http::string_body>(beast_http_request, "Resource is not found\n", "text/html"));
     };
 
-    http::basic_router<HttpSession> router{std::regex::ECMAScript};
+    http::basic_router<http_session> router{std::regex::ECMAScript};
 
     // Note: For encrypted connection must be separate copy router
-    http::basic_router<SslHttpSession> ssl_router{std::regex::ECMAScript};
+    http::basic_router<ssl_http_session> ssl_router{std::regex::ECMAScript};
 
     // Applying resource handlers
     router.get(R"(^/$)", onMainResource);
@@ -168,47 +168,47 @@ int main()
     };
 
     // Error and warning handler
-    const auto& onError = [](auto code, auto from) {
+    const auto& onError = [](auto system_error_code, auto from) {
         http::out::prefix::version::time::pushn<std::ostream>(
-                    out, "From:", from, "Info:", code.message());
+                    out, "From:", from, "Info:", system_error_code.message());
 
         // I/O context will be stopped, if code value is EADDRINUSE or EACCES
-        if (code == boost::system::errc::address_in_use or
-                code == boost::system::errc::permission_denied)
+        if (system_error_code == boost::system::errc::address_in_use or
+                system_error_code == boost::system::errc::permission_denied)
             ioc.stop();
     };
 
-    const auto& onDetect = [&](auto socket, auto buffer, auto result) {
+    const auto& onDetect = [&](auto asio_socket, auto beast_buffer, auto result) {
         // Is TLS handhake?
         if(result) {
             // Process handshake and launch ssl session (Used detector buffer must be moved in session instance!)
-            SslHttpSession::handshake(ctx, std::move(socket), ssl_router, std::move(buffer), onHandshake, onError);
+            ssl_http_session::handshake(ctx, std::move(asio_socket), ssl_router, std::move(beast_buffer), onHandshake, onError);
             return;
         }
 
         // Launch plain waiting receive
-        HttpSession::recv(std::move(socket), router, std::move(buffer), onError);
+        http_session::recv(std::move(asio_socket), router, std::move(beast_buffer), onError);
     };
 
     // Handler incoming connections
-    const auto& onAccept = [&](auto asioSocket) {
+    const auto& onAccept = [&](auto asio_socket) {
+        auto endpoint = asio_socket.remote_endpoint();
+
         http::out::prefix::version::time::pushn<std::ostream>(
-                    out, asioSocket.remote_endpoint().address().to_string(), "connected!");
+                    out, endpoint.address().to_string() + ':' + std::to_string(endpoint.port()), "connected!");
 
         // Create and run asynchronously http session detect
-        SslDetect::async(std::move(asioSocket), onDetect, onError);
+        ssl_detect::async(std::move(asio_socket), onDetect, onError);
     };
 
-    // http://localhost:8080
-    // https://localhost:8080
-    auto const address = boost::asio::ip::make_address("127.0.0.1");
+    auto const address = boost::asio::ip::address_v4::any();
     auto const port = static_cast<unsigned short>(8080);
 
     http::out::prefix::version::time::pushn<std::ostream>(
                 out, "Start accepting on", address.to_string() + ':' + std::to_string(port));
 
     // Start accepting
-    HttpListener::launch(ioc, {address, port}, onAccept, onError);
+    http_listener::launch(ioc, {address, port}, onAccept, onError);
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
     sig_set.async_wait([](boost::system::error_code const&, int sig) {

@@ -51,50 +51,51 @@ int main()
 {
     using namespace _0xdead4ead;
 
-    using HttpSession = http::reactor::_default::session_type;
-    using HttpListener = http::reactor::_default::listener_type;
+    using http_session = http::reactor::_default::session_type;
+    using http_listener = http::reactor::_default::listener_type;
 
-    http::basic_router<HttpSession> router{std::regex::ECMAScript};
+    http::basic_router<http_session> router{std::regex::ECMAScript};
 
     // Set router targets
-    router.get(R"(^/$)", [](auto request, auto context) {
+    router.get(R"(^/$)", [](auto beast_http_request, auto context) {
         // Send content message to client and wait to receive next request
-        context.send(make_200<beast::http::string_body>(request, "Main page\n", "text/html"));
+        context.send(make_200<beast::http::string_body>(beast_http_request, "Main page\n", "text/html"));
     });
 
-    router.all(R"(^.*$)", [](auto request, auto context) {
-        context.send(make_404<beast::http::string_body>(request, "Resource is not found\n", "text/html"));
+    router.all(R"(^.*$)", [](auto beast_http_request, auto context) {
+        context.send(make_404<beast::http::string_body>(beast_http_request, "Resource is not found\n", "text/html"));
     });
 
     // Error and warning handler
-    const auto& onError = [](auto code, auto from) {
+    const auto& onError = [](auto system_error_code, auto from) {
         http::out::prefix::version::time::pushn<std::ostream>(
-                    out, "From:", from, "Info:", code.message());
+                    out, "From:", from, "Info:", system_error_code.message());
 
         // I/O context will be stopped, if code value is EADDRINUSE or EACCES
-        if (code == boost::system::errc::address_in_use or
-                code == boost::system::errc::permission_denied)
+        if (system_error_code == boost::system::errc::address_in_use or
+                system_error_code == boost::system::errc::permission_denied)
             ioc.stop();
     };
 
     // Handler incoming connections
-    const auto& onAccept = [&](auto asioSocket) {
+    const auto& onAccept = [&](auto asio_socket) {
+        auto endpoint = asio_socket.remote_endpoint();
+
         http::out::prefix::version::time::pushn<std::ostream>(
-                    out, asioSocket.remote_endpoint().address().to_string(), "connected!");
+                    out, endpoint.address().to_string() + ':' + std::to_string(endpoint.port()), "connected!");
 
         // Start receive HTTP request
-        HttpSession::recv(std::move(asioSocket), router, onError);
+        http_session::recv(std::move(asio_socket), router, onError);
     };
 
-    // http://localhost:8080
-    auto const address = boost::asio::ip::make_address("127.0.0.1");
+    auto const address = boost::asio::ip::address_v4::any();
     auto const port = static_cast<unsigned short>(8080);
 
     http::out::prefix::version::time::pushn<std::ostream>(
                 out, "Start accepting on", address.to_string() + ':' + std::to_string(port));
 
     // Start accepting
-    HttpListener::launch(ioc, {address, port}, onAccept, onError);
+    http_listener::launch(ioc, {address, port}, onAccept, onError);
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
     sig_set.async_wait([](boost::system::error_code const&, int sig) {

@@ -27,6 +27,22 @@ auto make_200(const beast::http::request<RequestBody>& request,
     return response;
 }
 
+// Returns a not found response (404)
+template<class ResponseBody, class RequestBody>
+auto make_404(const beast::http::request<RequestBody>& request,
+              typename ResponseBody::value_type body,
+              beast::string_view content)
+{
+    beast::http::response<ResponseBody> response{beast::http::status::not_found, request.version()};
+    response.set(beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+    response.set(beast::http::field::content_type, content);
+    response.body() = body;
+    response.prepare_payload();
+    response.keep_alive(request.keep_alive());
+
+    return response;
+}
+
 static boost::asio::io_context ioc;
 static boost::asio::posix::stream_descriptor out{ioc, ::dup(STDERR_FILENO)};
 static boost::asio::signal_set sig_set(ioc, SIGINT, SIGTERM);
@@ -40,24 +56,33 @@ int main()
 
     http::basic_router<HttpSession> router{std::regex::ECMAScript};
 
-    router.get(R"(^.*$)", [](auto request, auto context) {
+    router.get(R"(^/echo$)", [](auto beast_http_request, auto context) {
         // Received customer feedback! Sending an echo target answer. Launch timer again!
-        context.send(make_200<beast::http::string_body>(request, request.target().to_string(), "text/html"), std::chrono::seconds(3));
+        context.send(make_200<beast::http::string_body>(beast_http_request, beast_http_request.target().to_string(), "text/html"), std::chrono::seconds(3));
+    });
+
+    router.all(R"(^.*$)", [](auto beast_http_request, auto context) {
+        context.send(make_404<beast::http::string_body>(beast_http_request, "Resource is not found\n", "text/html"));
     });
 
     // Error and warning handler
-    const auto& onError = [](auto code, auto from) {
+    const auto& onError = [](auto system_error_code, auto from) {
         http::out::prefix::version::time::pushn<std::ostream>(
-                    out, "From:", from, "Info:", code.message());
+                    out, "From:", from, "Info:", system_error_code.message());
 
         // I/O context will be stopped, if code value is EADDRINUSE or EACCES
-        if (code == boost::system::errc::address_in_use or
-                code == boost::system::errc::permission_denied)
+        if (system_error_code == boost::system::errc::address_in_use or
+                system_error_code == boost::system::errc::permission_denied)
             ioc.stop();
     };
 
     // Timer expire handler
     const auto& onTimer = [&](auto context) {
+        auto endpoint = context.asio_socket().remote_endpoint();
+
+        http::out::prefix::version::time::pushn<std::ostream>(
+                    out, endpoint.address().to_string() + ':' + std::to_string(endpoint.port()), "timed out!");
+
         // Send End-of-stream. Write function can no longer be issued.
         context.eof();
         // Write half of the connection is closed
@@ -65,21 +90,23 @@ int main()
     };
 
     // Handler incoming connections
-    const auto& onAccept = [&](auto asioSocket) {
+    const auto& onAccept = [&](auto asio_socket) {
+        auto endpoint = asio_socket.remote_endpoint();
+
         http::out::prefix::version::time::pushn<std::ostream>(
-                    out, asioSocket.remote_endpoint().address().to_string(), "connected!");
+                    out, endpoint.address().to_string() + ':' + std::to_string(endpoint.port()), "connected!");
 
         // The client must send data no later than three seconds.
-        HttpSession::recv(std::move(asioSocket), router, std::chrono::seconds(3), onError, onTimer);
+        HttpSession::recv(std::move(asio_socket), router, std::chrono::seconds(3), onError, onTimer);
     };
 
-    // http://localhost:8080
-    auto const address = boost::asio::ip::make_address("127.0.0.1");
+    auto const address = boost::asio::ip::address_v4::any();
     auto const port = static_cast<unsigned short>(8080);
 
     // Start accepting
     http::out::prefix::version::time::pushn<std::ostream>(
-                out, "Start accepting on", address.to_string());
+                out, "Start accepting on", address.to_string() + ':' + std::to_string(port));
+
     HttpListener::launch(ioc, {address, port}, onAccept, onError);
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown

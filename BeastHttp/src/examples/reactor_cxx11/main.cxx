@@ -54,22 +54,22 @@ int main()
 {
     using namespace _0xdead4ead;
 
-    using HttpSession = http::reactor::_default::session_type;
-    using HttpListener = http::reactor::_default::listener_type;
+    using http_session = http::reactor::_default::session_type;
+    using http_listener = http::reactor::_default::listener_type;
 
-    using HttpContext = typename HttpSession::context_type;
-    using HttpRequest = typename HttpSession::request_type;
-    using AsioSocket = typename HttpSession::socket_type;
+    using http_context = typename http_session::context_type;
+    using beast_http_request = typename http_session::request_type;
+    using asio_socket = typename http_session::socket_type;
 
-    http::basic_router<HttpSession> router{std::regex::ECMAScript};
+    http::basic_router<http_session> router{std::regex::ECMAScript};
 
-    router.get(R"(^/$)", [](HttpRequest request, HttpContext context) {
+    router.get(R"(^/$)", [](beast_http_request r, http_context c) {
         // Send content message to client and wait to receive next request
-        context.send(make_200<beast::http::string_body>(request, "Main page\n", "text/html"));
+        c.send(make_200<beast::http::string_body>(r, "Main page\n", "text/html"));
     });
 
-    router.all(R"(^.*$)", [](HttpRequest request, HttpContext context) {
-        context.send(make_404<beast::http::string_body>(request, "Resource is not found\n", "text/html"));
+    router.all(R"(^.*$)", [](beast_http_request r, http_context c) {
+        c.send(make_404<beast::http::string_body>(r, "Resource is not found\n", "text/html"));
     });
 
     // Error and warning handler
@@ -84,23 +84,24 @@ int main()
     };
 
     // Handler incoming connections
-    const auto& onAccept = [&](AsioSocket socket) {
+    const auto& onAccept = [&](asio_socket s) {
+        auto endpoint = s.remote_endpoint();
+
         http::out::prefix::version::time::pushn<std::ostream>(
-                    out, socket.remote_endpoint().address().to_string(), "connected!");
+                    out, endpoint.address().to_string() + ':' + std::to_string(endpoint.port()), "connected!");
 
         // Start receive HTTP request
-        HttpSession::recv(std::move(socket), router, onError);
+        http_session::recv(std::move(s), router, onError);
     };
 
-    // http://localhost:8080
-    auto const address = boost::asio::ip::make_address("127.0.0.1");
+    auto const address = boost::asio::ip::address_v4::any();
     auto const port = static_cast<unsigned short>(8080);
 
     http::out::prefix::version::time::pushn<std::ostream>(
                 out, "Start accepting on", address.to_string() + ':' + std::to_string(port));
 
     // Start accepting
-    HttpListener::launch(ioc, {address, port}, onAccept, onError);
+    http_listener::launch(ioc, {address, port}, onAccept, onError);
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
     sig_set.async_wait([](boost::system::error_code const&, int sig) {
