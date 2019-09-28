@@ -19,7 +19,7 @@ matrix:
           - sourceline: 'ppa:mhier/libboost-latest'
         packages:
           - libssl-dev
-          - boost1.67
+          - boost1.70
           - clang++-6.0
           - g++-8
 
@@ -37,7 +37,7 @@ matrix:
           - sourceline: 'ppa:mhier/libboost-latest'
         packages:
           - libssl-dev
-          - boost1.67
+          - boost1.70
           - clang++-6.0
           - g++-8
 
@@ -55,7 +55,7 @@ matrix:
           - sourceline: 'ppa:mhier/libboost-latest'
         packages:
           - libssl-dev
-          - boost1.67
+          - boost1.70
           - clang++-6.0
           - g++-8
 
@@ -73,7 +73,7 @@ matrix:
           - sourceline: 'ppa:mhier/libboost-latest'
         packages:
           - libssl-dev
-          - boost1.67
+          - boost1.70
           - clang++-6.0
           - g++-8
 
