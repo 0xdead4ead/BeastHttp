@@ -109,6 +109,7 @@ install:
      if [[ (-x $(which brew)) ]]; then
        brew update
        brew install boost cmake openssl
+       brew upgrade boost
        export OPENSSL_ROOT_DIR="/usr/local/opt/openssl"
        cmake --version
      else
