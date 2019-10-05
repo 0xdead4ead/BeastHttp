@@ -24,7 +24,7 @@ detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
         socket_type&& socket, _OnAction&&... on_action)  -> decltype (
         void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
 {
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<self_type>;
 
     Alloc a = Alloc();
@@ -33,7 +33,7 @@ detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
                 std::move(socket), std::forward<_OnAction>(on_action)...))->do_async();
 #else
     std::make_shared<self_type>(std::move(socket), std::forward<_OnAction>(on_action)...)->do_async();
-#endif
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 }
 
 BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
@@ -43,7 +43,7 @@ detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
         socket_type&& socket, duration_type const duration, _OnAction&&... on_action)  -> decltype (
         void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
 {
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<self_type>;
 
     Alloc a = Alloc();
@@ -52,7 +52,7 @@ detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
                 std::move(socket), std::forward<_OnAction>(on_action)...))->do_async_2(duration);
 #else
     std::make_shared<self_type>(std::move(socket), std::forward<_OnAction>(on_action)...)->do_async_2(duration);
-#endif
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 }
 
 BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
@@ -62,7 +62,7 @@ detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
         socket_type&& socket, time_point_type const time_point, _OnAction&&... on_action)  -> decltype (
         void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
 {
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<self_type>;
 
     Alloc a = Alloc();
@@ -71,7 +71,7 @@ detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
                 std::move(socket), std::forward<_OnAction>(on_action)...))->do_async_2(time_point);
 #else
     std::make_shared<self_type>(std::move(socket), std::forward<_OnAction>(on_action)...)->do_async_2(time_point);
-#endif
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 }
 
 BEASTHTTP_COMMON_DETECT_TMPL_DECLARE

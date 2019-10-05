@@ -24,7 +24,7 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::launch(
         boost::asio::io_context& ctx, const endpoint_type& endpoint, _OnAction&&... on_action) -> decltype (
         void(self_type(std::declval<boost::asio::io_context&>(), std::declval<_OnAction>()...)))
 {
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<self_type>;
 
     Alloc a = Alloc();
@@ -33,7 +33,7 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::launch(
                 ctx, std::forward<_OnAction>(on_action)...))->loop(endpoint);
 #else
     std::make_shared<self_type>(ctx, std::forward<_OnAction>(on_action)...)->loop(endpoint);
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 }
 
 BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE
@@ -45,7 +45,7 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::launch(
         void(self_type(std::declval<boost::asio::io_context&>(),
                        std::declval<boost::asio::io_context&>(), std::declval<_OnAction>()...)))
 {
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<self_type>;
 
     Alloc a = Alloc();
@@ -54,7 +54,7 @@ listener<BEASTHTTP_REACTOR_LISTENER_TMPL_ATTRIBUTES>::launch(
                 acceptor_ctx, socket_ctx, std::forward<_OnAction>(on_action)...))->loop(endpoint);
 #else
     std::make_shared<self_type>(acceptor_ctx, socket_ctx, std::forward<_OnAction>(on_action)...)->loop(endpoint);
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 }
 
 BEASTHTTP_REACTOR_LISTENER_TMPL_DECLARE

@@ -1,6 +1,8 @@
 #if not defined BEASTHTTP_REACTOR_IMPL_SESSION_HXX
 #define BEASTHTTP_REACTOR_IMPL_SESSION_HXX
 
+#include <http/base/config.hxx>
+
 #define BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE \
     template<class Body, \
              class RequestParser, \
@@ -505,7 +507,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::make(socket_type&& socket,
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
         std::declval<context_type>())>::type
 {
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -520,7 +522,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::make(socket_type&& socket,
                          std::move(socket), router.resource_map(), router.method_map(),
                          router.regex_flags(), &router.mutex(), std::move(buffer),
                          std::forward<_OnAction>(on_action)...));
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     return ctx;
 }
@@ -557,7 +559,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::make(socket_type&& socket,
 {
     buffer_type buffer;
 
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -571,7 +573,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::make(socket_type&& socket,
     context_type ctx(*std::make_shared<flesh_type>(
                          std::move(socket), router.resource_map(), router.method_map(),
                          router.regex_flags(), &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...));
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     return ctx;
 }
@@ -608,7 +610,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
         std::declval<context_type>())>::type
 {
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -623,7 +625,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
                          std::move(socket), router.resource_map(), router.method_map(),
                          router.regex_flags(), &router.mutex(), std::move(buffer),
                          std::forward<_OnAction>(on_action)...));
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     ctx.recv();
 
@@ -664,7 +666,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
 {
     buffer_type buffer;
 
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -679,7 +681,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
                          std::move(socket), router.resource_map(), router.method_map(),
                          router.regex_flags(), &router.mutex(), std::move(buffer),
                          std::forward<_OnAction>(on_action)...));
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     ctx.recv();
 
@@ -722,7 +724,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
             std::declval<Router const&>()).recv(std::declval<TimePointOrDuration>()),
         std::declval<context_type>())>::type
 {
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -737,7 +739,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
                          std::move(socket), router.resource_map(), router.method_map(),
                          router.regex_flags(), &router.mutex(), std::move(buffer),
                          std::forward<_OnAction>(on_action)...));
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     ctx.recv(timeOrDuration);
 
@@ -781,7 +783,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
 {
     buffer_type buffer;
 
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -796,7 +798,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
                          std::move(socket), router.resource_map(), router.method_map(),
                          router.regex_flags(), &router.mutex(), std::move(buffer),
                          std::forward<_OnAction>(on_action)...));
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     ctx.recv(timeOrDuration);
 
@@ -840,7 +842,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
             std::declval<Router const&>()).send(std::declval<Response>()),
         std::declval<context_type>())>::type
 {
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -855,7 +857,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
                          std::move(socket), router.resource_map(), router.method_map(),
                          router.regex_flags(), &router.mutex(), std::move(buffer),
                          std::forward<_OnAction>(on_action)...));
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     ctx.send(std::forward<Response>(response));
 
@@ -898,7 +900,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
 {
     buffer_type buffer;
 
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -913,7 +915,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
                          std::move(socket), router.resource_map(), router.method_map(),
                          router.regex_flags(), &router.mutex(), std::move(buffer),
                          std::forward<_OnAction>(on_action)...));
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     ctx.send(std::forward<Response>(response));
 
@@ -957,7 +959,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
             std::declval<Router const&>()).send(std::declval<Response>(), std::declval<TimePointOrDuration>()),
         std::declval<context_type>())>::type
 {
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -972,7 +974,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
                          std::move(socket), router.resource_map(), router.method_map(),
                          router.regex_flags(), &router.mutex(), std::move(buffer),
                          std::forward<_OnAction>(on_action)...));
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     ctx.send(std::forward<Response>(response), timeOrDuration);
 
@@ -1016,7 +1018,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
 {
     buffer_type buffer;
 
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -1031,7 +1033,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
                          std::move(socket), router.resource_map(), router.method_map(),
                          router.regex_flags(), &router.mutex(), std::move(buffer),
                          std::forward<_OnAction>(on_action)...));
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     ctx.send(std::forward<Response>(response), timeOrDuration);
 
@@ -1073,7 +1075,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
         std::declval<context_type>())>::type
 {
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -1088,7 +1090,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
                          std::move(socket), router.resource_map(), router.method_map(),
                          router.regex_flags(), &router.mutex(), std::move(buffer),
                          std::forward<_OnAction>(on_action)...));
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     ctx.wait();
 
@@ -1129,7 +1131,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
 {
     buffer_type buffer;
 
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -1144,7 +1146,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
                          std::move(socket), router.resource_map(), router.method_map(),
                          router.regex_flags(), &router.mutex(), std::move(buffer),
                          std::forward<_OnAction>(on_action)...));
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     ctx.wait();
 
@@ -1186,7 +1188,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
             std::declval<Router const&>()).wait(std::declval<TimePointOrDuration>()),
         std::declval<context_type>())>::type
 {
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -1201,7 +1203,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
                          std::move(socket), router.resource_map(), router.method_map(),
                          router.regex_flags(), &router.mutex(), std::move(buffer),
                          std::forward<_OnAction>(on_action)...));
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     ctx.wait(timeOrDuration);
 
@@ -1245,7 +1247,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
 {
     buffer_type buffer;
 
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -1260,7 +1262,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
                          std::move(socket), router.resource_map(), router.method_map(),
                          router.regex_flags(), &router.mutex(), std::move(buffer),
                          std::forward<_OnAction>(on_action)...));
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     ctx.wait(timeOrDuration);
 

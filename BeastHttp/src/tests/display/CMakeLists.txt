@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 
-find_package(Boost 1.67 COMPONENTS unit_test_framework REQUIRED)
+find_package(Boost 1.70 COMPONENTS unit_test_framework REQUIRED)
 
 set(BEASTHTTP_DISPLAY_TEST_NAME display)
 

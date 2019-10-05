@@ -1,6 +1,8 @@
 #if not defined BEASTHTTP_REACTOR_SSL_IMPL_SESSION_HXX
 #define BEASTHTTP_REACTOR_SSL_IMPL_SESSION_HXX
 
+#include <http/base/config.hxx>
+
 #define BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE \
     template<class Body, \
              class RequestParser, \
@@ -731,7 +733,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
         BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
         std::declval<context_type>())>::type
 {
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -744,7 +746,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
     std::shared_ptr<flesh_type> _this = std::make_shared<flesh_type>(
                 ctx, std::move(socket), router.resource_map(), router.method_map(), router.regex_flags(),
                 &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...);
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     boost::asio::dispatch(
                 static_cast<base::strand_stream&>(*_this), std::bind(
@@ -792,7 +794,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
 {
     buffer_type buffer;
 
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -805,7 +807,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
     std::shared_ptr<flesh_type> _this = std::make_shared<flesh_type>(
                 ctx, std::move(socket), router.resource_map(), router.method_map(), router.regex_flags(),
                 &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...);
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     boost::asio::dispatch(
                 static_cast<base::strand_stream&>(*_this), std::bind(
@@ -854,7 +856,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
             std::declval<Router const&>()).handshake(std::declval<TimePointOrDuration>()),
         std::declval<context_type>())>::type
 {
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -867,7 +869,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
     std::shared_ptr<flesh_type> _this = std::make_shared<flesh_type>(
                 ctx, std::move(socket), router.resource_map(), router.method_map(), router.regex_flags(),
                 &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...);
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     boost::asio::dispatch(
                 static_cast<base::strand_stream&>(*_this), std::bind(
@@ -918,7 +920,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
 {
     buffer_type buffer;
 
-#if not defined BEASTHTTP_USE_MAKE_SHARED
+#if BEASTHTTP_USE_MAKE_SHARED == 0
     using Alloc = std::allocator<flesh_type>;
 
     Alloc a = Alloc();
@@ -931,7 +933,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
     std::shared_ptr<flesh_type> _this = std::make_shared<flesh_type>(
                 ctx, std::move(socket), router.resource_map(), router.method_map(), router.regex_flags(),
                 &router.mutex(), std::move(buffer), std::forward<_OnAction>(on_action)...);
-#endif // BEASTHTTP_USE_MAKE_SHARED
+#endif // BEASTHTTP_USE_MAKE_SHARED == 0
 
     boost::asio::dispatch(
                 static_cast<base::strand_stream&>(*_this), std::bind(

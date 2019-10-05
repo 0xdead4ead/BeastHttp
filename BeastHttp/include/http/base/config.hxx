@@ -3,11 +3,7 @@
 
 #include <boost/config.hpp>
 
-#define USE_MAKE_SHARED 1
-
-#if USE_MAKE_SHARED == 1
-#define BEASTHTTP_USE_MAKE_SHARED
-#endif
+#define BEASTHTTP_USE_MAKE_SHARED 1
 
 #if __cplusplus >= 201402L
 #if not defined BOOST_NO_CXX14_GENERIC_LAMBDAS
