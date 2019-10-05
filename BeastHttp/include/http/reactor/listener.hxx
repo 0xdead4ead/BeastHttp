@@ -46,15 +46,6 @@ public:
 
     using on_error_type = OnError<void (boost::system::error_code, boost::string_view)>;
 
-    static_assert (std::is_base_of<boost::asio::socket_base, socket_type>::value,
-                   "Socket type is not supported!");
-
-    static_assert (std::is_base_of<boost::asio::socket_base, acceptor_type>::value,
-                   "Acceptor type is not supported!");
-
-    static_assert (base::traits::TryBind<acceptor_type, void(endpoint_type, boost::system::error_code&)>::value,
-                   "Invalid Endpoint type");
-
     static_assert (base::traits::TryInvoke<on_accept_type, void(socket_type)>::value,
                    "Invalid OnAccept handler type!");
 

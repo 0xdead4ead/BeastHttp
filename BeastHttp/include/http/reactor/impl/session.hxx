@@ -6,6 +6,7 @@
 #define BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE \
     template<class Body, \
              class RequestParser, \
+             class ResponseSerializer, \
              class Buffer, \
              class Protocol, \
              class Socket, \
@@ -19,7 +20,7 @@
              template<typename> class OnTimer>
 
 #define BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES \
-    Body, RequestParser, Buffer, Protocol, Socket, Clock, Timer, Entry, Container, MethodMap, ResourceMap, OnError, OnTimer
+    Body, RequestParser, ResponseSerializer, Buffer, Protocol, Socket, Clock, Timer, Entry, Container, MethodMap, ResourceMap, OnError, OnTimer
 
 namespace _0xdead4ead {
 namespace http {
@@ -29,8 +30,6 @@ BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::recv()
 {
-    parser_.emplace();
-
     do_read();
 
     return *this;
@@ -41,8 +40,6 @@ typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::recv(
         duration_type const duration)
 {
-    parser_.emplace();
-
     timer_.stream().expires_after(duration);
 
     do_launch_timer();
@@ -57,8 +54,6 @@ typename session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh&
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::recv(
         time_point_type const time_point)
 {
-    parser_.emplace();
-
     timer_.stream().expires_at(time_point);
 
     do_launch_timer();
@@ -390,8 +385,10 @@ void
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_write(
         response_type<_Body>& response)
 {
+    serializer_.emplace(response);
+
     connection_.async_write(
-                response,
+                *serializer_,
                 std::bind(&flesh::on_write, this->shared_from_this(),
                           std::placeholders::_1,
                           std::placeholders::_2,
@@ -404,7 +401,9 @@ void
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_push(
         response_type<_Body>& response)
 {
-    auto ec = connection_.write(response);
+    serializer_.emplace(response);
+
+    auto ec = connection_.write(*serializer_);
 
     if (ec) {
         if (on_error_)
@@ -418,6 +417,8 @@ BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 void
 session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::flesh::do_read()
 {
+    parser_.emplace();
+
     connection_.async_read(
                 buffer_,
                 *parser_,

@@ -27,15 +27,6 @@ public:
 
     using time_point = typename timer_type::time_point;
 
-    static_assert (traits::Conjunction<
-                   traits::HasDuration<timer_type, void>,
-                   traits::HasTimePoint<timer_type, void>,
-                   traits::HasClockType<timer_type, void>,
-                   traits::TryWait<timer_type, void(boost::system::error_code&)>,
-                   traits::TryCancel<timer_type, void(boost::system::error_code&)>,
-                   traits::TryAsyncWait<timer_type, void(void(boost::system::error_code))>>::value,
-                   "Invalid timer type!");
-
     template<class TimePointOrDuration>
     explicit
     timer(const CompletionExecutor&, const TimePointOrDuration);

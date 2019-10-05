@@ -60,9 +60,10 @@ namespace http {
 namespace reactor {
 namespace ssl {
 
-template</*Prototype parser request of message*/
+template</*Prototype parser/serializer for messages*/
          class Body = boost::beast::http::string_body,
          class RequestParser = boost::beast::http::request_parser<Body>,
+         class ResponseSerializer = boost::beast::http::response_serializer<Body>,
          /*Message's buffer*/
          class Buffer = boost::beast::flat_buffer,
          /*Connection param's*/
@@ -139,6 +140,8 @@ public:
 
     using request_parser_type = RequestParser;
 
+    using response_serializer_type = ResponseSerializer;
+
     using request_type = typename request_parser_type::value_type;
 
     template<class _Body>
@@ -179,11 +182,6 @@ public:
     using method_map_type = MethodMap<method_type, resource_map_type>;
 
     using shutdown_type = typename socket_type::shutdown_type;
-
-    static_assert (base::traits::Conjunction<
-                   std::is_base_of<boost::beast::http::basic_parser<true>, request_parser_type>,
-                   base::traits::HasValueType<request_parser_type, void>>::value,
-                   "Request parser type is not supported!");
 
     static_assert (base::traits::TryInvoke<on_timer_type, void(context_type)>::value,
                    "Invalid OnTimer handler type!");
@@ -467,8 +465,10 @@ private:
 
 #if defined BEASTHTTP_CXX17_OPTIONAL
         std::optional<request_parser_type> parser_;
+        std::optional<response_serializer_type> serializer_;
 #else
         boost::optional<request_parser_type> parser_;
+        boost::optional<response_serializer_type> serializer_;
 #endif
 
         buffer_type buffer_;
