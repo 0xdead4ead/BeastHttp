@@ -51,12 +51,13 @@ public:
 
     using storage_type = http::base::cb::storage<self_type, std::function, std::vector>;
 
-    using resource_map_type = std::unordered_map<resource_regex_type, std::shared_ptr<storage_type>>;
+    using resource_map_type = std::unordered_map<resource_regex_type, storage_type>;
 
     using method_map_type = std::map<method_type, resource_map_type>;
 
     class flesh
-    {};
+    {
+    };
 
     template<class Flesh>
     class context
@@ -64,7 +65,8 @@ public:
     public:
 
         context(Flesh&)
-        {}
+        {
+        }
     };
 
 }; // class test_session

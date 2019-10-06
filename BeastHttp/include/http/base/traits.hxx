@@ -148,50 +148,6 @@ struct try_invoke_cxx11 : is_invocable<F, R(Args...)>
 {
 };
 
-struct try_cbegin_helper
-{
-    template<class X>
-    auto operator()(X&& x) -> decltype (x.cbegin());
-};
-
-template<class R, class X>
-struct try_cbegin_cxx11 : try_invoke_cxx11<R, try_cbegin_helper, X>
-{
-};
-
-struct try_cend_helper
-{
-    template<class X>
-    auto operator()(X&& x) -> decltype (x.cend());
-};
-
-template<class R, class X>
-struct try_cend_cxx11 : try_invoke_cxx11<R, try_cend_helper, X>
-{
-};
-
-struct try_find_helper
-{
-    template<class X, class Y>
-    auto operator()(X&& x, Y&& y) -> decltype (x.find(std::forward<Y>(y)));
-};
-
-template<class R, class X, class Y>
-struct try_find_cxx11 : try_invoke_cxx11<R, try_find_helper, X, Y>
-{
-};
-
-struct try_size_helper
-{
-    template<class X>
-    auto operator()(X&& x) -> decltype (x.size());
-};
-
-template<class R, class X>
-struct try_size_cxx11 : try_invoke_cxx11<R, try_size_helper, X>
-{
-};
-
 struct has_const_iterator_helper
 {
     template<class X>
@@ -211,28 +167,6 @@ struct has_size_type_helper
 
 template<class R, class X>
 struct has_size_type_cxx11 : try_invoke_cxx11<R, has_size_type_helper, X>
-{
-};
-
-struct try_push_back_helper
-{
-    template<class X, class Y>
-    auto operator()(X&& x, Y&& y) -> decltype (x.push_back(std::forward<Y>(y)));
-};
-
-template<class R, class X, class Y>
-struct try_push_back_cxx11 : try_invoke_cxx11<R, try_push_back_helper, X, Y>
-{
-};
-
-struct try_bind_helper
-{
-    template<class X, class Y, class Z>
-    auto operator()(X&& x, Y&& y, Z&& z) -> decltype (x.bind(std::forward<Y>(y), std::forward<Z>(z)));
-};
-
-template<class R, class X, class Y, class Z>
-struct try_bind_cxx11 : try_invoke_cxx11<R, try_bind_helper, X, Y, Z>
 {
 };
 
@@ -423,39 +357,6 @@ struct has_regex_flag_type_cxx11 : try_invoke_cxx11<R, has_regex_flag_type_helpe
 {
 };
 
-struct try_wait_helper
-{
-    template<class X, class Y>
-    auto operator()(X&& x, Y&& y) -> decltype (x.wait(std::forward<Y>(y)));
-};
-
-template<class R, class X, class Y>
-struct try_wait_cxx11 : try_invoke_cxx11<R, try_wait_helper, X, Y>
-{
-};
-
-struct try_cancel_helper
-{
-    template<class X, class Y>
-    auto operator()(X&& x, Y&& y) -> decltype (x.cancel(std::forward<Y>(y)));
-};
-
-template<class R, class X, class Y>
-struct try_cancel_cxx11 : try_invoke_cxx11<R, try_cancel_helper, X, Y>
-{
-};
-
-struct try_async_wait_helper
-{
-    template<class X, class Y>
-    auto operator()(X&& x, Y&& y) -> decltype (x.async_wait(std::forward<Y>(y)));
-};
-
-template<class R, class X, class Y>
-struct try_async_wait_cxx11 : try_invoke_cxx11<R, try_async_wait_helper, X, Y>
-{
-};
-
 struct has_value_type_helper
 {
     template<class X>
@@ -464,6 +365,28 @@ struct has_value_type_helper
 
 template<class R, class X>
 struct has_value_type_cxx11 : try_invoke_cxx11<R, has_value_type_helper, X>
+{
+};
+
+struct has_session_type_helper
+{
+    template<class X>
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::session_type;
+};
+
+template<class R, class X>
+struct has_session_type_cxx11 : try_invoke_cxx11<R, has_session_type_helper, X>
+{
+};
+
+struct has_iterator_type_helper
+{
+    template<class X>
+    auto operator()(wrap<X> x) -> typename decltype (value(x))::iterator_type;
+};
+
+template<class R, class X>
+struct has_iterator_type_cxx11 : try_invoke_cxx11<R, has_iterator_type_helper, X>
 {
 };
 #else
@@ -494,38 +417,6 @@ constexpr auto tryInvoke(F&& f, Args&&... args)
 }
 
 template<class R, class X>
-constexpr auto tryCbegin(X&& x)
-{
-    return isValid<R>(
-                [](auto&& x) -> decltype(x.cbegin()){})
-            (std::forward<X>(x));
-}
-
-template<class R, class X>
-constexpr auto tryCend(X&& x)
-{
-    return isValid<R>(
-                [](auto&& x) -> decltype(x.cend()){})
-            (std::forward<X>(x));
-}
-
-template<class R, class X, class Y>
-constexpr auto tryFind(X&& x, Y&& y)
-{
-    return isValid<R>(
-                [](auto&& x, auto&& y) -> decltype(x.find(std::forward<decltype (y)>(y))){})
-            (std::forward<X>(x), std::forward<Y>(y));
-}
-
-template<class R, class X>
-constexpr auto trySize(X&& x)
-{
-    return isValid<R>(
-                [](auto&& x) -> decltype(x.size()){})
-            (std::forward<X>(x));
-}
-
-template<class R, class X>
 constexpr auto hasConstIterator(wrap<X> x)
 {
     return isValid<void>(
@@ -537,22 +428,6 @@ constexpr auto hasSizeType(wrap<X> x)
 {
     return isValid<R>(
                 [](auto x) -> typename decltype (value(x))::size_type {})(x);
-}
-
-template<class R, class X, class Y>
-constexpr auto tryPushBack(X&& x, Y&& y)
-{
-    return isValid<R>(
-                [](auto&& x, auto&& y) -> decltype (x.push_back(std::forward<decltype (y)>(y))){})
-            (std::forward<X>(x), std::forward<Y>(y));
-}
-
-template<class R, class X, class Y, class Z>
-constexpr auto tryBind(X&& x, Y&& y, Z&& z)
-{
-    return isValid<R>(
-                [](auto&& x, auto&& y, auto&& z) -> decltype (x.bind(std::forward<decltype (y)>(y), std::forward<decltype (z)>(z))){})
-            (std::forward<X>(x), std::forward<Y>(y), std::forward<Z>(z));
 }
 
 template<class R, class X>
@@ -676,56 +551,30 @@ constexpr auto hasRegexFlagType(wrap<X> x)
                 [](auto x) -> typename decltype (value(x))::regex_flag_type {})(x);
 }
 
-template<class R, class X, class Y>
-constexpr auto tryWait(X&& x, Y&& y)
-{
-    return isValid<R>(
-                [](auto&& x, auto&& y) -> decltype (x.wait(std::forward<decltype (y)>(y))) {})
-            (std::forward<X>(x), std::forward<Y>(y));
-}
-
-template<class R, class X, class Y>
-constexpr auto tryCancel(X&& x, Y&& y)
-{
-    return isValid<R>(
-                [](auto&& x, auto&& y) -> decltype (x.cancel(std::forward<decltype (y)>(y))) {})
-            (std::forward<X>(x), std::forward<Y>(y));
-}
-
-template<class R, class X, class Y>
-constexpr auto tryAsyncWait(X&& x, Y&& y)
-{
-    return isValid<R>(
-                [](auto&& x, auto&& y) -> decltype (x.async_wait(std::forward<decltype (y)>(y))) {})
-            (std::forward<X>(x), std::forward<Y>(y));
-}
-
 template<class R, class X>
 constexpr auto hasValueType(wrap<X> x)
 {
     return isValid<R>(
                 [](auto x) -> typename decltype (value(x))::value_type {})(x);
 }
+
+template<class R, class X>
+constexpr auto hasSessionType(wrap<X> x)
+{
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::session_type {})(x);
+}
+
+template<class R, class X>
+constexpr auto hasIteratorType(wrap<X> x)
+{
+    return isValid<R>(
+                [](auto x) -> typename decltype (value(x))::iterator_type {})(x);
+}
 #else
 template<class R, class F, class... Args>
 constexpr auto tryInvoke(F&&, Args&&...)
 -> decltype (try_invoke_cxx11<R, F, Args...>{});
-
-template<class R, class X>
-constexpr auto tryCbegin(X&&)
--> decltype (try_cbegin_cxx11<R, X>{});
-
-template<class R, class X>
-constexpr auto tryCend(X&&)
--> decltype (try_cend_cxx11<R, X>{});
-
-template<class R, class X, class Y>
-constexpr auto tryFind(X&&, Y&&)
--> decltype (try_find_cxx11<R, X, Y>{});
-
-template<class R, class X>
-constexpr auto trySize(X&&)
--> decltype (try_size_cxx11<R, X>{});
 
 template<class R, class X>
 constexpr auto hasConstIterator(X&&)
@@ -734,14 +583,6 @@ constexpr auto hasConstIterator(X&&)
 template<class R, class X>
 constexpr auto hasSizeType(X&&)
 -> decltype (has_size_type_cxx11<R, X>{});
-
-template<class R, class X, class Y>
-constexpr auto tryPushBack(X&&, Y&&)
--> decltype (try_push_back_cxx11<R, X, Y>{});
-
-template<class R, class X, class Y, class Z>
-constexpr auto tryBind(X&&, Y&&, Z&&)
--> decltype (try_bind_cxx11<R, X, Y, Z>{});
 
 template<class R, class X>
 constexpr auto tryStream(X&&)
@@ -811,22 +652,17 @@ template<class R, class X>
 constexpr auto hasRegexFlagType(X&&)
 -> decltype (has_regex_flag_type_cxx11<R, X>{});
 
-template<class R, class X, class Y>
-constexpr auto tryWait(X&&, Y&&)
--> decltype (try_wait_cxx11<R, X, Y>{});
-
-template<class R, class X, class Y>
-constexpr auto tryCancel(X&&, Y&&)
--> decltype (try_cancel_cxx11<R, X, Y>{});
-
-template<class R, class X, class Y>
-constexpr auto tryAsyncWait(X&&, Y&&)
--> decltype (try_async_wait_cxx11<R, X, Y>{});
-
 template<class R, class X>
 constexpr auto hasValueType(X&&)
 -> decltype (has_value_type_cxx11<R, X>{});
 
+template<class R, class X>
+constexpr auto hasSessionType(X&&)
+-> decltype (has_session_type_cxx11<R, X>{});
+
+template<class R, class X>
+constexpr auto hasIteratorType(X&&)
+-> decltype (has_iterator_type_cxx11<R, X>{});
 #endif // BEASTHTTP_CXX14_GENERIC_LAMBDAS
 } // namespace detail
 
@@ -853,65 +689,11 @@ struct TryInvokeConjunction<0, Sig1, Sig2, F>
     static constexpr bool value = TryInvoke<F, Sig2>::value;
 };
 
-template<class, class, class...>
-struct TryCbegin;
-
-template<class R, class X>
-struct TryCbegin<X, R()>
-    : decltype (detail::tryCbegin<R>(std::declval<X>()))
-{
-};
-
-template<class, class>
-struct TryCend;
-
-template<class R, class X>
-struct TryCend<X, R()>
-    : decltype (detail::tryCend<R>(std::declval<X>()))
-{
-};
-
-template<class, class>
-struct TryFind;
-
-template<class R, class X, class Y>
-struct TryFind<X, R(Y)>
-    : decltype (detail::tryFind<R>(std::declval<X>(), std::declval<Y>()))
-{
-};
-
 template<class X, class R>
 using HasConstIterator = decltype (detail::hasConstIterator<R>(detail::wrap<X>()));
 
 template<class X, class R>
 using HasSizeType = decltype (detail::hasSizeType<R>(detail::wrap<X>()));
-
-template<class, class>
-struct TrySize;
-
-template<class R, class X>
-struct TrySize<X, R()>
-    : decltype (detail::trySize<R>(std::declval<X>()))
-{
-};
-
-template<class, class>
-struct TryPushBack;
-
-template<class R, class X, class Y>
-struct TryPushBack<X, R(Y)>
-    : decltype (detail::tryPushBack<R>(std::declval<X>(), std::declval<Y>()))
-{
-};
-
-template<class, class>
-struct TryBind;
-
-template<class R, class X, class Y, class Z>
-struct TryBind<X, R(Y, Z)>
-    : decltype (detail::tryBind<R>(std::declval<X>(), std::declval<Y>(), std::declval<Z>()))
-{
-};
 
 template<class, class>
 struct TryStream;
@@ -988,35 +770,14 @@ using Get = detail::typelist::get<TypeList, Index>;
 template<class... Bn>
 using Conjunction = detail::conjunction<Bn...>;
 
-template<class, class>
-struct TryWait;
-
-template<class R, class X, class Y>
-struct TryWait<X, R(Y)>
-    : decltype (detail::tryWait<R>(std::declval<X>(), std::declval<Y>()))
-{
-};
-
-template<class, class>
-struct TryCancel;
-
-template<class R, class X, class Y>
-struct TryCancel<X, R(Y)>
-    : decltype (detail::tryCancel<R>(std::declval<X>(), std::declval<Y>()))
-{
-};
-
-template<class, class>
-struct TryAsyncWait;
-
-template<class R, class X, typename Y>
-struct TryAsyncWait<X, R(Y)>
-    : decltype (detail::tryAsyncWait<R>(std::declval<X>(), std::declval<Y>()))
-{
-};
-
 template<class X, class R>
 using HasValueType = decltype (detail::hasValueType<R>(detail::wrap<X>()));
+
+template<class X, class R>
+using HasSessionType = decltype (detail::hasSessionType<R>(detail::wrap<X>()));
+
+template<class X, class R>
+using HasIteratorType = decltype (detail::hasIteratorType<R>(detail::wrap<X>()));
 
 } // namespace traits
 } // namespace base

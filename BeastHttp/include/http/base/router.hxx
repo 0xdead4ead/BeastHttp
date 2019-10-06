@@ -54,7 +54,8 @@ protected:
                    base::traits::HasMethodType<session_type, void>,
                    base::traits::HasRegexType<session_type, void>,
                    base::traits::HasRegexFlagType<session_type, void>,
-                   base::traits::HasRequestType<session_type, void>>::value,
+                   base::traits::HasRequestType<session_type, void>,
+                   base::traits::HasStorageType<session_type, void>>::value,
                    "Session type is incorrect!");
 
     explicit

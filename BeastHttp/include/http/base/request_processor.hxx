@@ -41,16 +41,7 @@ public:
 
     using request_type = typename session_type::request_type;
 
-    static_assert (traits::Conjunction<
-                   traits::TryCbegin<resource_map_type, void()>,
-                   traits::TryCend<resource_map_type, void()>>::value,
-                   "Invalid resource container!");
-
-    static_assert (traits::Conjunction<
-                   traits::TryCbegin<method_map_type, void()>,
-                   traits::TryCend<method_map_type, void()>,
-                   traits::TryFind<method_map_type, void(method_type)>>::value,
-                   "Invalid method/verb container!");
+    using storage_type = typename session_type::storage_type;
 
     request_processor(std::shared_ptr<resource_map_type> const&,
                       std::shared_ptr<method_map_type> const&,

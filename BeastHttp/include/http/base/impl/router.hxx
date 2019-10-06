@@ -20,31 +20,16 @@ router<Session>::add_resource_cb(
         method_type const& method,
         storage_type&& storage)
 {
-    if (path_to_resource.empty()) // can not place callback with empty regex
-        return;
+    assert(not path_to_resource.empty());
 
     BEASTHTTP_LOCKABLE_ENTER_TO_WRITE(mutex_)
 
     if (not method_map_)
         method_map_ = std::make_shared<method_map_type>();
 
-    method_map_->insert({
-                            method,
-                            resource_map_type()
-                        });
+    auto& resource_map = method_map_->insert({method, resource_map_type()}).first->second;
 
-    auto& resource_map_ref = method_map_->at(method);
-
-    resource_map_ref.insert({
-                                path_to_resource,
-                                std::shared_ptr<storage_type>{}
-                            });
-
-    auto& storage_sp = resource_map_ref.at(path_to_resource);
-    if (not storage_sp)
-        storage_sp = std::make_shared<storage_type>();
-
-    *storage_sp = std::move(storage);
+    resource_map[path_to_resource] = std::move(storage);
 }
 
 template<class Session>
@@ -53,24 +38,14 @@ router<Session>::add_resource_cb_without_method(
         resource_regex_type const& path_to_resource,
         storage_type&& storage)
 {
-    if (path_to_resource.empty()) // can not place callback with empty regex
-        return;
+    assert(not path_to_resource.empty());
 
     BEASTHTTP_LOCKABLE_ENTER_TO_WRITE(mutex_)
 
     if (not resource_map_)
         resource_map_ = std::make_shared<resource_map_type>();
 
-    resource_map_->insert({
-                              path_to_resource,
-                              std::shared_ptr<storage_type>{}
-                          });
-
-    auto & storage_sp = resource_map_->at(path_to_resource);
-    if (not storage_sp)
-        storage_sp = std::make_shared<storage_type>();
-
-    *storage_sp = std::move(storage);
+    (*resource_map_)[path_to_resource] = std::move(storage);
 }
 
 template<class Session>

@@ -163,7 +163,7 @@ public:
 
     using storage_type = base::cb::storage<self_type, Entry, Container>;
 
-    using resource_map_type = ResourceMap<resource_regex_type, std::shared_ptr<storage_type>>;
+    using resource_map_type = ResourceMap<resource_regex_type, storage_type>;
 
     using method_map_type = MethodMap<method_type, resource_map_type>;
 

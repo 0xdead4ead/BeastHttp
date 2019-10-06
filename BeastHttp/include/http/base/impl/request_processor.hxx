@@ -44,25 +44,22 @@ request_processor<Session>::provide(
             for (auto __it_value = resource_map.cbegin();
                  __it_value != resource_map.cend(); ++__it_value) {
                 if (regex_.match(__it_value->first, target.to_string())) {
-                    auto const& storage = __it_value->second;
+                    auto& storage = const_cast<storage_type&>(__it_value->second);
 
-                    if (storage) {
-                        this->execute(request, _flesh, *storage);
-                        invoked = true;
-                    }
+                    this->execute(request, _flesh, storage);
+                    invoked = true;
                 }
             }
         }
     }
 
     if (resource_map_ and not invoked)
-        for (auto __it_value = resource_map_->cbegin();
-             __it_value != resource_map_->cend(); ++__it_value) {
+        for (auto __it_value = resource_map_->begin();
+             __it_value != resource_map_->end(); ++__it_value) {
             if (regex_.match(__it_value->first, target.to_string())) {
-                auto const& storage = __it_value->second;
+                auto& storage = const_cast<storage_type&>(__it_value->second);
 
-                if (storage)
-                    this->execute(request, _flesh, *storage);
+                this->execute(request, _flesh, storage);
             }
         }
 }

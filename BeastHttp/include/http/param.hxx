@@ -137,6 +137,19 @@ protected:
 
     using context_type = typename session_type::context_type;
 
+    static_assert (http::base::traits::HasContextType<session_type, void>::value,
+                   "Session type is incorrect!");
+
+    static_assert (http::base::traits::HasIteratorType<storage_type, void>::value,
+                   "Storage type is incorrect!");
+
+    static_assert (http::base::traits::Conjunction<
+                   http::base::traits::HasResourceRegexType<router_type, void>,
+                   http::base::traits::HasSessionType<router_type, void>,
+                   http::base::traits::HasRequestType<router_type, void>,
+                   http::base::traits::HasStorageType<router_type, void>>::value,
+                   "Router type is incorrect!");
+
     struct shared_block : public std::enable_shared_from_this<shared_block>
     {
         router_type& router_;
@@ -148,7 +161,8 @@ protected:
 
         shared_block(router_type& router, typename regex_type::flag_type flags)
             : router_{router}, regex_{flags}
-        {}
+        {
+        }
 
         void reset(){
             rp_iter_ = regex_pack.cbegin();
@@ -166,9 +180,9 @@ protected:
 
     base(const shared_block_ptr& shared_block_p)
         : shared_block_p_{shared_block_p}
-    {}
+    {
+    }
 
-    /// \brief Split regex path to '/' character
     void
     split_regex(resource_regex_type path_to_resource)
     {
@@ -198,15 +212,12 @@ protected:
         shared_block_p_->rp_iter_ = shared_block_p_->regex_pack.cbegin();
     }
 
-    template<class F, unsigned Count>
+    template<class F, unsigned count>
     struct paramcb
     {
-        static_assert (Count != 0, "Incorrect value, pack is empty!");
-
-        static_assert (Count < pack_type::max_count + 1,
-                       "Pack types limit!");
-
-    }; // struct paramcb
+        static_assert (count != 0, "Incorrect value, pack is empty!");
+        static_assert (count <= pack_type::max_count, "Pack types limit!");
+    };
 
     template<class F>
     struct paramcb<F, 1>
@@ -248,7 +259,7 @@ protected:
             }
         }
 
-    }; // struct paramcb<F, 1>
+    }; // struct paramcb
 
     template<class F>
     struct paramcb<F, 2>
@@ -306,7 +317,7 @@ protected:
             }
         }
 
-    };  // struct paramcb<F, 2>
+    };  // struct paramcb
 
     template<class F>
     struct paramcb<F, 3>
@@ -384,7 +395,7 @@ protected:
             }
         }
 
-    }; // struct paramcb<F, 3>
+    }; // struct paramcb
 
     template<class F>
     struct paramcb<F, 4>
@@ -486,7 +497,7 @@ protected:
             }
         }
 
-    }; // struct paramcb<F, 4>
+    }; // struct paramcb
 
     template<class F>
     struct paramcb<F, 5>
@@ -616,7 +627,7 @@ protected:
             }
         }
 
-    }; // struct paramcb<F, 5>
+    }; // struct paramcb
 
     template<class F>
     struct paramcb<F, 6>
@@ -778,7 +789,7 @@ protected:
             }
         }
 
-    }; // struct paramcb<F, 6>
+    }; // struct paramcb
 
     template<class F>
     struct paramcb<F, 7>
@@ -976,7 +987,7 @@ protected:
             }
         }
 
-    }; // struct paramcb<F, 7>
+    }; // struct paramcb
 
     template<class F>
     struct paramcb<F, 8>
@@ -1214,7 +1225,7 @@ protected:
             }
         }
 
-    }; // struct paramcb<F, 8>
+    }; // struct paramcb
 
     template<class F>
     struct paramcb<F, 9>
@@ -1496,7 +1507,7 @@ protected:
             }
         }
 
-    }; // struct paramcb<F, 9>
+    }; // struct paramcb
 
     template<class F>
     struct paramcb<F, 10>
@@ -1826,7 +1837,7 @@ protected:
             }
         }
 
-    }; // struct paramcb<F, 10>
+    }; // struct paramcb
 
     template<class F>
     struct paramcb<F, 11>
@@ -2208,7 +2219,7 @@ protected:
             }
         }
 
-    }; // struct paramcb<F, 11>
+    }; // struct paramcb
 
     template<class F>
     struct paramcb<F, 12>
@@ -2646,7 +2657,7 @@ protected:
             }
         }
 
-    }; // struct paramcb<F, 12>
+    }; // struct paramcb
 
     template<class F, unsigned Count>
     using paramcb_type = paramcb<F, Count>;
@@ -3128,7 +3139,7 @@ public:
                               {base_type::shared_block_p_, std::forward<OnRequest>(on_request)}...);
     }
 
-}; // class impl<basic_router<Session>, Pack<Types...>>
+}; // class impl
 
 template<
         class Session,
@@ -3165,7 +3176,8 @@ public:
         node(const typename base_type::shared_block_ptr& shared_block_p)
             : chain_node_type{shared_block_p->router_},
               shared_block_p_{shared_block_p}
-        {}
+        {
+        }
 
         template<class... OnRequest>
         auto
@@ -3584,7 +3596,8 @@ public:
     explicit
     impl(router_type& router, typename regex_type::flag_type flags)
         : base_type{std::make_shared<typename base_type::shared_block_type>(router, flags)}
-    {}
+    {
+    }
 
     node
     route(const resource_regex_type& path_to_resource) &&
@@ -3594,7 +3607,7 @@ public:
         return node{base_type::shared_block_p_};
     }
 
-}; // class impl<chain_router<Session>, Pack<Types...>>
+}; // class impl
 
 } // namespace param
 } // namespace http
