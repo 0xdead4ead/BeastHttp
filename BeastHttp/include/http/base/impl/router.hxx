@@ -29,7 +29,9 @@ router<Session>::add_resource_cb(
 
     auto& resource_map = method_map_->insert({method, resource_map_type()}).first->second;
 
-    resource_map[path_to_resource] = std::move(storage);
+    auto _res = resource_map.emplace(path_to_resource, std::move(storage));
+    if (!_res.second)
+        _res.first->second = std::move(storage);
 }
 
 template<class Session>
@@ -45,7 +47,9 @@ router<Session>::add_resource_cb_without_method(
     if (not resource_map_)
         resource_map_ = std::make_shared<resource_map_type>();
 
-    (*resource_map_)[path_to_resource] = std::move(storage);
+    auto _res = resource_map_->emplace(path_to_resource, std::move(storage));
+    if (!_res.second)
+        _res.first->second = std::move(storage);
 }
 
 template<class Session>

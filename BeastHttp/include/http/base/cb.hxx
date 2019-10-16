@@ -35,39 +35,67 @@ protected:
 }; // class executor
 
 BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-class storage;
-
-BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-struct iterator : std::iterator<
-        std::input_iterator_tag, void, typename storage<
-              Session, Entry, Container>::container_type ::difference_type,
-        void, void
-        >
+struct const_iterator
 {
-    using self_type = iterator;
+    using self_type = const_iterator;
 
-    using storage_type = storage<Session, Entry, Container>;
+    template<class, template<typename> class, template<typename, typename...> class>
+    friend class storage;
 
-    storage_type& storage_;
+    using session_type = Session;
+
+    using session_flesh = typename session_type::flesh_type;
+
+    using session_context = typename session_type::context_type;
+
+    using request_type = typename session_type::request_type;
+
+    using entry_type = Entry<void (request_type, session_context, self_type)>;
+
+    using container_type = Container<entry_type>;
+
+    using container_iterator = typename container_type::const_iterator;
+
+    using size_type = typename container_type::size_type;
+
+    // iterator_traits
+    using iterator_category = std::input_iterator_tag;
+
+    using value_type = typename container_iterator::value_type;
+
+    using difference_type = typename container_iterator::difference_type;
+
+    using pointer = typename container_iterator::pointer;
+
+    using reference = typename container_iterator::reference;
+    //
 
 public:
 
-    iterator(storage_type&) noexcept;
+    const_iterator(const container_type&, request_type&, session_flesh&);
 
-    inline self_type
-    operator++() const;
+    self_type&
+    operator++();
 
-    inline self_type
-    operator++(int) const;
+    self_type
+    operator++(int);
 
-    inline void
+    void
     operator()() const;
 
-    inline void
-    in() const;
-
-    inline std::size_t
+    inline size_type
     pos() const;
+
+private:
+    void
+    skip_target();
+
+    size_type pos_;
+    container_iterator cont_begin_iter_;
+    container_iterator cont_end_iter_;
+    request_type& request_;
+    session_flesh& session_flesh_;
+    std::string current_target_;
 
 }; // struct iterator
 
@@ -80,8 +108,6 @@ class storage
 
 public:
 
-    using iterator_type = cb::iterator<Session, Entry, Container>;
-
     using session_type = Session;
 
     using session_flesh = typename session_type::flesh_type;
@@ -90,11 +116,11 @@ public:
 
     using request_type = typename session_type::request_type;
 
+    using iterator_type = cb::const_iterator<Session, Entry, Container>;
+
     using entry_type = Entry<void (request_type, session_context, iterator_type)>;
 
     using container_type = Container<entry_type>;
-
-    using size_type = typename container_type::size_type;
 
     static_assert (traits::HasRequestType<session_type, void>::value
                    and traits::HasContextType<session_type, void>::value
@@ -103,9 +129,7 @@ public:
 
     BEASTHTTP_DECLARE_FRIEND_BASE_CB_EXECUTOR_CLASS
 
-    BEASTHTTP_DECLARE_FRIEND_CB_ITERATOR_STRUCT
-
-    storage() = default;
+    storage() = delete;
 
     template<class F, class... Fn,
              typename = typename std::enable_if<
@@ -123,37 +147,10 @@ private:
     container_type
     prepare(OnRequest&&...);
 
-    void
-    step_fwd();
-
-    void
-    exec();
-
-    std::size_t
-    pos();
-
-    void
+    iterator_type
     begin_exec(request_type&, session_flesh&);
 
-    template<typename _Self>
-    struct do_exec
-    {
-        void
-        operator()(_Self&);
-    };
-
-    void
-    reset();
-
-    void
-    skip_target();
-
     container_type container_;
-    typename container_type::const_iterator it_next_;
-    request_type* request_;
-    session_flesh* session_flesh_;
-    std::string current_target_;
-    size_type cb_pos_;
 
 }; // class storage
 
