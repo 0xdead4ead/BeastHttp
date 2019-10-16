@@ -106,10 +106,6 @@ public:
         };
     };
 
-    struct allocator_t
-    {
-    };
-
     using flesh_type = flesh;
 
     using context_type = context<flesh_type, context_policy::shared>;
@@ -178,7 +174,6 @@ public:
     static constexpr typename option::on_error_t on_error_arg{};
     static constexpr typename option::on_timer_t on_timer_arg{};
     static constexpr typename option::get_socket_t get_socket_arg{};
-    static constexpr allocator_t allocator_arg{};
 
 private:
 
@@ -732,7 +727,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class... _OnAction>
     static auto
-    make(allocator_t arg, socket_type&& socket, Router const& router, buffer_type&& buffer,
+    make(std::allocator_arg_t, socket_type&& socket, Router const& router, buffer_type&& buffer,
          const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
             std::declval<context_type>())>::type;
@@ -745,7 +740,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class... _OnAction>
     static auto
-    make(allocator_t arg, socket_type&& socket, Router const& router,
+    make(std::allocator_arg_t, socket_type&& socket, Router const& router,
          const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
             std::declval<context_type>())>::type;
@@ -758,7 +753,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class... _OnAction>
     static auto
-    recv(allocator_t arg, socket_type&& socket, Router const& router, buffer_type&& buffer,
+    recv(std::allocator_arg_t, socket_type&& socket, Router const& router, buffer_type&& buffer,
          const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
             std::declval<context_type>())>::type;
@@ -771,7 +766,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class... _OnAction>
     static auto
-    recv(allocator_t arg, socket_type&& socket, Router const& router,
+    recv(std::allocator_arg_t, socket_type&& socket, Router const& router,
          const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
             std::declval<context_type>())>::type;
@@ -786,7 +781,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
     static auto
-    recv(allocator_t arg, socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration,
+    recv(std::allocator_arg_t, socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration,
          buffer_type&& buffer, const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).recv(std::declval<TimePointOrDuration>()),
@@ -802,7 +797,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
     static auto
-    recv(allocator_t arg, socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration,
+    recv(std::allocator_arg_t, socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration,
          const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).recv(std::declval<TimePointOrDuration>()),
@@ -818,7 +813,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class Response, class... _OnAction>
     static auto
-    send(allocator_t arg, socket_type&& socket, Response&& response, Router const& router, buffer_type&& buffer,
+    send(std::allocator_arg_t, socket_type&& socket, Response&& response, Router const& router, buffer_type&& buffer,
          const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).send(std::declval<Response>()),
@@ -834,7 +829,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class Response, class... _OnAction>
     static auto
-    send(allocator_t arg, socket_type&& socket, Response&& response, Router const& router,
+    send(std::allocator_arg_t, socket_type&& socket, Response&& response, Router const& router,
          const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).send(std::declval<Response>()),
@@ -850,7 +845,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class Response, class TimePointOrDuration, class... _OnAction>
     static auto
-    send(allocator_t arg, socket_type&& socket, Response&& response, Router const& router,
+    send(std::allocator_arg_t, socket_type&& socket, Response&& response, Router const& router,
          TimePointOrDuration const timeOrDuration, buffer_type&& buffer,
          const Deleter& d, const Allocator& alloc,  _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
@@ -867,7 +862,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class Response, class TimePointOrDuration, class... _OnAction>
     static auto
-    send(allocator_t arg, socket_type&& socket, Response&& response, Router const& router,
+    send(std::allocator_arg_t, socket_type&& socket, Response&& response, Router const& router,
          TimePointOrDuration const timeOrDuration, const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).send(std::declval<Response>(), std::declval<TimePointOrDuration>()),
@@ -881,7 +876,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class... _OnAction>
     static auto
-    wait(allocator_t arg, socket_type&& socket, Router const& router, buffer_type&& buffer,
+    wait(std::allocator_arg_t, socket_type&& socket, Router const& router, buffer_type&& buffer,
          const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
             std::declval<context_type>())>::type;
@@ -894,7 +889,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class... _OnAction>
     static auto
-    wait(allocator_t arg, socket_type&& socket, Router const& router,
+    wait(std::allocator_arg_t, socket_type&& socket, Router const& router,
          const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
             std::declval<context_type>())>::type;
@@ -909,7 +904,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
     static auto
-    wait(allocator_t arg, socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration,
+    wait(std::allocator_arg_t, socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration,
          buffer_type&& buffer, const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).wait(std::declval<TimePointOrDuration>()),
@@ -925,7 +920,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
     static auto
-    wait(allocator_t arg, socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration,
+    wait(std::allocator_arg_t, socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration,
          const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).wait(std::declval<TimePointOrDuration>()),

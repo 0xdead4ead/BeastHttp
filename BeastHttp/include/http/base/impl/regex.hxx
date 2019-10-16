@@ -5,13 +5,11 @@ namespace _0xdead4ead {
 namespace http {
 namespace base {
 
-inline
 regex::regex(flag_type flags)
     : flags_{flags}
 {
 }
 
-inline
 bool
 regex::match(const std::string& regx, const std::string& str)
 {
@@ -19,7 +17,6 @@ regex::match(const std::string& regx, const std::string& str)
     return std::regex_match(str, e);
 }
 
-inline
 bool
 regex::match(const std::string& regx, const std::string& str,
       std::smatch& results)

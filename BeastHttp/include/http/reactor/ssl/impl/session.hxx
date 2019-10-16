@@ -760,7 +760,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(allocator_t arg,
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(std::allocator_arg_t arg,
      boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
      buffer_type&& buffer, const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
@@ -821,7 +821,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(allocator_t arg,
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(std::allocator_arg_t,
      boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
      const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
      BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
@@ -883,7 +883,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(allocator_t arg,
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(std::allocator_arg_t,
      boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
      TimePointOrDuration const timeOrDuration, buffer_type&& buffer,
      const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
@@ -947,7 +947,7 @@ session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(
 BEASTHTTP_REACTOR_SSL_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(allocator_t arg,
+session<BEASTHTTP_REACTOR_SSL_SESSION_TMPL_ATTRIBUTES>::handshake(std::allocator_arg_t,
      boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
      TimePointOrDuration const timeOrDuration, const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(

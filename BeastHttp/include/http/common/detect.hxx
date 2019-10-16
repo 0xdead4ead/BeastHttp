@@ -41,10 +41,6 @@ public:
 
     using base_type = base::detect<base::strand_stream::asio_type>;
 
-    struct allocator_t
-    {
-    };
-
     using protocol_type = Protocol;
 
     using socket_type = Socket;
@@ -65,8 +61,6 @@ public:
 
     using on_error_type = OnError<void (boost::system::error_code, boost::string_view)>;
 
-    static constexpr allocator_t allocator_arg{};
-
     template<class... _OnAction>
     static auto
     async(socket_type&& socket, _OnAction&&... on_action) -> decltype (
@@ -85,19 +79,19 @@ public:
 
     template<class Deleter, class Allocator, class... _OnAction>
     static auto
-    async(allocator_t arg, socket_type&& socket, const Deleter& d,
+    async(std::allocator_arg_t, socket_type&& socket, const Deleter& d,
           const Allocator& alloc, _OnAction&&... on_action) -> decltype (
             void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)));
 
     template<class Deleter, class Allocator, class... _OnAction>
     static auto
-    async(allocator_t arg, socket_type&& socket, duration_type const duration,
+    async(std::allocator_arg_t, socket_type&& socket, duration_type const duration,
           const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> decltype (
             void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)));
 
     template<class Deleter, class Allocator, class... _OnAction>
     static auto
-    async(allocator_t arg, socket_type&& socket, time_point_type const time_point,
+    async(std::allocator_arg_t, socket_type&& socket, time_point_type const time_point,
           const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> decltype (
             void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)));
 

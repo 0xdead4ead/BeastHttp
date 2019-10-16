@@ -78,7 +78,7 @@ BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class Deleter, class Allocator, class... _OnAction>
 auto
 detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
-        allocator_t, socket_type&& socket, const Deleter& d,
+        std::allocator_arg_t, socket_type&& socket, const Deleter& d,
         const Allocator& alloc, _OnAction&&... on_action)  -> decltype (
         void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
 {
@@ -94,7 +94,7 @@ BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class Deleter, class Allocator, class... _OnAction>
 auto
 detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
-        allocator_t, socket_type&& socket, duration_type const duration,
+        std::allocator_arg_t, socket_type&& socket, duration_type const duration,
         const Deleter& d, const Allocator& alloc, _OnAction&&... on_action)  -> decltype (
         void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
 {
@@ -110,7 +110,7 @@ BEASTHTTP_COMMON_DETECT_TMPL_DECLARE
 template<class Deleter, class Allocator, class... _OnAction>
 auto
 detect<BEASTHTTP_COMMON_DETECT_TMPL_ATTRIBUTES>::async(
-        allocator_t, socket_type&& socket, time_point_type const time_point,
+        std::allocator_arg_t, socket_type&& socket, time_point_type const time_point,
         const Deleter& d, const Allocator& alloc, _OnAction&&... on_action)  -> decltype (
         void(self_type(std::declval<socket_type>(), std::declval<_OnAction>()...)))
 {

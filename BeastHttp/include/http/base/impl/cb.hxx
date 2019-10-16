@@ -139,62 +139,84 @@ executor::execute(Request& request,
                   SessionFlesh& session_flesh,
                   Storage& storage)
 {
-    storage.reset();
-    storage.begin_exec(request, session_flesh);
+    storage.begin_exec(request, session_flesh)();
 }
 
 BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-iterator<Session, Entry, Container>::iterator(storage_type& storage) noexcept
-    : storage_{storage}
+const_iterator<Session, Entry, Container>::const_iterator(
+        const container_type& container, request_type& request,
+        session_flesh& flesh)
+    : pos_{0},
+      cont_begin_iter_{container.begin()},
+      cont_end_iter_{container.end()},
+      request_{request},
+      session_flesh_{flesh},
+      current_target_{request_.target().to_string()}
 {
+    if (container.size() > 1)
+        skip_target();
 }
 
 BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-inline typename iterator<Session, Entry, Container>::self_type
-iterator<Session, Entry, Container>::operator++() const
+typename const_iterator<Session, Entry, Container>::self_type&
+const_iterator<Session, Entry, Container>::operator++()
 {
-    storage_.step_fwd();
+    cont_begin_iter_++; pos_++;
+
+    if (cont_begin_iter_ == cont_end_iter_) {
+        cont_begin_iter_--; pos_--;
+    }
+
+    skip_target();
+
     return *this;
 }
 
 BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-inline typename iterator<Session, Entry, Container>::self_type
-iterator<Session, Entry, Container>::operator++(int) const
+typename const_iterator<Session, Entry, Container>::self_type
+const_iterator<Session, Entry, Container>::operator++(int)
 {
-    // is same above
-    return this->operator++();
+    self_type _tmp{*this};
+    ++(*this);
+    return _tmp;
 }
 
 BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-inline void
-iterator<Session, Entry, Container>::operator()() const
+void
+const_iterator<Session, Entry, Container>::operator()() const
 {
-    return this->in();
+    session_context _ctx{session_flesh_};
+    (*cont_begin_iter_) (request_, std::move(_ctx), *this);
 }
 
 BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-inline void
-iterator<Session, Entry, Container>::in() const
+void
+const_iterator<Session, Entry, Container>::skip_target()
 {
-    return this->storage_.exec();
+    std::size_t pos = current_target_.find('/', 1);
+
+    if (pos != std::string::npos) {
+        auto next_target = current_target_.substr(0, pos);
+        current_target_ = current_target_.substr(pos);
+
+        request_.target(next_target);
+    }
+    else
+        request_.target(current_target_);
 }
 
 BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-inline std::size_t
-iterator<Session, Entry, Container>::pos() const
+typename const_iterator<Session, Entry, Container>::size_type
+const_iterator<Session, Entry, Container>::pos() const
 {
-    return this->storage_.pos();
+    return pos_;
 }
 
 BEASTHTTP_DECLARE_STORAGE_TEMPLATE
 template<class F, class... Fn, typename>
 storage<Session, Entry, Container>::storage(F&& f, Fn&&... fn)
     : container_{prepare(std::forward<F>(f),
-                         std::forward<Fn>(fn)...)},
-      it_next_{container_.cbegin()},
-      request_{nullptr},
-      session_flesh_{nullptr},
-      cb_pos_{size_type{}}
+                         std::forward<Fn>(fn)...)}
 {
 }
 
@@ -238,79 +260,11 @@ storage<Session, Entry, Container>::prepare(OnRequest&&... on_request)
 }
 
 BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-void
-storage<Session, Entry, Container>::step_fwd()
-{
-    it_next_++; cb_pos_++;
-
-    if (it_next_ == container_.cend()) {
-        it_next_--; cb_pos_--;
-    }
-
-    skip_target();
-}
-
-BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-void
-storage<Session, Entry, Container>::exec()
-{
-    do_exec<self_type>{}(*this);
-}
-
-BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-std::size_t
-storage<Session, Entry, Container>::pos()
-{
-    return cb_pos_;
-}
-
-BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-void
+typename storage<Session, Entry, Container>::iterator_type
 storage<Session, Entry, Container>::begin_exec(
-        request_type& request, session_flesh& session_flesh)
+        request_type& request, session_flesh& flesh)
 {
-    request_ = std::addressof(request);
-    session_flesh_ = std::addressof(session_flesh);
-
-    current_target_ = request_->target().to_string();
-
-    if (container_.size() > 1)
-        skip_target();
-
-    do_exec<self_type>{}(*this);
-}
-
-BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-template<typename _Self>
-void
-storage<Session, Entry, Container>::do_exec<_Self>::operator()(_Self& self)
-{
-    session_context _ctx{*self.session_flesh_};
-    (*self.it_next_) (*self.request_, std::move(_ctx), iterator_type{self});
-}
-
-BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-void
-storage<Session, Entry, Container>::reset()
-{
-    it_next_ = container_.cbegin();
-    cb_pos_ = 0;
-}
-
-BEASTHTTP_DECLARE_STORAGE_TEMPLATE
-void
-storage<Session, Entry, Container>::skip_target()
-{
-    std::size_t pos = current_target_.find('/', 1);
-
-    if (pos != std::string::npos) {
-        auto next_target = current_target_.substr(0, pos);
-        current_target_ = current_target_.substr(pos);
-
-        request_->target(next_target);
-    }
-    else
-        request_->target(current_target_);
+    return iterator_type(container_, request, flesh);
 }
 
 } // namespace cb

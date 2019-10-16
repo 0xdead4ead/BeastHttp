@@ -531,7 +531,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::make(socket_type&& socket,
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::make(allocator_t arg,
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::make(std::allocator_arg_t,
      socket_type&& socket, Router const& router, buffer_type&& buffer,
      const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
@@ -582,7 +582,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::make(socket_type&& socket,
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::make(allocator_t arg,
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::make(std::allocator_arg_t,
      socket_type&& socket, Router const& router, const Deleter& d,
      const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
@@ -636,7 +636,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(allocator_t arg, socket_type&& socket,
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(std::allocator_arg_t, socket_type&& socket,
      Router const& router, buffer_type&& buffer, const Deleter& d, const Allocator& alloc,
      _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
@@ -692,7 +692,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(allocator_t arg,
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(std::allocator_arg_t,
      socket_type&& socket, Router const& router, const Deleter& d,
      const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
@@ -750,7 +750,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(allocator_t arg,
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(std::allocator_arg_t,
      socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration,
      buffer_type&& buffer, const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
@@ -809,7 +809,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(socket_type&& socket,
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(allocator_t arg,
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::recv(std::allocator_arg_t,
      socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration,
      const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
@@ -868,7 +868,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class Response, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(allocator_t arg,
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(std::allocator_arg_t,
      socket_type&& socket, Response&& response, Router const& router, buffer_type&& buffer,
      const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
@@ -926,7 +926,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class Response, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(allocator_t arg,
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(std::allocator_arg_t,
      socket_type&& socket, Response&& response, Router const& router, const Deleter& d,
      const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
@@ -985,7 +985,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class Response, class TimePointOrDuration, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(allocator_t arg,
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(std::allocator_arg_t,
      socket_type&& socket, Response&& response, Router const& router, TimePointOrDuration const timeOrDuration,
      buffer_type&& buffer, const Deleter& d, const Allocator& alloc,  _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
@@ -1044,7 +1044,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(socket_type&& socket,
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class Response, class TimePointOrDuration, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(allocator_t arg,
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::send(std::allocator_arg_t,
      socket_type&& socket, Response&& response, Router const& router, TimePointOrDuration const timeOrDuration,
      const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
@@ -1101,7 +1101,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(allocator_t arg,
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(std::allocator_arg_t,
      socket_type&& socket, Router const& router, buffer_type&& buffer, const Deleter& d,
      const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
@@ -1157,7 +1157,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(allocator_t arg,
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(std::allocator_arg_t,
      socket_type&& socket, Router const& router, const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
         std::declval<context_type>())>::type
@@ -1214,7 +1214,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(allocator_t arg,
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(std::allocator_arg_t,
      socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration, buffer_type&& buffer,
      const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(
@@ -1273,7 +1273,7 @@ session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(socket_type&& socket,
 BEASTHTTP_REACTOR_SESSION_TMPL_DECLARE
 template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
 auto
-session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(allocator_t arg,
+session<BEASTHTTP_REACTOR_SESSION_TMPL_ATTRIBUTES>::wait(std::allocator_arg_t,
      socket_type&& socket, Router const& router, TimePointOrDuration const timeOrDuration,
      const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
         BEASTHTTP_REACTOR_SESSION_TRY_INVOKE_FLESH_TYPE(

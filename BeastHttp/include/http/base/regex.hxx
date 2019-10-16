@@ -21,12 +21,12 @@ public:
 
     using flag_type = typename regex_type::flag_type;
 
-    regex(flag_type);
+    inline regex(flag_type);
 
-    bool
+    inline bool
     match(const std::string&, const std::string&);
 
-    bool
+    inline bool
     match(const std::string&, const std::string&, std::smatch&);
 
 private:

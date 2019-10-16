@@ -116,10 +116,6 @@ public:
         };
     };
 
-    struct allocator_t
-    {
-    };
-
     using flesh_type = flesh;
 
     using context_type = context<flesh_type, context_policy::shared>;
@@ -196,7 +192,6 @@ public:
     static constexpr typename option::on_timer_t on_timer_arg{};
     static constexpr typename option::get_socket_t get_socket_arg{};
     static constexpr typename option::get_ssl_stream_t get_ssl_stream_arg{};
-    static constexpr allocator_t allocator_arg{};
 
 private:
 
@@ -882,7 +877,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class... _OnAction>
     static auto
-    handshake(allocator_t arg, boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
+    handshake(std::allocator_arg_t arg, boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
               buffer_type&& buffer, const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
             std::declval<context_type>())>::type;
@@ -896,7 +891,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class... _OnAction>
     static auto
-    handshake(allocator_t arg, boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
+    handshake(std::allocator_arg_t arg, boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
               const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(std::declval<Router const&>()),
             std::declval<context_type>())>::type;
@@ -911,7 +906,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
     static auto
-    handshake(allocator_t arg, boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
+    handshake(std::allocator_arg_t arg, boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
               TimePointOrDuration const timeOrDuration, buffer_type&& buffer,
               const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(
@@ -928,7 +923,7 @@ public:
 
     template<class Deleter, class Allocator, class Router, class TimePointOrDuration, class... _OnAction>
     static auto
-    handshake(allocator_t arg, boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
+    handshake(std::allocator_arg_t arg, boost::asio::ssl::context& ctx, socket_type&& socket, Router const& router,
               TimePointOrDuration const timeOrDuration, const Deleter& d, const Allocator& alloc, _OnAction&&... on_action) -> typename std::decay<decltype (
             BEASTHTTP_REACTOR_SSL_SESSION_TRY_INVOKE_FLESH_TYPE(
                 std::declval<Router const&>()).handshake(std::declval<TimePointOrDuration>()),
