@@ -5,6 +5,7 @@
 #include <http/base/traits.hxx>
 
 #include <tuple>
+#include <mutex>
 
 #include <boost/lexical_cast.hpp>
 
@@ -152,6 +153,7 @@ protected:
 
     struct shared_block : public std::enable_shared_from_this<shared_block>
     {
+        std::recursive_mutex mutex_;
         router_type& router_;
         size_t cur_pos_cb_ = 0;
         resource_regex_pack_type regex_pack;
@@ -229,6 +231,8 @@ protected:
         void
         operator()(request_type request, context_type context)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -246,6 +250,8 @@ protected:
         void
         operator()(request_type request, context_type context, iterator_type it)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -271,6 +277,8 @@ protected:
         void
         operator()(request_type request, context_type context)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -296,6 +304,8 @@ protected:
         void
         operator()(request_type request, context_type context, iterator_type it)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -329,6 +339,8 @@ protected:
         void
         operator()(request_type request, context_type context)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -364,6 +376,8 @@ protected:
         void
         operator()(request_type request, context_type context, iterator_type it)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -407,6 +421,8 @@ protected:
         void
         operator()(request_type request, context_type context)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -454,6 +470,8 @@ protected:
         void
         operator()(request_type request, context_type context, iterator_type it)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -509,6 +527,8 @@ protected:
         void
         operator()(request_type request, context_type context)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -570,6 +590,8 @@ protected:
         void
         operator()(request_type request, context_type context, iterator_type it)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -639,6 +661,8 @@ protected:
         void
         operator()(request_type request, context_type context)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -716,6 +740,8 @@ protected:
         void
         operator()(request_type request, context_type context, iterator_type it)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -801,6 +827,8 @@ protected:
         void
         operator()(request_type request, context_type context)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -896,6 +924,8 @@ protected:
         void
         operator()(request_type request, context_type context, iterator_type it)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -999,6 +1029,8 @@ protected:
         void
         operator()(request_type request, context_type context)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -1114,6 +1146,8 @@ protected:
         void
         operator()(request_type request, context_type context, iterator_type it)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -1237,6 +1271,8 @@ protected:
         void
         operator()(request_type request, context_type context)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -1374,6 +1410,8 @@ protected:
         void
         operator()(request_type request, context_type context, iterator_type it)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -1519,6 +1557,8 @@ protected:
         void
         operator()(request_type request, context_type context)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -1680,6 +1720,8 @@ protected:
         void
         operator()(request_type request, context_type context, iterator_type it)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -1849,6 +1891,8 @@ protected:
         void
         operator()(request_type request, context_type context)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -2036,6 +2080,8 @@ protected:
         void
         operator()(request_type request, context_type context, iterator_type it)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -2231,6 +2277,8 @@ protected:
         void
         operator()(request_type request, context_type context)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_CLASSIC
 
             if (shared_block_p_->str_args.size() >= count) {
@@ -2446,6 +2494,8 @@ protected:
         void
         operator()(request_type request, context_type context, iterator_type it)
         {
+            std::lock_guard<std::recursive_mutex> _lock(shared_block_p_->mutex_);
+
             BEASTHTTP_IMPL_PARAM_PROCESS_ADVANCED
 
             if (shared_block_p_->str_args.size() >= count) {
